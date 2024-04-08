@@ -1,0 +1,91 @@
+services:
+  php:
+    image: ${IMAGES_PREFIX:-}app-magento
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-localhost}
+      # The next lines can be removed after initial installation
+      MAGENTO_PROJECT_EDITION: ${MAGENTO_PROJECT_EDITION:-project-community-edition}
+      MAGENTO_VERSION: ${MAGENTO_VERSION:-2.4.6}
+      STABILITY: ${STABILITY:-stable}
+      MAGENTO_PUBLIC_KEY: ${MAGENTO_PUBLIC_KEY:-}
+      MAGENTO_PRIVATE_KEY: ${MAGENTO_PRIVATE_KEY:-}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - db
+      - redis
+      - opensearch
+    ports:
+      # HTTP
+      - target: 80
+        published: ${HTTP_PORT:-80}
+        protocol: tcp
+      # HTTPS
+      - target: 443
+        published: ${HTTPS_PORT:-443}
+        protocol: tcp
+      # HTTP/3
+      - target: 443
+        published: ${HTTP3_PORT:-443}
+        protocol: udp
+
+  db:
+    image: mariadb:10.6
+    command:
+      --max_allowed_packet=64M
+      --optimizer_use_condition_selectivity=1
+      --optimizer_switch="rowid_filter=off"
+    ports:
+      - target: 3306
+        published: 3306
+        protocol: tcp
+
+    env_file:
+      - .env
+    volumes:
+      - dbdata:/var/lib/mysql4
+
+  redis:
+    image: redis:7.0-alpine
+    ports:
+      - "6379:6379"
+
+  opensearch:
+    image: opensearchproject/opensearch:2.5.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    env_file: .env
+    volumes:
+      - ./opensearch/docker-entrypoint.sh:/usr/share/opensearch/config/docker-entrypoint.sh
+    command: [ "/bin/bash", "/usr/share/opensearch/config/docker-entrypoint.sh" ]
+    environment:
+      - "discovery.type=single-node"
+      ## Avoid test failures due to small disks
+      - "cluster.routing.allocation.disk.threshold_enabled=false"
+      - "index.blocks.read_only_allow_delete"
+      ## Uncomment the following line to increase the virtual memory map count
+    #   - "max_map_count=262144"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  rabbitmq:
+    image: markoshust/magento-rabbitmq:3.11-1
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    env_file: .env
+
+volumes:
+  caddy_data:
+  caddy_config:
+  dbdata:
+  rabbitmqdata:

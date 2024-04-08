@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+current_folder=${PWD##*/}
+volume_prefix=`echo $current_folder | awk '{print tolower($0)}' | sed 's/\.//g'`
+volumes=$(docker volume ls -q -f name=${volume_prefix})
+[ -z "$volumes" ] && echo "There is no volume to remove" && exit
+docker volume rm -f ${volumes} 2> /dev/null
+
+
