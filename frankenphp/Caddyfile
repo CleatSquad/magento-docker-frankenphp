@@ -61,38 +61,54 @@
         }
     }
 
-    @staticPath path_regexp reg_static ^/static/(version\d*/)?(.*)$
-    handle @staticPath {
-        @static file /static/{re.reg_static.2}
-        rewrite @static /static/{re.reg_static.2}
+	@staticPath path_regexp reg_static ^/static/(version\d*/)?(.*)$
+	handle @staticPath {
+		@static file /static/{re.reg_static.2}
+		rewrite @static /static/{re.reg_static.2}
 
-        @dynamic not file /static/{re.reg_static.2}
-        rewrite @dynamic /static.php?resource={re.reg_static.2}
-    }
+		@staticFiles {
+			path *.ico *.jpg *.jpeg *.png *.gif *.svg *.svgz *.webp *.avif *.avifs *.js *.css *.eot *.ttf *.otf *.woff *.woff2 *.html *.json *.webmanifest
+		}
+		handle @staticFiles {
+			# Set headers for matched static assets
+			header Cache-Control "public, max-age=31536000"
+		}
+		@noCacheFiles {
+			path *.zip *.gz *.gzip *.bz2 *.csv *.xml
+		}
+		handle @noCacheFiles {
+			# Set Cache-Control header to no-store
+			header Cache-Control "no-store, no-cache, must-revalidate"
+		}
 
-    handle /media/ {
-        # Serve common static files with public caching for 1 year
-        @staticFiles path_regexp static /\.(ico|jpg|jpeg|png|gif|svg|svgz|webp|avif|avifs|js|css|eot|ttf|otf|woff|woff2)$
-        header @staticFiles Cache-Control "public, max-age=31536000"
-        header @staticFiles X-Frame-Options "SAMEORIGIN"
+		@dynamic not file /static/{re.reg_static.2}
+		rewrite @dynamic /static.php?resource={re.reg_static.2}
+		header X-Frame-Options "SAMEORIGIN"
+	}
 
-        # Serve other specific file types without caching
-        @nonCacheableFiles path_regexp noncache /\.(zip|gz|gzip|bz2|csv|xml)$
-        header @nonCacheableFiles Cache-Control "no-store"
-        header @nonCacheableFiles X-Frame-Options "SAMEORIGIN"
+    handle /media/* {
 
         # Deny access to specific XML files in the /media/theme_customization/ directory
         @denyXMLFiles path_regexp denyxml ^/media/theme_customization/.*\.xml
         respond @denyXMLFiles 403
 
-        # Apply SAMEORIGIN policy for all requests under /media/
-        header /media/* X-Frame-Options "SAMEORIGIN"
-
-        # Fallback to get.php for missing files
-        handle {
-            try_files {path} {path}/ /get.php?{query}
-            file_server
+        @staticFiles {
+            path *.ico *.jpg *.jpeg *.png *.gif *.svg *.svgz *.webp *.avif *.avifs *.js *.css *.eot *.ttf *.otf *.woff *.woff2
         }
+        handle @staticFiles {
+            # Set Cache-Control header for 1 year caching
+			header Cache-Control "public, max-age=31536000"
+        }
+        @noCacheFiles {
+            path *.zip *.gz *.gzip *.bz2 *.csv *.xml
+        }
+        handle @noCacheFiles {
+  		    # Set Cache-Control header to no-store
+            header Cache-Control "no-store, no-cache, must-revalidate"
+        }
+
+		try_files {path} {path}/ /get.php{query}
+        header X-Frame-Options "SAMEORIGIN"
     }
 
     # Block access to specific directories
@@ -106,9 +122,6 @@
     # PHP entry point for main application
     @phpFiles path /index.php /get.php /static.php /errors/report.php /errors/404.php /errors/503.php /health_check.php
     handle @phpFiles {
-        php_server {
-            #env PHP_FLAG "session.auto_start=off, suhosin.session.cryptua=off"
-            #env PHP_VALUE "memory_limit=756M, max_execution_time=18000"
-        }
+        try_files {path} {path}/ =404
     }
 }
