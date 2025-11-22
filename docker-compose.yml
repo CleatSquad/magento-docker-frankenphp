@@ -34,7 +34,7 @@ services:
         protocol: udp
 
   db:
-    image: mariadb:10.6
+    image: mariadb:10.11
     command:
       --max_allowed_packet=64M
       --optimizer_use_condition_selectivity=1
