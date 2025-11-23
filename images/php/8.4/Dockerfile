@@ -32,6 +32,8 @@ RUN set -eux; \
         ftp \
         sodium
 
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
 WORKDIR /var/www/html
 
 COPY entrypoint-prod.sh /usr/local/bin/entrypoint.sh
