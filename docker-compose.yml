@@ -54,7 +54,7 @@ services:
       - magento
 
   rabbitmq:
-    image: rabbitmq:4.1-management-alpine
+    image: rabbitmq:4.2-management-alpine
     container_name: magento-rabbitmq
     env_file: env/rabbitmq.env
     volumes:
