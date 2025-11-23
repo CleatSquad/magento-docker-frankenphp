@@ -48,7 +48,7 @@ services:
       - magento
 
   valkey:
-    image: valkey/valkey:8.1.4
+    image: valkey/valkey:9.0.0
     container_name: magento-valkey
     networks:
       - magento
