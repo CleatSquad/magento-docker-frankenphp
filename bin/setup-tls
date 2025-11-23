@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-[ -z "$1" ] && echo "Please specify a domain (ex. mydomain.test)" && exit
-
-set -o errexit
-# Generate a new local CA "/root/.local/share/mkcert"
-bin/start
-bin/docker-compose exec -T -u root php mkcert -cert-file  /etc/caddy/certs/tls.pem -key-file  /etc/caddy/certs/tls.key "$@"

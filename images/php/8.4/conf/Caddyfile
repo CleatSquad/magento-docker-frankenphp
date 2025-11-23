@@ -1,18 +1,22 @@
 {
-	{$CADDY_GLOBAL_OPTIONS}
+    {$CADDY_GLOBAL_OPTIONS}
 
-	frankenphp {
-		{$FRANKENPHP_CONFIG}
-	}
+    frankenphp {
+        {$FRANKENPHP_CONFIG}
+    }
 
-	# https://caddyserver.com/docs/caddyfile/directives#sorting-algorithm
-	order php_server before file_server
+    # https://caddyserver.com/docs/caddyfile/directives#sorting-algorithm
+    order php_server before file_server
 }
 
 {$CADDY_EXTRA_CONFIG}
 
-{$SERVER_NAME:localhost} {
-	log {
+(503) {
+	rewrite * /errors/503.php
+}
+
+{$SERVER_NAME} {
+    log {
 		# Redact the authorization query parameter that can be set by Mercure
 		format filter {
 			wrap console
@@ -23,13 +27,13 @@
 			}
 		}
 	}
-	log {
+    log {
         output file /var/log/caddy.log
     }
-	root * /var/www/html/pub
-	encode zstd br gzip
+    root * /var/www/html/pub
+    encode zstd br gzip
 
-	{$CADDY_SERVER_EXTRA_DIRECTIVES}
+    {$CADDY_SERVER_EXTRA_DIRECTIVES}
 
     handle_errors {
         @404 {
@@ -44,14 +48,14 @@
     }
     respond @sensitiveFiles 403
 
-	# Disable Topics tracking if not enabled explicitly: https://github.com/jkarlin/topics
-	header ?Permissions-Policy "browsing-topics=()"
-	php_server
+    # Disable Topics tracking if not enabled explicitly: https://github.com/jkarlin/topics
+    header ?Permissions-Policy "browsing-topics=()"
+    php_server
 
-	handle /setup/* {
-	    root * /var/www/html
+    handle /setup/* {
+        root * /var/www/html
 
-	    # Deny access to the setup directory
+        # Deny access to the setup directory
         @otherFiles not path /setup/pub/* /setup/index.php /setup /setup/
         handle @otherFiles {
             respond "Access Denied" 403
@@ -61,30 +65,30 @@
         }
     }
 
-	@staticPath path_regexp reg_static ^/static/(version\d*/)?(.*)$
-	handle @staticPath {
-		@static file /static/{re.reg_static.2}
-		rewrite @static /static/{re.reg_static.2}
+    @staticPath path_regexp reg_static ^/static/(version\d*/)?(.*)$
+    handle @staticPath {
+        @static file /static/{re.reg_static.2}
+        rewrite @static /static/{re.reg_static.2}
 
-		@staticFiles {
-			path *.ico *.jpg *.jpeg *.png *.gif *.svg *.svgz *.webp *.avif *.avifs *.js *.css *.eot *.ttf *.otf *.woff *.woff2 *.html *.json *.webmanifest
-		}
-		handle @staticFiles {
-			# Set headers for matched static assets
-			header Cache-Control "public, max-age=31536000"
-		}
-		@noCacheFiles {
-			path *.zip *.gz *.gzip *.bz2 *.csv *.xml
-		}
-		handle @noCacheFiles {
-			# Set Cache-Control header to no-store
-			header Cache-Control "no-store, no-cache, must-revalidate"
-		}
+        @staticFiles {
+            path *.ico *.jpg *.jpeg *.png *.gif *.svg *.svgz *.webp *.avif *.avifs *.js *.css *.eot *.ttf *.otf *.woff *.woff2 *.html *.json *.webmanifest
+        }
+        handle @staticFiles {
+            # Set headers for matched static assets
+            header Cache-Control "public, max-age=31536000"
+        }
+        @noCacheFiles {
+            path *.zip *.gz *.gzip *.bz2 *.csv *.xml
+        }
+        handle @noCacheFiles {
+            # Set Cache-Control header to no-store
+            header Cache-Control "no-store, no-cache, must-revalidate"
+        }
 
-		@dynamic not file /static/{re.reg_static.2}
-		rewrite @dynamic /static.php?resource={re.reg_static.2}
-		header X-Frame-Options "SAMEORIGIN"
-	}
+        @dynamic not file /static/{re.reg_static.2}
+        rewrite @dynamic /static.php?resource={re.reg_static.2}
+        header X-Frame-Options "SAMEORIGIN"
+    }
 
     handle /media/* {
 
@@ -97,17 +101,17 @@
         }
         handle @staticFiles {
             # Set Cache-Control header for 1 year caching
-			header Cache-Control "public, max-age=31536000"
+            header Cache-Control "public, max-age=31536000"
         }
         @noCacheFiles {
             path *.zip *.gz *.gzip *.bz2 *.csv *.xml
         }
         handle @noCacheFiles {
-  		    # Set Cache-Control header to no-store
+            # Set Cache-Control header to no-store
             header Cache-Control "no-store, no-cache, must-revalidate"
         }
 
-		try_files {path} {path}/ /get.php{query}
+        try_files {path} {path}/ /get.php{query}
         header X-Frame-Options "SAMEORIGIN"
     }
 
