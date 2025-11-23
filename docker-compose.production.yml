@@ -56,7 +56,7 @@ services:
       - magento
 
   redis:
-    image: redis:7.2
+    image: redis:7.4
     container_name: magento-redis
     restart: always
     command: ["redis-server", "--save", "", "--appendonly", "no"]
