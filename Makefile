@@ -18,7 +18,7 @@ ENV_DIR := env
 	@echo ".env generated successfully."
 
 setup-magento:
-	docker compose exec $(APP) php -d memory_limit=-1 bin/magento setup:install \
+	docker compose exec $(APP) bin/magento setup:install \
 		--base-url=$(BASE_URL) \
 		--db-host=$(DB_HOST) \
 		--db-name=$(DB_NAME) \
@@ -64,10 +64,10 @@ reindex:
 	docker compose exec $(APP) bin/magento indexer:reindex
 
 compile:
-	docker compose exec $(APP) php -d memory_limit=-1 bin/magento setup:di:compile
+	docker compose exec $(APP) bin/magento setup:di:compile
 
 upgrade-magento:
-	docker compose exec $(APP) php -d memory_limit=-1 bin/magento setup:up
+	docker compose exec $(APP) bin/magento setup:up
 
 permissions:
 	docker compose exec $(APP) chmod -R 777 var generated pub/static pub/media

@@ -61,6 +61,7 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh \
     && chown ${USER_ID}:${GROUP_ID} /usr/local/bin/entrypoint.sh
 
+COPY conf/app.ini /usr/local/etc/php/conf.d/99-app.ini
 
 # Switch user
 USER app
