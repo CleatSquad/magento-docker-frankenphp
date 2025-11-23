@@ -39,7 +39,7 @@ services:
       - magento
 
   opensearch:
-    image: opensearchproject/opensearch:2.14.0
+    image: opensearchproject/opensearch:2.19.4
     container_name: magento-search
     restart: always
     environment:
