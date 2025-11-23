@@ -24,7 +24,7 @@ services:
       - magento
 
   mariadb:
-    image: mariadb:11.4
+    image: mariadb:12.1
     container_name: magento-db
     restart: always
     environment:
