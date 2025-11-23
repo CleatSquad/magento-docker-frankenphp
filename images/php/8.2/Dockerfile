@@ -1,7 +1,6 @@
 #syntax=docker/dockerfile:1.20
-LABEL maintainer="Mohamed El Mrabet <contact@cleatsquad.dev>"
-
 FROM dunglas/frankenphp:1.10.0-php8.2
+LABEL maintainer="Mohamed El Mrabet <contact@cleatsquad.dev>"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     cron \
