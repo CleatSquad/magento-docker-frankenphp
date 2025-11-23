@@ -1,19 +1,5 @@
-APP=app
-
-BASE_URL=https://magento.localhost/
-ADMIN_FIRSTNAME=Admin
-ADMIN_LASTNAME=User
-ADMIN_EMAIL=admin@example.com
-ADMIN_USER=admin
-ADMIN_PASSWORD=Admin123!
-BACKEND_FRONTNAME=admin
-DB_HOST=mariadb
-DB_NAME=magento
-DB_USER=magento
-DB_PASSWORD=magento
-SEARCH_ENGINE=opensearch
-OPENSEARCH_HOST=opensearch
-OPENSEARCH_PORT=9200
+include .env
+export $(shell sed 's/=.*//' .env)
 
 setup-magento:
 	docker compose exec $(APP) php -d memory_limit=-1 bin/magento setup:install \
@@ -52,7 +38,10 @@ permissions:
 	docker compose exec $(APP) chmod -R 777 var generated pub/static pub/media
 
 composer:
-	docker compose exec $(APP) php -d memory_limit=-1 bin/composer
+	docker compose exec $(APP) php -d memory_limit=-1 composer $(ARG)
+
+version:
+	docker compose exec $(APP) php -v
 
 up:
 	docker compose up -d
@@ -65,5 +54,3 @@ build:
 
 install-magento:
 	docker compose exec $(APP) bash -lc "composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition ."
-
-

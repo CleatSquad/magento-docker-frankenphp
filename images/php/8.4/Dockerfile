@@ -1,4 +1,5 @@
 #syntax=docker/dockerfile:1.20
+LABEL maintainer="Mohamed El Mrabet <contact@cleatsquad.dev>"
 
 FROM dunglas/frankenphp:1.9.1-php8.4
 

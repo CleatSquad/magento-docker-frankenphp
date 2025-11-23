@@ -1,21 +1,19 @@
 #syntax=docker/dockerfile:1.20
 LABEL maintainer="Mohamed El Mrabet <contact@cleatsquad.dev>"
 
-FROM dunglas/frankenphp:1.9.1-php8.4
+FROM dunglas/frankenphp:1.9.1-php8.1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     cron \
     sendmail-bin \
     sendmail \
     libfreetype6-dev \
-	libicu-dev \
-	libjpeg62-turbo-dev \
-	libmcrypt-dev \
-	libxslt1-dev \
-	zip \
-	git \
+    libicu-dev \
+    libjpeg62-turbo-dev \
+    libmcrypt-dev \
+    libxslt1-dev \
+    zip \
     acl \
-    mkcert \
     libnss3-tools \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -33,13 +31,11 @@ RUN set -eux; \
         zip \
         sockets \
         ftp \
-        sodium \
-        xdebug
-
+        sodium
 
 WORKDIR /var/www/html
 
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY entrypoint-prod.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
