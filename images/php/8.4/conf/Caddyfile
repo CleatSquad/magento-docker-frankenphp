@@ -28,7 +28,7 @@
 		}
 	}
     log {
-        output file /var/log/caddy.log
+        output stdout
     }
     root * /var/www/html/pub
     encode zstd br gzip

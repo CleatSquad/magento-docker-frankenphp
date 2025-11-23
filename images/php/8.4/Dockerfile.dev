@@ -50,14 +50,17 @@ RUN groupadd --gid ${GROUP_ID} app \
     && usermod -a -G www-data app
 
 # Fix directory permissions
-RUN mkdir -p /var/www/html \
-    && chown -R ${USER_ID}:${GROUP_ID} /var/www \
-    && chown -R ${USER_ID}:${GROUP_ID} /usr/local/share/frankenphp
+RUN mkdir -p /var/www/html  /data/caddy \
+    && chown -R ${USER_ID}:${GROUP_ID} /var/www  /data
+
+# Ensure Caddy logs go to stdout (no permission issues)
+ENV CADDY_LOG_OUTPUT=stdout
 
 # Copy entrypoint
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh \
     && chown ${USER_ID}:${GROUP_ID} /usr/local/bin/entrypoint.sh
+
 
 # Switch user
 USER app
