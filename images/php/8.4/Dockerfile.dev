@@ -1,23 +1,26 @@
 #syntax=docker/dockerfile:1.20
 FROM dunglas/frankenphp:1.10.0-php8.4
+
 LABEL maintainer="Mohamed El Mrabet <contact@cleatsquad.dev>"
 
+# Install system packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     cron \
     sendmail-bin \
     sendmail \
     libfreetype6-dev \
-	libicu-dev \
-	libjpeg62-turbo-dev \
-	libmcrypt-dev \
-	libxslt1-dev \
-	zip \
-	git \
+    libicu-dev \
+    libjpeg62-turbo-dev \
+    libmcrypt-dev \
+    libxslt1-dev \
+    zip \
+    git \
     acl \
     mkcert \
     libnss3-tools \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Install PHP extensions
 RUN set -eux; \
     install-php-extensions \
         bcmath \
@@ -35,10 +38,30 @@ RUN set -eux; \
         sodium \
         xdebug
 
+# Copy Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Create the "app" user
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+RUN groupadd --gid ${GROUP_ID} app \
+    && useradd --create-home --shell /bin/bash --uid ${USER_ID} --gid app app \
+    && usermod -a -G www-data app
+
+# Fix directory permissions
+RUN mkdir -p /var/www/html \
+    && chown -R ${USER_ID}:${GROUP_ID} /var/www \
+    && chown -R ${USER_ID}:${GROUP_ID} /usr/local/share/frankenphp
+
+# Copy entrypoint
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+    && chown ${USER_ID}:${GROUP_ID} /usr/local/bin/entrypoint.sh
+
+# Switch user
+USER app
 
 WORKDIR /var/www/html
-
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

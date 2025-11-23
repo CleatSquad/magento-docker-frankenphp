@@ -15,7 +15,7 @@ services:
     depends_on:
       - mariadb
       - opensearch
-      - redis
+      - valkey
     networks:
       - magento
 
@@ -33,31 +33,35 @@ services:
       - magento
 
   opensearch:
-    image: opensearchproject/opensearch:2.14.0
-    container_name: magento-search
+    build:
+      context: ./images/opensearch
+      dockerfile: Dockerfile
+    container_name: magento-opensearch
+    env_file: env/opensearch.env
     environment:
-      discovery.type: single-node
-      DISABLE_SECURITY_PLUGIN: "true"
-      OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+      - "discovery.type=single-node"
+      - "cluster.routing.allocation.disk.threshold_enabled=false"
+      - "index.blocks.read_only_allow_delete"
     volumes:
       - opensearch-data:/usr/share/opensearch/data
     networks:
       - magento
 
-  redis:
-    image: redis:7.2
-    container_name: magento-redis
+  valkey:
+    image: valkey/valkey:8.1.4
+    container_name: magento-valkey
     networks:
       - magento
 
   rabbitmq:
-    image: rabbitmq:3-management
-    container_name: magento-mq
+    image: rabbitmq:4.1-management-alpine
+    container_name: magento-rabbitmq
+    env_file: env/rabbitmq.env
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - ./images/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     ports:
+      - "5672:5672"
       - "15672:15672"
     networks:
       - magento
@@ -70,10 +74,10 @@ services:
     networks:
       - magento
 
-
 networks:
   magento:
 
 volumes:
   db-data:
   opensearch-data:
+  rabbitmq-data:
