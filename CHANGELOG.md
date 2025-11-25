@@ -25,7 +25,7 @@ and this project adheres to **Semantic Versioning**.
 ### Fixed
 - Fix build-context issues with `src/`
 - Fix OpenSearch duplicate plugin setting
-- Fix Redis/Valkey container naming
+- Fix Valkey container naming
 - Fix `www-data` permissions during Magento compilation
 
 ---
