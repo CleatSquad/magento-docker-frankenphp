@@ -1,6 +1,6 @@
 # Magento Docker Environment (FrankenPHP)
 
-This repository provides a complete Docker-based environment for running Magento 2 using **FrankenPHP**, MariaDB, OpenSearch, Valkey RabbitMQ, Mailhog, and other optional services.  
+This repository provides a complete Docker-based environment for running Magento 2 using **FrankenPHP**, MariaDB, OpenSearch, Valkey, RabbitMQ, Mailhog, and other optional services.  
 It supports both **development** and **production** setups, based on a modular architecture.
 
 ---
