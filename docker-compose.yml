@@ -24,7 +24,7 @@ services:
     image: mariadb:11.4
     container_name: magento-db
     environment:
-      MYSQL_ROOT_USER: root
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: magento
       MYSQL_USER: magento
       MYSQL_PASSWORD: magento
