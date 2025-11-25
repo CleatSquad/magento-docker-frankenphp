@@ -87,7 +87,7 @@ Captures outgoing emails for testing.
 You may customize:
 
 - **Dockerfiles** under `images/php/8.4/`
-- **Service definitions** in `docker-compose.dev.yml` and `docker-compose.prod.yml`
+- **Service definitions** in `docker-compose.yml` and `docker-compose.prod.yml`
 - **Caddy configuration** under `images/php/8.4/conf/`
 - **Environment variables** in the `env/` folder
 
