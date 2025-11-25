@@ -2,7 +2,7 @@
 set -e
 
 # Fix Magento permissions for www-data
-[ -d /bin/magento ] && chmod +x bin/magento
+[ -f bin/magento ] && chmod +x bin/magento
 # Ownership and most permissions are set at build time via Dockerfile.
 # Only ensure writable directories have correct permissions if they exist.
 [ -d /var/www/html/var ] && chmod -R 775 /var/www/html/var
