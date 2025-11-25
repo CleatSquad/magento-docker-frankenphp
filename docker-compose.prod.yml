@@ -26,7 +26,7 @@ services:
     container_name: magento-db
     restart: always
     environment:
-      MYSQL_ROOT_NAME: root
+      MYSQL_ROOT_ROOT: root
       MYSQL_ROOT_PASSWORD: strong-root-password
       MYSQL_DATABASE: magento
       MYSQL_USER: magento

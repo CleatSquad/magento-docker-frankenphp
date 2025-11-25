@@ -29,6 +29,4 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
 
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer dump-autoload --no-dev --optimize --apcu
 
-ENV MAGE_MODE=production
-
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

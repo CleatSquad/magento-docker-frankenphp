@@ -36,8 +36,6 @@ and this project adheres to **Semantic Versioning**.
 - Base image published: `mohelmrabet/magento-frankenphp-base:php8.4-fp1.10`
 - Production-ready Dockerfile including:
     - `composer install`
-    - Magento DI compilation
-    - Static content deployment
 - Development Dockerfile including:
     - Xdebug
     - mkcert HTTPS support
