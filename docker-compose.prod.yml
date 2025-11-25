@@ -9,8 +9,6 @@ services:
       SERVER_NAME: "magento.localhost"
       MAGE_MODE: "production"
     volumes:
-      - magento-data:/var/www/html
-      - media-data:/var/www/html/pub/media
       - ./images/php/8.4/conf/Caddyfile:/etc/caddy/Caddyfile:ro
     ports:
       - 80:80
