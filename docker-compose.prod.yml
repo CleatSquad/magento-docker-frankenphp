@@ -79,5 +79,3 @@ volumes:
   db-data:
   opensearch-data:
   rabbitmq-data:
-  magento-data:
-  media-data:
