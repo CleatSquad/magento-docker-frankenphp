@@ -39,4 +39,6 @@ WORKDIR /var/www/html
 COPY entrypoint-prod.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+COPY conf/app-production.ini /usr/local/etc/php/conf.d/99-app.ini
+
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

@@ -17,7 +17,9 @@ services:
       - opensearch
       - valkey
     networks:
-      - magento
+      magento:
+        aliases:
+          - magento.localhost
 
   mariadb:
     image: mariadb:11.4

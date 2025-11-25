@@ -17,8 +17,11 @@ ENV_DIR := env
 
 	@echo ".env generated successfully."
 
+uninstall-magento:
+	docker compose exec -it $(APP) bin/magento setup:uninstall
+
 setup-magento:
-	docker compose exec $(APP) bin/magento setup:install \
+	docker compose exec -it $(APP) bin/magento setup:install \
 		--base-url=$(BASE_URL) \
 		--db-host=$(DB_HOST) \
 		--db-name=$(DB_NAME) \
@@ -58,22 +61,22 @@ setup-magento:
 		--page-cache-redis-db=1
 
 cache:
-	docker compose exec $(APP) bin/magento cache:flush
+	docker compose exec -it $(APP) bin/magento cache:flush
 
 reindex:
-	docker compose exec $(APP) bin/magento indexer:reindex
+	docker compose exec -it $(APP) bin/magento indexer:reindex
 
 compile:
-	docker compose exec $(APP) bin/magento setup:di:compile
+	docker compose exec -it $(APP) bin/magento setup:di:compile
 
 upgrade-magento:
-	docker compose exec $(APP) bin/magento setup:up
+	docker compose exec -it $(APP) bin/magento setup:up
 
 permissions:
-	docker compose exec $(APP) chmod -R 777 var generated pub/static pub/media
+	docker compose exec -it $(APP) chmod -R 777 var generated pub/static pub/media
 
 define run_composer
-	docker compose exec --user $(USER_ID):$(GROUP_ID) $(APP) composer $(1)
+	docker compose exec -it --user $(USER_ID):$(GROUP_ID) $(APP) composer $(1)
 endef
 
 composer-install:
@@ -86,7 +89,7 @@ composer-require:
 	$(call run_composer,require $(ARG))
 
 version:
-	docker compose exec $(APP) php -v
+	docker compose exec -it $(APP) php -v
 
 up:
 	docker compose up -d --remove-orphans
@@ -98,6 +101,24 @@ build:
 	docker compose build
 
 install-magento:
-	docker compose exec $(APP) bash -lc "composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition ."
+	docker compose exec -it $(APP) bash -lc "composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition ."
 
 full-install: install-magento setup-magento cache reindex
+
+test-integration:
+	docker compose exec -it $(APP) bin/magento dev:tests:run integration --processes $(p) -c"$(c)"
+
+test-integration-all:
+	docker compose exec -it $(APP) bin/magento dev:tests:run integration --processes $(p)
+
+test-unit:
+	docker compose exec -it $(APP) bin/magento dev:tests:run unit --processes $(p) -c"$(c)"
+
+test-api:
+	docker compose exec -it $(APP) bin/magento dev:tests:run api --processes $(p) -c"$(c)"
+
+test-api-all:
+	docker compose exec -it $(APP) bin/magento dev:tests:run api --processes $(p)
+
+bash:
+	docker compose exec -it $(APP) bash
