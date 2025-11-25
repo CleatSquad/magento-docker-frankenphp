@@ -1,44 +1,27 @@
 #syntax=docker/dockerfile:1.20
-FROM dunglas/frankenphp:1.10.0-php8.4
+FROM mohelmrabet/magento-frankenphp-base:php8.4-fp1.10
 LABEL maintainer="Mohamed El Mrabet <contact@cleatsquad.dev>"
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    cron \
-    sendmail-bin \
-    sendmail \
-    libfreetype6-dev \
-    libicu-dev \
-    libjpeg62-turbo-dev \
-    libmcrypt-dev \
-    libxslt1-dev \
-    zip \
-    acl \
-    libnss3-tools \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+USER root
+RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
 
-RUN set -eux; \
-    install-php-extensions \
-        bcmath \
-        gd \
-        intl \
-        mbstring \
-        mcrypt \
-        opcache \
-        pdo_mysql \
-        soap \
-        xsl \
-        zip \
-        sockets \
-        ftp \
-        sodium
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --chown=www-data:www-data src/ /var/www/html/
 
 WORKDIR /var/www/html
+USER www-data
 
-COPY entrypoint-prod.sh /usr/local/bin/entrypoint.sh
+RUN mkdir -p var pub/static pub/media generated
+
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN php bin/magento setup:di:compile
+RUN php bin/magento setup:static-content:deploy -f
+
+USER root
+COPY ./images/php/8.4/entrypoint-prod.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-COPY conf/app-production.ini /usr/local/etc/php/conf.d/99-app.ini
+COPY images/php/8.4/conf/app-prod.ini /usr/local/etc/php/conf.d/99-app.ini
+
+USER www-data
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

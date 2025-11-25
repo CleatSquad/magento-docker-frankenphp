@@ -1,45 +1,18 @@
 #syntax=docker/dockerfile:1.20
-FROM dunglas/frankenphp:1.10.0-php8.4
+FROM mohelmrabet/magento-frankenphp-base:php8.4-fp1.10
 
 LABEL maintainer="Mohamed El Mrabet <contact@cleatsquad.dev>"
 
-# Install system packages
+USER root
+
+# Install system packages only for DEV usage
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    cron \
-    sendmail-bin \
-    sendmail \
-    libfreetype6-dev \
-    libicu-dev \
-    libjpeg62-turbo-dev \
-    libmcrypt-dev \
-    libxslt1-dev \
-    zip \
     git \
-    acl \
     mkcert \
-    libnss3-tools \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
-RUN set -eux; \
-    install-php-extensions \
-        bcmath \
-        gd \
-        intl \
-        mbstring \
-        mcrypt \
-        opcache \
-        pdo_mysql \
-        soap \
-        xsl \
-        zip \
-        sockets \
-        ftp \
-        sodium \
-        xdebug
-
-# Copy Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Install Xdebug (DEV only)
+RUN install-php-extensions xdebug
 
 # Create the "app" user
 ARG USER_ID=1000
@@ -50,10 +23,10 @@ RUN groupadd --gid ${GROUP_ID} app \
     && usermod -a -G www-data app
 
 # Fix directory permissions
-RUN mkdir -p /var/www/html  /data/caddy \
-    && chown -R ${USER_ID}:${GROUP_ID} /var/www  /data
+RUN mkdir -p /var/www/html /data/caddy \
+    && chown -R ${USER_ID}:${GROUP_ID} /var/www /data
 
-# Ensure Caddy logs go to stdout (no permission issues)
+# Ensure Caddy logs go to stdout
 ENV CADDY_LOG_OUTPUT=stdout
 
 # Copy entrypoint
@@ -61,9 +34,10 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh \
     && chown ${USER_ID}:${GROUP_ID} /usr/local/bin/entrypoint.sh
 
+# PHP app config for DEV
 COPY conf/app.ini /usr/local/etc/php/conf.d/99-app.ini
 
-# Switch user
+# Switch to dev user
 USER app
 
 WORKDIR /var/www/html

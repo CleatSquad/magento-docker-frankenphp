@@ -1,17 +1,20 @@
 services:
   app:
     build:
-      context: ./images/php/8.4
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: ./images/php/8.4/Dockerfile
     container_name: magento-app
+    restart: always
+    environment:
+      SERVER_NAME: "magento.localhost"
+      MAGE_MODE: "production"
     volumes:
-      - ./src:/var/www/html
-      - ./images/php/8.4/conf/Caddyfile:/etc/caddy/Caddyfile:cached
+      - magento-data:/var/www/html
+      - media-data:/var/www/html/pub/media
+      - ./images/php/8.4/conf/Caddyfile:/etc/caddy/Caddyfile:ro
     ports:
       - 80:80
       - 443:443
-    environment:
-      SERVER_NAME: "magento.localhost"
     depends_on:
       - mariadb
       - opensearch
@@ -23,11 +26,13 @@ services:
   mariadb:
     image: mariadb:11.4
     container_name: magento-db
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_NAME: root
+      MYSQL_ROOT_PASSWORD: strong-root-password
       MYSQL_DATABASE: magento
       MYSQL_USER: magento
-      MYSQL_PASSWORD: magento
+      MYSQL_PASSWORD: strong-password
     volumes:
       - db-data:/var/lib/mysql
     networks:
@@ -38,11 +43,12 @@ services:
       context: ./images/opensearch
       dockerfile: Dockerfile
     container_name: magento-opensearch
+    restart: always
     env_file: env/opensearch.env
     environment:
       - "discovery.type=single-node"
+      #- "plugins.security.disabled=true"
       - "cluster.routing.allocation.disk.threshold_enabled=false"
-      - "index.blocks.read_only_allow_delete"
     volumes:
       - opensearch-data:/usr/share/opensearch/data
     networks:
@@ -51,12 +57,14 @@ services:
   valkey:
     image: valkey/valkey:8.1.4
     container_name: magento-valkey
+    restart: always
     networks:
       - magento
 
   rabbitmq:
     image: rabbitmq:4.1-management-alpine
     container_name: magento-rabbitmq
+    restart: always
     env_file: env/rabbitmq.env
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
@@ -67,14 +75,6 @@ services:
     networks:
       - magento
 
-  mailhog:
-    image: mailhog/mailhog
-    container_name: magento-mailhog
-    ports:
-      - "8025:8025"
-    networks:
-      - magento
-
 networks:
   magento:
 
@@ -82,3 +82,5 @@ volumes:
   db-data:
   opensearch-data:
   rabbitmq-data:
+  magento-data:
+  media-data:
