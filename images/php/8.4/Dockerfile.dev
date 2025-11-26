@@ -41,7 +41,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh \
     && chown ${USER_ID}:${GROUP_ID} /usr/local/bin/entrypoint.sh
 
 # PHP app config for DEV
-COPY images/php/8.4/conf/app-prod.ini /usr/local/etc/php/conf.d/zz-app.ini
+COPY images/php/8.4/conf/app.ini /usr/local/etc/php/conf.d/zz-app.ini
 COPY images/php/8.4/conf/mail.ini /usr/local/etc/php/conf.d/zz-mail.ini
 
 # Switch to dev user
