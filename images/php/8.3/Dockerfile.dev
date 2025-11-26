@@ -35,7 +35,8 @@ RUN mkdir -p /var/www/html /data/caddy \
 # Ensure Caddy logs go to stdout
 ENV CADDY_LOG_OUTPUT=stdout
 ARG MAGENTO_ROOT=/var/www/html
-ENV SENDMAIL_PATH=/dev/null
+# Default to mhsendmail for development; can be overridden in docker-compose.yml if needed
+ENV SENDMAIL_PATH=/usr/local/bin/mhsendmail
 ENV MAGENTO_RUN_MODE=default
 
 # Copy entrypoint
