@@ -1,8 +1,8 @@
 services:
   app:
     build:
-      context: ./images/php/8.4
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: ./images/php/8.4/Dockerfile.dev
     container_name: magento-app
     volumes:
       - ./src:/var/www/html
@@ -12,6 +12,7 @@ services:
       - 443:443
     environment:
       SERVER_NAME: "magento.localhost"
+      SENDMAIL_PATH: "/usr/local/bin/mhsendmail --smtp-addr=magento-mailhog:1025"
     depends_on:
       - mariadb
       - opensearch
@@ -72,6 +73,7 @@ services:
     container_name: magento-mailhog
     ports:
       - "8025:8025"
+      - "1025:1025"
     networks:
       - magento
 

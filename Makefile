@@ -1,9 +1,13 @@
-include .env
-export $(shell sed 's/=.*//' .env)
+# Load environment file if it exists
+ifneq ("$(wildcard .env)","")
+	include .env
+	export
+endif
 
 ENV_DIR := env
+APP := magento-app
 
-.env: /etc/passwd /etc/group Makefile
+env:
 	@echo "Generating .env from env/ directory…"
 	@rm -f .env
 	@touch .env
@@ -12,9 +16,8 @@ ENV_DIR := env
 		cat $$file >> .env; \
 		echo "" >> .env; \
 	done
-	@echo "USER_ID=$$(id --user ${USER})" >> .env
-	@echo "GROUP_ID=$$(id --group ${USER})" >> .env
-
+	@echo "USER_ID=$$(id -u)" >> .env
+	@echo "GROUP_ID=$$(id -g)" >> .env
 	@echo ".env generated successfully."
 
 uninstall-magento:
@@ -122,3 +125,6 @@ test-api-all:
 
 bash:
 	docker compose exec -it $(APP) bash
+
+logs:
+	docker logs $(APP) -f
