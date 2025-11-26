@@ -17,6 +17,7 @@ and this project adheres to **Semantic Versioning**.
 - Updated production entrypoint and Dockerfile logic to ensure Magento relies on an SMTP module for real email delivery.
 - Additional documentation explaining email behavior in DEV and PROD.
 - Minor improvements to development quality-of-life and error visibility.
+- Added support for PHP 8.3 with a new FrankenPHP 1.10 base image and updated Docker build configuration.
 
 ### Changed
 - Updated DEV Dockerfile to include MailHog routing by default.
