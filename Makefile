@@ -5,7 +5,7 @@ ifneq ("$(wildcard .env)","")
 endif
 
 ENV_DIR := env
-APP := magento-app
+APP := app
 
 env:
 	@echo "Generating .env from env/ directory…"
@@ -99,6 +99,8 @@ up:
 
 down:
 	docker compose down
+
+restart: down up
 
 build:
 	docker compose build

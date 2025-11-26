@@ -24,8 +24,9 @@ This project includes a reusable base image for Magento + FrankenPHP.
 
 ### **Base Image**
 
--   **mohelmrabet/magento-frankenphp-base:php8.4-fp1.10**\
-    https://hub.docker.com/repository/docker/mohelmrabet/magento-frankenphp-base
+-   **mohelmrabet/magento-frankenphp-base:php8.4-fp1.10**
+-   **mohelmrabet/magento-frankenphp-base:php8.3-fp1.10**\
+      https://hub.docker.com/repository/docker/mohelmrabet/magento-frankenphp-base
 
 This image provides:
 
