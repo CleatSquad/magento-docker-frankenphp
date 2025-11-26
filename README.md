@@ -142,7 +142,6 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 
 ---
 
----
 
 ## 🤝 Contributing
 
