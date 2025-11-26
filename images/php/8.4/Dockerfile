@@ -9,9 +9,13 @@ COPY ./images/php/8.4/entrypoint-prod.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # --- ADD SENDMAIL ---
+# Install sendmail for local mail submission only; disable the daemon to prevent open relay risks.
 RUN apt-get update && \
     apt-get install -y sendmail sendmail-bin && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    if [ -x /etc/init.d/sendmail ]; then rm /etc/init.d/sendmail; fi && \
+    if [ -f /lib/systemd/system/sendmail.service ]; then rm /lib/systemd/system/sendmail.service; fi
+# NOTE: Magento should use an SMTP module for actual email delivery. The sendmail daemon is disabled for security.
 
 # Fix directory permissions
 RUN mkdir -p /data/caddy \
