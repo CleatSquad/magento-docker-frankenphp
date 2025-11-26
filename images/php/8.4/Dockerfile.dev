@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Xdebug (DEV only)
 RUN install-php-extensions xdebug
 
-# Install mhsendmail (MailHog sendmail binary)
+# Install mhsendmail
 RUN curl -L -o /usr/local/bin/mhsendmail \
       https://github.com/mailhog/mhsendmail/releases/download/v0.2.0/mhsendmail_linux_amd64 \
     && chmod +x /usr/local/bin/mhsendmail
@@ -34,6 +34,9 @@ RUN mkdir -p /var/www/html /data/caddy \
 
 # Ensure Caddy logs go to stdout
 ENV CADDY_LOG_OUTPUT=stdout
+ARG MAGENTO_ROOT=/var/www/html
+ENV SENDMAIL_PATH=/dev/null
+ENV MAGENTO_RUN_MODE=default
 
 # Copy entrypoint
 COPY images/php/8.4/entrypoint.sh /usr/local/bin/entrypoint.sh
