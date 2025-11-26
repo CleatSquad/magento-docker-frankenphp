@@ -16,6 +16,7 @@ RUN mkdir -p /data/caddy \
 ENV CADDY_LOG_OUTPUT=stdout
 ARG MAGENTO_ROOT=/var/www/html
 ENV MAGENTO_RUN_MODE=production
+ENV SENDMAIL_PATH=/dev/null
 
 COPY --chown=www-data:www-data src/ /var/www/html/
 
