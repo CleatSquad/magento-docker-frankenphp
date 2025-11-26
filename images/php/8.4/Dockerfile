@@ -21,7 +21,8 @@ RUN chmod +x bin/magento
 #RUN bin/magento setup:static-content:deploy -f -j "$(nproc)"
 #RUN bin/magento setup:di:compile
 
-COPY images/php/8.4/conf/app-prod.ini /usr/local/etc/php/conf.d/99-app.ini
+# PHP app config for DEV
+COPY images/php/8.4/conf/app-prod.ini /usr/local/etc/php/conf.d/zz-app.ini
 
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
     --no-interaction --no-progress \
