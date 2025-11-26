@@ -9,27 +9,27 @@ and this project adheres to **Semantic Versioning**.
 ## [Unreleased]
 
 ### Added
-- Integrated **mhsendmail** into the development Docker image for MailHog email capture.
-- Automatic configuration of `sendmail_path` using a dedicated `zz-mailhog.ini` file in the DEV environment.
-- Environment separation for email handling:
-    - **DEV** → MailHog + mhsendmail
-    - **PROD** → sendmail disabled using `SENDMAIL_PATH=/dev/null`
+- Integrated **mhsendmail** into the development Docker image to support MailHog email interception.
+- Automatic configuration of PHP’s `sendmail_path` through a dedicated `zz-mailhog.ini` file in the DEV environment.
+- Clear environment separation for email handling:
+    - **DEV** → MailHog + mhsendmail (email capture)
+    - **PROD** → Native `mail()` disabled via `SENDMAIL_PATH=/dev/null`
 - Updated production entrypoint and Dockerfile logic to ensure Magento relies on an SMTP module for real email delivery.
-- Additional documentation explaining email behavior in DEV and PROD.
-- Minor improvements to development quality-of-life and error visibility.
-- Added support for PHP 8.3 with a new FrankenPHP 1.10 base image and updated Docker build configuration.
+- Expanded documentation describing email behavior across DEV and PROD.
+- Various quality-of-life improvements for development and enhanced error visibility.
+- Added full support for **PHP 8.3**, including a new FrankenPHP 1.10 base image and build logic.
 
 ### Changed
-- Updated DEV Dockerfile to include MailHog routing by default.
-- Updated PROD Dockerfile to explicitly disable PHP's native `mail()` function for safety.
-- Improved clarity and separation between DEV and PROD PHP configurations.
-- Enhanced consistency across environment variables and PHP INI files.
+- Updated DEV Dockerfile to enable MailHog routing by default for consistent development email behavior.
+- Updated PROD Dockerfile to explicitly disable PHP's native `mail()` function for improved safety and consistency.
+- Improved clarity and maintainability of DEV/PROD PHP configuration files.
+- Increased consistency in environment variables, PHP INI overrides, and overall configuration structure.
 
 ### Fixed
-- Missing sendmail binary in DEV containers (mhsendmail now installed).
-- Email delivery issues in DEV caused by PHP not using the correct sendmail wrapper.
-- Clarified potential duplicate script execution under FrankenPHP (documentation updated).
-- Minor permission fixes related to development workflows.
+- Missing sendmail wrapper in DEV containers (mhsendmail is now properly installed).
+- Fixed email delivery issues in DEV caused by incorrect PHP `sendmail_path` configuration.
+- Clarified documentation regarding potential duplicate script execution under FrankenPHP.
+- Minor permission issues impacting development workflows have been resolved.
 
 ---
 
@@ -38,20 +38,20 @@ and this project adheres to **Semantic Versioning**.
 ### Added
 - First stable release of the Magento Docker FrankenPHP setup.
 - Base image published: `mohelmrabet/magento-frankenphp-base:php8.4-fp1.10`
-- Production-ready Dockerfile including optimized:
+- Production-ready Dockerfile including optimizations for:
     - `composer install`
     - autoloader generation
 - Development Dockerfile including:
     - Xdebug integration
-    - mkcert HTTPS support
-    - development user management
-- Example `docker-compose.dev.yml` and `docker-compose.prod.yml` files.
+    - mkcert-based HTTPS support
+    - development user environment
+- Example `docker-compose.dev.yml` and `docker-compose.prod.yml` configurations.
 
 ---
 
 ## [0.1.0] – 2025-01-20
 
 ### Added
-- Initial project structure.
-- First working prototype integrating FrankenPHP and Magento.
-- Early Dockerfile experimentation and environment bootstrapping.
+- Initial project structure and bootstrap.
+- First working prototype integrating FrankenPHP with Magento.
+- Early Dockerfile experiments and environment scaffolding.

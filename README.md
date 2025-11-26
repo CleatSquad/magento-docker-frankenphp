@@ -134,6 +134,23 @@ Test DB connection:
 docker exec -it magento-db mysql -u magento -pmagento
 ```
 
+---
+
+## 📜 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for full details.
+
+---
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!  
+Please open an issue or PR if you want to improve the project.
+
+---
+
 ## 📄 License
 
 Released under the **MIT License**.
