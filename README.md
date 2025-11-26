@@ -1,5 +1,6 @@
 # Magento 2 + FrankenPHP — Complete Docker Environment
 ### (MariaDB · OpenSearch · Valkey · Mailhog · Optional RabbitMQ)
+# <img src="https://frankenphp.dev/img/logo_darkbg.svg" width="180" />
 
 This repository provides a fully featured Docker environment for running **Magento 2 on FrankenPHP**, including services such as MariaDB, OpenSearch, Valkey, Mailhog, and optional RabbitMQ.
 
@@ -34,8 +35,12 @@ Make sure the following tools are installed:
 
 ### **Base Image**
 
+https://hub.docker.com/repository/docker/mohelmrabet/magento-frankenphp-base
+
+
 **mohelmrabet/magento-frankenphp-base:php8.4-fp1.10**  
-👉 https://hub.docker.com/repository/docker/mohelmrabet/magento-frankenphp-base
+**mohelmrabet/magento-frankenphp-base:php8.3-fp1.10**
+
 
 This base image includes:
 
@@ -71,30 +76,6 @@ Supports Magento message queues and asynchronous processing.
 ### **Mailhog (development only)**
 Captures outgoing emails during development.
 
----
-
-## 📁 Project Structure
-
-```
-.
-├── docker-compose.yml             → Development stack
-├── docker-compose.prod.yml        → Production stack
-├── images/
-│   ├── php/8.4/
-│   │   ├── Dockerfile.base
-│   │   ├── Dockerfile
-│   │   ├── Dockerfile.dev
-│   │   ├── conf/
-│   │   │   ├── Caddyfile
-│   │   │   ├── app.ini
-│   │   │   └── app-prod.ini
-│   │   ├── entrypoint.sh
-│   │   └── entrypoint-prod.sh
-├── src/                           → Magento source code
-└── ...
-```
-
----
 
 ## ⚙️ Customization
 
@@ -107,49 +88,39 @@ You can customize:
 
 ---
 
-## 🛠️ Troubleshooting
-
-### 🔐 Permission issues
-
-If you encounter errors like:
-
-```
-var/ or pub/static not writable
-```
-
-Fix permissions:
-
-**From host:**
-```bash
-sudo chown -R $USER:$USER src/
-```
-
-**Inside container:**
-```bash
-chmod -R 775 var generated pub/static pub/media
-```
-
----
-
-### ⚡ Magento installation issues
-
-Check:
-
-- Database connectivity
-- Base URL
-- OpenSearch host (`opensearch`)
-- Cache/session configuration
-
-**Test DB connection:**
-```bash
-docker exec -it magento-db mysql -u magento -pmagento
-```
-
----
-
 ## 📄 License
 
 Licensed under the **MIT License**.
+
+---
+
+
+## 📜 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for full details.
+
+---
+
+
+## 🤝 Contributing
+
+Contributions are welcome!  
+If you'd like to help improve this project, feel free to:
+
+- Open issues
+- Submit pull requests
+- Propose improvements or new features
+- Report bugs
+- Improve documentation
+
+Before contributing, please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Open a Pull Request
+
+Every contribution — big or small — is appreciated and helps the project grow.
 
 ---
 
