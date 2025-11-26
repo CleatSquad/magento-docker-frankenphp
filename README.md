@@ -24,8 +24,9 @@ This project includes a reusable base image for Magento + FrankenPHP.
 
 ### **Base Image**
 
--   **mohelmrabet/magento-frankenphp-base:php8.4-fp1.10**\
-    https://hub.docker.com/repository/docker/mohelmrabet/magento-frankenphp-base
+-   **mohelmrabet/magento-frankenphp-base:php8.4-fp1.10**
+-   **mohelmrabet/magento-frankenphp-base:php8.3-fp1.10**
+-   https://hub.docker.com/repository/docker/mohelmrabet/magento-frankenphp-base
 
 This image provides:
 
@@ -132,6 +133,22 @@ Test DB connection:
 ``` bash
 docker exec -it magento-db mysql -u magento -pmagento
 ```
+
+---
+
+## 📜 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for full details.
+
+---
+
+
+## 🤝 Contributing
+
+Contributions are welcome!  
+Please open an issue or PR if you want to improve the project.
+
+---
 
 ## 📄 License
 

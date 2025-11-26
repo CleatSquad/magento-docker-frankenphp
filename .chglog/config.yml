@@ -1,0 +1,26 @@
+style: github
+info:
+  title: CHANGELOG
+  repository_url: https://github.com/CleatSquad/magento-docker-frankenphp
+options:
+  commits:
+    filters:
+      Type:
+        - feat
+        - fix
+        - change
+        - refactor
+        - perf
+        - docs
+  commit_groups:
+    title_maps:
+      feat: Added
+      fix: Fixed
+      change: Changed
+      refactor: Changed
+      perf: Improved
+      docs: Documentation
+  header:
+    pattern: "^(.*)$"
+    pattern_maps:
+      - Subject

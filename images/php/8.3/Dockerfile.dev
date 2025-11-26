@@ -1,0 +1,56 @@
+#syntax=docker/dockerfile:1.20
+FROM mohelmrabet/magento-frankenphp-base:php8.3-fp1.10
+
+LABEL maintainer="Mohamed El Mrabet <contact@cleatsquad.dev>"
+
+USER root
+
+# Install system packages only for DEV usage
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    mkcert \
+    curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Xdebug (DEV only)
+RUN install-php-extensions xdebug
+
+# Install mhsendmail
+RUN curl -L -o /usr/local/bin/mhsendmail \
+      https://github.com/mailhog/mhsendmail/releases/download/v0.2.0/mhsendmail_linux_amd64 \
+    && chmod +x /usr/local/bin/mhsendmail
+
+# Create the "app" user
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+RUN groupadd --gid ${GROUP_ID} app \
+    && useradd --create-home --shell /bin/bash --uid ${USER_ID} --gid app app \
+    && usermod -a -G www-data app
+
+# Fix directory permissions
+RUN mkdir -p /var/www/html /data/caddy \
+    && chown -R ${USER_ID}:${GROUP_ID} /var/www /data
+
+# Ensure Caddy logs go to stdout
+ENV CADDY_LOG_OUTPUT=stdout
+ARG MAGENTO_ROOT=/var/www/html
+# Default to mhsendmail for development; can be overridden in docker-compose.yml if needed
+ENV SENDMAIL_PATH=/usr/local/bin/mhsendmail
+ENV MAGENTO_RUN_MODE=default
+
+# Copy entrypoint
+COPY images/php/8.3/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+    && chown ${USER_ID}:${GROUP_ID} /usr/local/bin/entrypoint.sh
+
+# PHP app config for DEV
+COPY images/php/8.3/conf/app.ini /usr/local/etc/php/conf.d/zz-app.ini
+COPY images/php/8.3/conf/mail.ini /usr/local/etc/php/conf.d/zz-mail.ini
+
+# Switch to dev user
+USER app
+
+WORKDIR /var/www/html
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

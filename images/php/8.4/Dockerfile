@@ -8,9 +8,14 @@ RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
 COPY ./images/php/8.4/entrypoint-prod.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-RUN curl -L -o /usr/local/bin/mhsendmail \
-      https://github.com/mailhog/mhsendmail/releases/download/v0.2.0/mhsendmail_linux_amd64 \
-    && chmod +x /usr/local/bin/mhsendmail
+# --- ADD SENDMAIL ---
+# Install sendmail for local mail submission only; disable the daemon to prevent open relay risks.
+RUN apt-get update && \
+    apt-get install -y sendmail sendmail-bin && \
+    rm -rf /var/lib/apt/lists/* && \
+    if [ -x /etc/init.d/sendmail ]; then rm /etc/init.d/sendmail; fi && \
+    if [ -f /lib/systemd/system/sendmail.service ]; then rm /lib/systemd/system/sendmail.service; fi
+# NOTE: Magento should use an SMTP module for actual email delivery. The sendmail daemon is disabled for security.
 
 # Fix directory permissions
 RUN mkdir -p /data/caddy \
@@ -19,8 +24,9 @@ RUN mkdir -p /data/caddy \
 # Ensure Caddy logs go to stdout
 ENV CADDY_LOG_OUTPUT=stdout
 ARG MAGENTO_ROOT=/var/www/html
-ENV SENDMAIL_PATH=/dev/null
-ENV MAGENTO_RUN_MODE=production
+
+# Use the real sendmail binary
+ENV SENDMAIL_PATH=/usr/sbin/sendmail
 
 COPY --chown=www-data:www-data src/ /var/www/html/
 
@@ -28,8 +34,6 @@ WORKDIR /var/www/html
 USER www-data
 
 RUN chmod +x bin/magento
-#RUN bin/magento setup:static-content:deploy -f -j "$(nproc)"
-#RUN bin/magento setup:di:compile
 
 # PHP app config for PROD
 COPY images/php/8.4/conf/app.ini /usr/local/etc/php/conf.d/zz-app.ini
