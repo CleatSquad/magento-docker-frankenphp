@@ -8,9 +8,9 @@ RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
 COPY ./images/php/8.3/entrypoint-prod.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# --- ADD SENDMAIL ---
+# --- ADD SENDMAIL (use msmtp-mta for sendmail compatibility without daemon) ---
 RUN apt-get update && \
-    apt-get install -y sendmail sendmail-bin && \
+    apt-get install -y msmtp-mta && \
     rm -rf /var/lib/apt/lists/*
 
 # Fix directory permissions
