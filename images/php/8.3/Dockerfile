@@ -35,10 +35,10 @@ RUN chmod +x bin/magento
 COPY images/php/8.3/conf/app.ini /usr/local/etc/php/conf.d/zz-app.ini
 COPY images/php/8.3/conf/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 
-RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
+RUN composer install \
     --no-interaction --no-progress \
     --prefer-dist --no-dev --optimize-autoloader
 
-RUN COMPOSER_ALLOW_SUPERUSER=1 composer dump-autoload --no-dev --optimize --apcu
+RUN composer dump-autoload --no-dev --optimize --apcu
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
