@@ -71,7 +71,18 @@ git clone https://github.com/mohelmrabet/magento-frankenphp.git
 cd magento-frankenphp
 ```
 
-### 2. Setup environment
+### 2. Run setup script
+
+```bash
+./bin/setup.sh
+```
+
+This will:
+- ✅ Create the `proxy` network
+- ✅ Copy environment files
+- ✅ Set your user ID/GID
+
+### 3. Setup environment
 
 ```bash
 # Copy environment files
