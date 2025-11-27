@@ -38,8 +38,8 @@ services:
     env_file: env/opensearch.env
     environment:
       - "discovery.type=single-node"
-      - "cluster.routing. allocation.disk.threshold_enabled=false"
-      - "index. blocks.read_only_allow_delete"
+      - "cluster.routing.allocation.disk.threshold_enabled=false"
+      - "index.blocks.read_only_allow_delete"
     volumes:
       - opensearch-data:/usr/share/opensearch/data
     networks:
