@@ -1,0 +1,47 @@
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false  # true by default
+
+api:
+  dashboard: true
+  insecure: false
+
+  # (Optional) Log information
+# ---
+log:
+  level: DEBUG  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: common  # common, json, logfmt
+  filePath: /var/log/traefik/traefik.log
+
+# Entry Points configuration
+# ---
+entryPoints:
+  http:
+    address: :80
+
+  https:
+    address: :443
+
+#tls:
+#  certificates:
+#    - certFile: fullchain.pem
+#      keyFile:  privkey.pem
+#      stores:
+#        - default
+#  stores:
+#    default:
+#      defaultCertificate:
+#        certFile: fullchain.pem
+#        keyFile: privkey.pem
+
+serversTransport:
+  insecureSkipVerify: true
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: proxy
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true

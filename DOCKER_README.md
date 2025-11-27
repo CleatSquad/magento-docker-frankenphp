@@ -42,7 +42,7 @@ services:
 ```dockerfile
 FROM mohelmrabet/magento-frankenphp:php8.3-base
 
-COPY --chown=www-data:www-data .  /var/www/html/
+COPY --chown=www-data:www-data . /var/www/html/
 
 USER www-data
 RUN composer install --no-dev --optimize-autoloader
@@ -53,7 +53,7 @@ RUN bin/magento setup:static-content:deploy -f
 ## Features
 
 ### Base Image
-- ✅ PHP 8.1, 8.2, 8. 3, 8.4
+- ✅ PHP 8.2, 8.3, 8.4
 - ✅ FrankenPHP 1.10
 - ✅ All Magento PHP extensions
 - ✅ Composer 2
