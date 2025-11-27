@@ -1,0 +1,63 @@
+name: Integration Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['8.2', '8.3', '8.4']
+      fail-fast: false
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build base image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./images/php/${{ matrix.php-version }}/base/Dockerfile
+          push: false
+          load: true
+          tags: magento-frankenphp:php${{ matrix.php-version }}-base-test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test base image - PHP version
+        run: |
+          docker run --rm magento-frankenphp:php${{ matrix.php-version }}-base-test php -v | grep -q "PHP ${{ matrix.php-version }}"
+          echo "✅ PHP ${{ matrix.php-version }} version verified"
+
+      - name: Test base image - Required extensions
+        run: |
+          EXTENSIONS="bcmath gd intl mbstring opcache pdo_mysql soap xsl zip sockets sodium redis apcu"
+          for ext in $EXTENSIONS; do
+            if docker run --rm magento-frankenphp:php${{ matrix.php-version }}-base-test php -m | grep -qi "$ext"; then
+              echo "✅ Extension $ext is installed"
+            else
+              echo "❌ Extension $ext is missing"
+              exit 1
+            fi
+          done
+
+      - name: Test base image - Composer availability
+        run: |
+          docker run --rm magento-frankenphp:php${{ matrix.php-version }}-base-test composer --version
+          echo "✅ Composer is available"
+
+      - name: Test base image - FrankenPHP/Caddy availability
+        run: |
+          docker run --rm magento-frankenphp:php${{ matrix.php-version }}-base-test frankenphp version
+          echo "✅ FrankenPHP is available"
