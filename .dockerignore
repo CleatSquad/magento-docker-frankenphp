@@ -24,8 +24,8 @@ src/pub/media/cache
 
 # Dev files
 .git
-. idea
-*. md
+.idea
+*.md
 docker-compose*.yml
 Makefile
 .env
