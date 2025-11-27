@@ -6,6 +6,7 @@
 #   -c, --concurrency  Number of concurrent requests (default: 10)
 #   -n, --requests     Total number of requests (default: 1000)
 #   -w, --warmup       Number of warmup requests (default: 100)
+#   -v, --vanilla      Use vanilla FrankenPHP image (fair comparison)
 #   -h, --help         Show this help message
 #
 # Requirements: curl, docker, docker compose
@@ -22,6 +23,7 @@ set -e
 CONCURRENCY=10
 REQUESTS=1000
 WARMUP=100
+USE_VANILLA=false
 BENCHMARK_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")/benchmark"
 
 # Colors for output
@@ -72,12 +74,18 @@ show_help() {
     echo "  -c, --concurrency  Number of concurrent requests (default: $CONCURRENCY)"
     echo "  -n, --requests     Total number of requests (default: $REQUESTS)"
     echo "  -w, --warmup       Number of warmup requests (default: $WARMUP)"
+    echo "  -v, --vanilla      Use vanilla FrankenPHP image for fair comparison"
+    echo "                     (dunglas/frankenphp vs php:fpm-alpine)"
     echo "  -h, --help         Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0                     # Run with defaults"
+    echo "  $0                     # Run with defaults (Magento-optimized FrankenPHP)"
+    echo "  $0 -v                  # Fair comparison with vanilla images"
     echo "  $0 -c 50 -n 5000       # 50 concurrent, 5000 total requests"
     echo "  $0 --concurrency 100   # 100 concurrent requests"
+    echo ""
+    echo "Note: The default uses mohelmrabet/magento-frankenphp which includes"
+    echo "      many Magento extensions. Use -v for a fair apples-to-apples comparison."
 }
 
 # Parse arguments
@@ -95,6 +103,10 @@ while [[ $# -gt 0 ]]; do
             WARMUP="$2"
             shift 2
             ;;
+        -v|--vanilla)
+            USE_VANILLA=true
+            shift
+            ;;
         -h|--help)
             show_help
             exit 0
@@ -106,6 +118,15 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Set FrankenPHP compose file based on vanilla flag
+if [ "$USE_VANILLA" = true ]; then
+    FRANKENPHP_COMPOSE="docker-compose.frankenphp-vanilla.yml"
+    FRANKENPHP_DESC="FrankenPHP (vanilla)"
+else
+    FRANKENPHP_COMPOSE="docker-compose.frankenphp.yml"
+    FRANKENPHP_DESC="FrankenPHP (Magento)"
+fi
 
 # Check dependencies
 check_dependencies() {
@@ -161,8 +182,8 @@ start_services() {
     print_info "Starting Nginx + PHP-FPM stack..."
     docker compose -p benchmark-nginx -f docker-compose.nginx.yml up -d
     
-    print_info "Starting FrankenPHP stack..."
-    docker compose -p benchmark-frankenphp -f docker-compose.frankenphp.yml up -d
+    print_info "Starting $FRANKENPHP_DESC stack..."
+    docker compose -p benchmark-frankenphp -f "$FRANKENPHP_COMPOSE" up -d
     
     print_info "Waiting for services to be ready..."
     sleep 5
@@ -189,11 +210,11 @@ start_services() {
     done
     
     if [ $retries -eq 0 ]; then
-        print_error "FrankenPHP failed to start"
+        print_error "$FRANKENPHP_DESC failed to start"
         stop_services
         exit 1
     fi
-    print_success "FrankenPHP is ready (port 8081)"
+    print_success "$FRANKENPHP_DESC is ready (port 8081)"
 }
 
 # Stop services
@@ -203,7 +224,10 @@ stop_services() {
     cd "$BENCHMARK_DIR"
     
     docker compose -p benchmark-nginx -f docker-compose.nginx.yml down --remove-orphans 2>/dev/null || true
+    docker compose -p benchmark-frankenphp -f "$FRANKENPHP_COMPOSE" down --remove-orphans 2>/dev/null || true
+    # Also stop the other FrankenPHP compose in case it was running
     docker compose -p benchmark-frankenphp -f docker-compose.frankenphp.yml down --remove-orphans 2>/dev/null || true
+    docker compose -p benchmark-frankenphp -f docker-compose.frankenphp-vanilla.yml down --remove-orphans 2>/dev/null || true
     
     print_success "Services stopped"
 }
@@ -338,13 +362,23 @@ trap cleanup EXIT
 
 # Main execution
 main() {
-    print_header "Benchmark: FrankenPHP vs Nginx + PHP-FPM"
+    print_header "Benchmark: $FRANKENPHP_DESC vs Nginx + PHP-FPM"
     
     echo ""
     print_info "Configuration:"
     echo "  • Concurrent requests: $CONCURRENCY"
     echo "  • Total requests: $REQUESTS"
     echo "  • Warmup requests: $WARMUP"
+    if [ "$USE_VANILLA" = true ]; then
+        echo "  • Mode: Fair comparison (vanilla images)"
+        echo "    - FrankenPHP: dunglas/frankenphp:1.3-php8.4-alpine"
+        echo "    - PHP-FPM: php:8.4-fpm-alpine"
+    else
+        echo "  • Mode: Magento-optimized FrankenPHP"
+        echo "    - FrankenPHP: mohelmrabet/magento-frankenphp:php8.4-fp1.10-base"
+        echo "    - PHP-FPM: php:8.4-fpm-alpine"
+        print_warning "For fair comparison, use -v flag (vanilla images)"
+    fi
     echo ""
     
     check_dependencies
@@ -354,11 +388,11 @@ main() {
     
     # Warmup
     run_warmup "http://localhost:8080/index.php" "Nginx + PHP-FPM"
-    run_warmup "http://localhost:8081/index.php" "FrankenPHP"
+    run_warmup "http://localhost:8081/index.php" "$FRANKENPHP_DESC"
     
     # Run benchmarks
     nginx_results=$(run_benchmark "http://localhost:8080/index.php" "Nginx + PHP-FPM" "/tmp/benchmark_nginx")
-    frankenphp_results=$(run_benchmark "http://localhost:8081/index.php" "FrankenPHP" "/tmp/benchmark_frankenphp")
+    frankenphp_results=$(run_benchmark "http://localhost:8081/index.php" "$FRANKENPHP_DESC" "/tmp/benchmark_frankenphp")
     
     # Display results
     display_results "$nginx_results" "$frankenphp_results"
@@ -391,6 +425,10 @@ main() {
     echo "  • /tmp/benchmark_nginx.txt"
     echo "  • /tmp/benchmark_frankenphp.txt"
     echo ""
+    
+    if [ "$USE_VANILLA" = false ]; then
+        print_info "Tip: Run with -v flag for fair comparison using vanilla images"
+    fi
     
     print_success "Benchmark completed!"
 }

@@ -6,7 +6,8 @@
 :80 {
     root * /var/www/html
 
-    encode zstd br gzip
+    # Compression disabled for fair benchmark comparison
+    # encode zstd br gzip
 
     php_server
 }
