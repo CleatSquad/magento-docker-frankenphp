@@ -216,7 +216,7 @@ docker compose exec app bin/magento indexer:reindex
 ./bin/generate-dockerfiles.sh
 
 # Build all versions
-./bin/build-all. sh build
+./bin/build-all.sh build
 
 # Push to Docker Hub
 ./bin/build-all.sh push
