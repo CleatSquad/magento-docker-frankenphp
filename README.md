@@ -392,7 +392,7 @@ Compare FrankenPHP with Nginx + PHP-FPM using the included benchmark tool:
 
 The benchmark uses:
 - **FrankenPHP**: `mohelmrabet/magento-frankenphp:php8.4-fp1.10-base`
-- **PHP-FPM**: `markoshust/magento-php:8.3-fpm-4` from [docker-magento](https://github.com/markshust/docker-magento)
+- **Nginx + PHP-FPM**: `markoshust/magento-nginx:1.24` and `markoshust/magento-php:8.4-fpm` from [docker-magento](https://github.com/markshust/docker-magento)
 
 For detailed documentation, see [docs/BENCHMARK.md](docs/BENCHMARK.md).
 
