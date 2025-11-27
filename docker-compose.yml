@@ -25,15 +25,17 @@ services:
       - traefik.http.routers.traefik.service=api@internal
 
   app:
-    image: mohelmrabet/magento-frankenphp:php8.3-fp1.10-dev
+    image: mohelmrabet/magento-frankenphp:php8.4-fp1.10-dev
     container_name: magento-app
+    user: www-data
     environment:
       SERVER_NAME: ${SERVER_NAME:-magento.localhost}
       USER_ID: ${USER_ID:-1000}
       GROUP_ID: ${GROUP_ID:-1000}
+      MAGENTO_RUN_MODE: developer
       SENDMAIL_PATH: "/usr/local/bin/mhsendmail --smtp-addr=magento-mailhog:1025"
     volumes:
-      - ./images/php/8.3/conf/Caddyfile:/etc/caddy/Caddyfile:cached
+      - ./images/php/8.4/conf/Caddyfile:/etc/caddy/Caddyfile:cached
       - ./src:/var/www/html
     labels:
       - traefik.enable=true

@@ -40,13 +40,14 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
 
-# Create caddy config directory
-RUN mkdir -p /etc/caddy /data/caddy /var/www/html \
+RUN mkdir -p /etc/caddy /data/caddy /var/www/html /var/www/. composer \
  && chown -R www-data:www-data /var/www /data /etc/caddy
 
-# Copy default Caddyfile
 COPY images/php/8.4/conf/Caddyfile /etc/caddy/Caddyfile
+COPY images/php/8.4/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
+COPY images/php/8.4/conf/app.ini /usr/local/etc/php/conf.d/zz-app.ini
 
 ENV CADDY_LOG_OUTPUT=stdout
 ENV COMPOSER_ALLOW_SUPERUSER=0
@@ -55,3 +56,5 @@ ENV COMPOSER_HOME=/var/www/.composer
 WORKDIR /var/www/html
 
 EXPOSE 80 443
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
