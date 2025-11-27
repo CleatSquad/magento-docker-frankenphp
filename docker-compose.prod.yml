@@ -1,35 +1,29 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: ./images/php/8.4/Dockerfile
+    image: mohelmrabet/magento-frankenphp:php8.3-fp1.10-base
     container_name: magento-app
-    restart: always
-    environment:
-      SERVER_NAME: "magento.localhost"
-      MAGE_MODE: "production"
+    restart: unless-stopped
     volumes:
-      - ./images/php/8.4/conf/Caddyfile:/etc/caddy/Caddyfile:ro
-    ports:
-      - 80:80
-      - 443:443
+      - ./images/php/8.3/conf/Caddyfile:/etc/caddy/Caddyfile:cached
+    environment:
+      SERVER_NAME: "marjanemall2.com"
+      MAGENTO_RUN_MODE: production
     depends_on:
       - mariadb
       - opensearch
       - valkey
       - rabbitmq
+    ports:
+      - "80:80"
+      - "443:443"
     networks:
       - magento
 
   mariadb:
     image: mariadb:11.4
     container_name: magento-db
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: strong-root-password
-      MYSQL_DATABASE: magento
-      MYSQL_USER: magento
-      MYSQL_PASSWORD: strong-password
+    restart: unless-stopped
+    env_file: env/mariadb.env
     volumes:
       - db-data:/var/lib/mysql
     networks:
@@ -40,12 +34,12 @@ services:
       context: ./images/opensearch
       dockerfile: Dockerfile
     container_name: magento-opensearch
-    restart: always
+    restart: unless-stopped
     env_file: env/opensearch.env
     environment:
       - "discovery.type=single-node"
-      #- "plugins.security.disabled=true"
-      - "cluster.routing.allocation.disk.threshold_enabled=false"
+      - "cluster.routing. allocation.disk.threshold_enabled=false"
+      - "index. blocks.read_only_allow_delete"
     volumes:
       - opensearch-data:/usr/share/opensearch/data
     networks:
@@ -54,21 +48,18 @@ services:
   valkey:
     image: valkey/valkey:8.1.4
     container_name: magento-valkey
-    restart: always
+    restart: unless-stopped
     networks:
       - magento
 
   rabbitmq:
     image: rabbitmq:4.1-management-alpine
     container_name: magento-rabbitmq
-    restart: always
+    restart: unless-stopped
     env_file: env/rabbitmq.env
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
       - ./images/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     networks:
       - magento
 

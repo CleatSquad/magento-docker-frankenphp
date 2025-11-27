@@ -1,0 +1,33 @@
+# Var directory
+src/var/cache
+src/var/page_cache
+src/var/session
+src/var/log
+src/var/report
+src/var/tmp
+src/var/view_preprocessed
+src/var/generation
+
+# Generated code
+src/generated/code
+src/generated/metadata
+
+# Static files
+src/pub/static/frontend
+src/pub/static/adminhtml
+src/pub/static/deployed_version.txt
+
+# Media
+src/pub/media/catalog
+src/pub/media/tmp
+src/pub/media/cache
+
+# Dev files
+.git
+. idea
+*. md
+docker-compose*.yml
+Makefile
+.env
+.env.*
+*.log

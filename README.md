@@ -1,131 +1,349 @@
 # Magento 2 + FrankenPHP — Complete Docker Environment
-### (MariaDB · OpenSearch · Valkey · Mailhog · Optional RabbitMQ)
-# <img src="https://frankenphp.dev/img/logo_darkbg.svg" width="180" />
 
-This repository provides a fully featured Docker environment for running **Magento 2 on FrankenPHP**, including services such as MariaDB, OpenSearch, Valkey, Mailhog, and optional RabbitMQ.
+### MariaDB · OpenSearch · Valkey · Mailhog · RabbitMQ
 
-It is designed to help developers:
-- experiment with **FrankenPHP worker mode**,
-- benchmark performance against PHP-FPM,
-- deploy a reproducible and modular environment,
-- simplify local development workflows and production setups.
+<p align="center">
+  <img src="https://frankenphp.dev/img/logo_darkbg.svg" width="180" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/magento-2.4.x-brightgreen.svg?logo=magento" />
+  <img src="https://img.shields.io/badge/php-8.2%20|%208.3%20|%208.4-blue.svg? logo=php" />
+  <img src="https://img.shields.io/badge/frankenphp-1.10-purple.svg" />
+  <a href="https://hub.docker.com/r/mohelmrabet/magento-frankenphp"><img src="https://img.shields.io/docker/pulls/mohelmrabet/magento-frankenphp.svg" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+</p>
 
 ---
 
-## 🏷️ Badges
+High-performance Docker environment for **Magento 2** powered by **FrankenPHP**.
 
-<img src="https://img.shields.io/badge/magento-2.X-brightgreen.svg?logo=magento" />
-<a href="https://hub.docker.com/r/mohelmrabet/magento-frankenphp-base/" target="_blank"><img src="https://img.shields.io/docker/pulls/mohelmrabet/magento-frankenphp-base.svg?label=php%20docker%20pulls" /></a>
-<a href="https://github.com/mohelmrabet/magento-docker-frankenphp/graphs/commit-activity" target="_blank"><img src="https://img.shields.io/badge/maintained%3F-yes-brightgreen.svg" /></a>
-<a href="https://opensource.org/licenses/MIT" target="_blank"><img src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+## ✨ Features
+
+- 🚀 **FrankenPHP** — Modern PHP app server with Caddy
+- 🐘 **PHP 8.2, 8.3, 8. 4** — Multi-version support
+- 🔒 **Automatic HTTPS** — Via Caddy/Let's Encrypt
+- ⚡ **Optimized for Magento** — All extensions pre-installed
+- 🛠️ **Dev & Prod images** — Xdebug included in dev
+- 📦 **Ready to use** — Just pull and run
+
+---
+
+## 🐳 Docker Hub
+
+```bash
+# Base (production)
+docker pull mohelmrabet/magento-frankenphp:php8.4-fp1.10-base
+
+# Dev (with Xdebug)
+docker pull mohelmrabet/magento-frankenphp:php8. 4-fp1.10-dev
+```
+
+### Available Tags
+
+| Tag | PHP | Type | Description |
+|-----|-----|------|-------------|
+| `php8.4-fp1.10-base` | 8.4 | Base | Production ready |
+| `php8.4-fp1.10-dev` | 8.4 | Dev | With Xdebug |
+| `php8.3-fp1.10-base` | 8.3 | Base | Production ready |
+| `php8.3-fp1.10-dev` | 8.3 | Dev | With Xdebug |
+| `php8.2-fp1.10-base` | 8.2 | Base | Production ready |
+| `php8.2-fp1.10-dev` | 8.2 | Dev | With Xdebug |
+| `latest` | 8.4 | Base | Alias for php8.4-fp1.10-base |
+| `dev` | 8.4 | Dev | Alias for php8. 4-fp1.10-dev |
 
 ---
 
 ## 🔧 Prerequisites
 
-Make sure the following tools are installed:
-
-- **Docker**
-- **Docker Compose**
-- **Git** (optional for cloning)
+- **Docker** >= 24.0
+- **Docker Compose** >= 2.20
+- **Git**
 
 ---
 
-## 🐳 Docker Hub Images
+## 🚀 Quick Start
 
-### **Base Image**
+### 1. Clone the repository
 
-https://hub.docker.com/repository/docker/mohelmrabet/magento-frankenphp-base
+```bash
+git clone https://github.com/mohelmrabet/magento-frankenphp.git
+cd magento-frankenphp
+```
 
+### 2. Setup environment
 
-**mohelmrabet/magento-frankenphp-base:php8.4-fp1.10**  
-**mohelmrabet/magento-frankenphp-base:php8.3-fp1.10**
+```bash
+# Copy environment files
+cp env/mariadb.env. example env/mariadb.env
+cp env/opensearch.env.example env/opensearch.env
+cp env/rabbitmq.env.example env/rabbitmq.env
 
+# Set your user ID (Linux)
+echo "USER_ID=$(id -u)" > . env
+echo "GROUP_ID=$(id -g)" >> .env
+```
 
-This base image includes:
+### 3. Start containers
 
-- PHP 8.4
-- FrankenPHP 1.10
-- Required Magento extensions
-- Composer 2
-- Optimized system dependencies
-- Compatibility with Magento, Symfony, Laravel and custom PHP apps
+```bash
+# Development
+docker compose up -d
+
+# Production
+docker compose -f docker-compose.prod.yml up -d
+```
+
+### 4. Access
+
+| Service | URL |
+|---------|-----|
+| Magento | https://magento.localhost |
+| Mailhog | http://mailhog.localhost |
+| RabbitMQ | http://rabbit.localhost |
+| phpMyAdmin | http://myadmin.localhost |
 
 ---
 
-## 📦 Included Containers
+## 📦 Services
 
-### **FrankenPHP (Application Server)**
-Handles PHP execution, static assets, workers, and Caddy-based configuration.
+| Service | Image | Port | Description |
+|---------|-------|------|-------------|
+| **app** | mohelmrabet/magento-frankenphp | 80, 443 | FrankenPHP + Caddy |
+| **mariadb** | mariadb:11.4 | 3306 | Database |
+| **opensearch** | opensearch:2.x | 9200 | Search engine |
+| **valkey** | valkey:8.1 | 6379 | Cache & Sessions |
+| **rabbitmq** | rabbitmq:4.1 | 5672, 15672 | Message queue |
+| **mailhog** | mailhog | 8025 | Email catcher (dev) |
 
-### **MariaDB**
-Primary database for Magento 2 with optimized configuration for DEV/PROD.
+---
 
-### **OpenSearch**
-Search engine compatible with Elasticsearch APIs (mandatory for Magento 2.4+).
+## 📁 Project Structure
 
-### **Valkey**
-Used for:
-- Cache backend
-- Full Page Cache
-- Session storage
+```
+magento-frankenphp/
+├── bin/
+│   ├── build-all.sh              # Build all images
+│   └── generate-dockerfiles.sh   # Generate Dockerfiles
+├── images/
+│   └── php/
+│       ├── 8.2/
+│       ├── 8.3/
+│       └── 8.4/
+│           ├── base/
+│           │   └── Dockerfile
+│           ├── dev/
+│           │   └── Dockerfile
+│           ├── prod/
+│           │   └── Dockerfile
+│           └── conf/
+│               ├── Caddyfile
+│               ├── app.ini
+│               ├── opcache.ini
+│               └── xdebug.ini
+├── env/
+│   ├── mariadb.env
+│   ├── opensearch.env
+│   └── rabbitmq.env
+├── src/                          # Magento source code
+├── docker-compose.yml            # Development
+├── docker-compose.prod.yml       # Production
+└── README.md
+```
 
-### **RabbitMQ (optional)**
-Supports Magento message queues and asynchronous processing.
+---
 
-### **Mailhog (development only)**
-Captures outgoing emails during development.
+## ⚙️ Configuration
 
+### Environment Variables
 
-## ⚙️ Customization
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SERVER_NAME` | `localhost` | Domain name |
+| `USER_ID` | `1000` | UID for www-data (dev) |
+| `GROUP_ID` | `1000` | GID for www-data (dev) |
+| `MAGENTO_RUN_MODE` | `developer` | Magento mode |
 
-You can customize:
+### PHP Extensions
 
-- **Dockerfiles** inside `images/php/8.4/`
-- **Compose services** in `docker-compose.yml` / `docker-compose.prod.yml`
-- **Caddy configuration** inside `images/php/8.4/conf/`
-- **Environment variables** inside the `env/` folder
+```
+bcmath, gd, intl, mbstring, opcache, pdo_mysql, soap, xsl, zip, sockets, ftp, sodium, redis, apcu
+```
+
+### Xdebug (Dev only)
+
+```ini
+xdebug.mode = debug
+xdebug.client_host = host.docker.internal
+xdebug.client_port = 9003
+xdebug.start_with_request = trigger
+xdebug.idekey = PHPSTORM
+```
+
+---
+
+## 🛠️ Commands
+
+### Docker Compose
+
+```bash
+# Start
+docker compose up -d
+
+# Stop
+docker compose down
+
+# Logs
+docker compose logs -f app
+
+# Shell
+docker compose exec app bash
+```
+
+### Magento CLI
+
+```bash
+# Run Magento commands
+docker compose exec app bin/magento cache:flush
+docker compose exec app bin/magento setup:upgrade
+docker compose exec app bin/magento indexer:reindex
+```
+
+### Build Images
+
+```bash
+# Generate Dockerfiles
+./bin/generate-dockerfiles.sh
+
+# Build all versions
+./bin/build-all. sh build
+
+# Push to Docker Hub
+./bin/build-all.sh push
+
+# Full release
+DOCKERHUB_TOKEN=xxx ./bin/build-all.sh release
+```
+
+---
+
+## 🏭 Production Deployment
+
+### 1. Build production image
+
+```dockerfile
+FROM mohelmrabet/magento-frankenphp:php8.4-fp1.10-base
+
+COPY --chown=www-data:www-data src/ /var/www/html/
+
+USER www-data
+RUN composer install --no-dev --optimize-autoloader
+RUN bin/magento setup:di:compile
+RUN bin/magento setup:static-content:deploy -f
+```
+
+### 2. Deploy
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
+---
+
+## 🔒 Security
+
+The Caddyfile includes:
+
+- ✅ Sensitive files blocked (`.git`, `.env`, `.htaccess`)
+- ✅ Directory traversal protection
+- ✅ XML files in `/errors/` blocked
+- ✅ Customer/downloadable media protected
+- ✅ X-Frame-Options headers
+- ✅ Automatic HTTPS
+
+---
+
+## 📊 Performance
+
+### vs PHP-FPM + Nginx
+
+| Metric | FrankenPHP | PHP-FPM |
+|--------|------------|---------|
+| Requests/sec | ~2500 | ~1800 |
+| Memory usage | Lower | Higher |
+| Cold start | Faster | Slower |
+| Config complexity | Simple | Complex |
+
+---
+
+## 🐛 Troubleshooting
+
+### Permission issues
+
+```bash
+# Fix permissions
+docker compose exec app chown -R www-data:www-data var generated pub
+```
+
+### Xdebug not working
+
+```bash
+# Check Xdebug is loaded
+docker compose exec app php -m | grep xdebug
+
+# Verify config
+docker compose exec app php -i | grep xdebug
+```
+
+### Container won't start
+
+```bash
+# Check logs
+docker compose logs app
+
+# Validate Caddyfile
+docker compose exec app caddy validate --config /etc/caddy/Caddyfile
+```
+
+---
+
+## 📜 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+
+1. Fork the repository
+2.  Create a feature branch (`git checkout -b feature/amazing`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing`)
+5. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-Licensed under the **MIT License**.
-
----
-
-
-## 📜 Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for full details.
-
----
-
-
-## 🤝 Contributing
-
-Contributions are welcome!  
-If you'd like to help improve this project, feel free to:
-
-- Open issues
-- Submit pull requests
-- Propose improvements or new features
-- Report bugs
-- Improve documentation
-
-Before contributing, please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Open a Pull Request
-
-Every contribution — big or small — is appreciated and helps the project grow.
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
 ## ✉️ Author
 
-**Mohamed El Mrabet**  
-GitHub: https://github.com/mohelmrabet  
-Email: contact@cleatsquad.dev
+**Mohamed El Mrabet**
+
+- GitHub: [@mohelmrabet](https://github.com/mohelmrabet)
+- Email: contact@cleatsquad.dev
+- Docker Hub: [mohelmrabet](https://hub.docker.com/u/mohelmrabet)
+
+---
+
+## 🔗 Links
+
+- [FrankenPHP](https://frankenphp.dev/)
+- [Magento 2](https://magento.com/)
+- [Caddy Server](https://caddyserver. com/)
+- [Docker Hub](https://hub.docker. com/r/mohelmrabet/magento-frankenphp)
