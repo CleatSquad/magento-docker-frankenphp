@@ -73,46 +73,45 @@ function jsonOperations(int $size): int
     return strlen($encoded);
 }
 
-// Run benchmark operations
+// Run benchmark operations with proper timing
 $results = [
     'server' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
     'php_version' => PHP_VERSION,
     'timestamp' => date('c'),
-    'tests' => [
-        'fibonacci_30' => [
-            'start' => microtime(true),
-            'result' => fibonacci(30),
-            'duration' => 0
-        ],
-        'array_10000' => [
-            'start' => microtime(true),
-            'result' => arrayOperations(10000),
-            'duration' => 0
-        ],
-        'string_1000' => [
-            'start' => microtime(true),
-            'result' => stringOperations(1000),
-            'duration' => 0
-        ],
-        'json_1000' => [
-            'start' => microtime(true),
-            'result' => jsonOperations(1000),
-            'duration' => 0
-        ]
-    ]
+    'tests' => []
 ];
 
-// Calculate durations
-$endTime = microtime(true);
-$results['tests']['fibonacci_30']['duration'] = ($results['tests']['array_10000']['start'] - $results['tests']['fibonacci_30']['start']) * 1000;
-$results['tests']['array_10000']['duration'] = ($results['tests']['string_1000']['start'] - $results['tests']['array_10000']['start']) * 1000;
-$results['tests']['string_1000']['duration'] = ($results['tests']['json_1000']['start'] - $results['tests']['string_1000']['start']) * 1000;
-$results['tests']['json_1000']['duration'] = ($endTime - $results['tests']['json_1000']['start']) * 1000;
+// Fibonacci test
+$startTest = microtime(true);
+$fibResult = fibonacci(30);
+$results['tests']['fibonacci_30'] = [
+    'result' => $fibResult,
+    'duration' => (microtime(true) - $startTest) * 1000
+];
 
-// Remove start times from output
-foreach ($results['tests'] as &$test) {
-    unset($test['start']);
-}
+// Array operations test
+$startTest = microtime(true);
+$arrayResult = arrayOperations(10000);
+$results['tests']['array_10000'] = [
+    'result' => $arrayResult,
+    'duration' => (microtime(true) - $startTest) * 1000
+];
+
+// String operations test
+$startTest = microtime(true);
+$stringResult = stringOperations(1000);
+$results['tests']['string_1000'] = [
+    'result' => $stringResult,
+    'duration' => (microtime(true) - $startTest) * 1000
+];
+
+// JSON operations test
+$startTest = microtime(true);
+$jsonResult = jsonOperations(1000);
+$results['tests']['json_1000'] = [
+    'result' => $jsonResult,
+    'duration' => (microtime(true) - $startTest) * 1000
+];
 
 $results['total_duration_ms'] = ($endTime - $startTime) * 1000;
 $results['memory_peak_mb'] = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
