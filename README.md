@@ -346,4 +346,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [FrankenPHP](https://frankenphp.dev/)
 - [Magento 2](https://magento.com/)
 - [Caddy Server](https://caddyserver. com/)
-- [Docker Hub](https://hub.docker. com/r/mohelmrabet/magento-frankenphp)
+- [Docker Hub](https://hub.docker.com/r/mohelmrabet/magento-frankenphp)
