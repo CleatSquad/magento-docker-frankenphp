@@ -251,17 +251,21 @@ format_comparison() {
         return
     fi
     
+    # Use awk for better portability (bc may not be available everywhere)
     local diff
-    diff=$(echo "scale=2; (($val1 - $val2) / $val2) * 100" | bc 2>/dev/null || echo "0")
+    diff=$(awk "BEGIN {printf \"%.2f\", (($val1 - $val2) / $val2) * 100}")
+    
+    local is_val1_greater
+    is_val1_greater=$(awk "BEGIN {print ($val1 > $val2) ? 1 : 0}")
     
     if [ "$higher_is_better" = "true" ]; then
-        if (( $(echo "$val1 > $val2" | bc -l 2>/dev/null || echo "0") )); then
+        if [ "$is_val1_greater" = "1" ]; then
             echo -e "${GREEN}+${diff}%${NC}"
         else
             echo -e "${RED}${diff}%${NC}"
         fi
     else
-        if (( $(echo "$val1 < $val2" | bc -l 2>/dev/null || echo "0") )); then
+        if [ "$is_val1_greater" = "0" ]; then
             echo -e "${GREEN}${diff}%${NC}"
         else
             echo -e "${RED}+${diff}%${NC}"
@@ -346,12 +350,13 @@ main() {
     IFS='|' read -r fp_rps _ _ _ _ _ <<< "$frankenphp_results"
     
     if [ -n "$nginx_rps" ] && [ -n "$fp_rps" ]; then
-        local improvement difference
-        if (( $(echo "$fp_rps > $nginx_rps" | bc -l 2>/dev/null || echo "0") )); then
-            improvement=$(echo "scale=1; (($fp_rps - $nginx_rps) / $nginx_rps) * 100" | bc 2>/dev/null || echo "N/A")
+        local improvement difference is_fp_faster
+        is_fp_faster=$(awk "BEGIN {print ($fp_rps > $nginx_rps) ? 1 : 0}")
+        if [ "$is_fp_faster" = "1" ]; then
+            improvement=$(awk "BEGIN {printf \"%.1f\", (($fp_rps - $nginx_rps) / $nginx_rps) * 100}")
             print_success "FrankenPHP is ${GREEN}${improvement}%${NC} faster than Nginx + PHP-FPM"
         else
-            difference=$(echo "scale=1; (($nginx_rps - $fp_rps) / $fp_rps) * 100" | bc 2>/dev/null || echo "N/A")
+            difference=$(awk "BEGIN {printf \"%.1f\", (($nginx_rps - $fp_rps) / $fp_rps) * 100}")
             print_info "Nginx + PHP-FPM is ${difference}% faster in this test"
         fi
     fi

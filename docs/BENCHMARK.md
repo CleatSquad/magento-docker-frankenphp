@@ -256,8 +256,10 @@ The benchmark script will automatically use Apache Bench via Docker if it's not 
 # Ubuntu/Debian
 sudo apt-get install apache2-utils
 
-# macOS
+# macOS (ab is included with macOS, but if you need to install separately)
+# Note: httpd package installs ab at /opt/homebrew/bin/ab or /usr/local/bin/ab
 brew install httpd
+# Then add to PATH or use full path: /opt/homebrew/opt/httpd/bin/ab
 
 # Alpine
 apk add apache2-utils
