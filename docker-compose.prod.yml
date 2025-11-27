@@ -6,7 +6,7 @@ services:
     volumes:
       - ./images/php/8.3/conf/Caddyfile:/etc/caddy/Caddyfile:cached
     environment:
-      SERVER_NAME: "marjanemall2.com"
+      SERVER_NAME: "magento.com"
       MAGENTO_RUN_MODE: production
     depends_on:
       - mariadb
