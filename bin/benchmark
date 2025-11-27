@@ -232,7 +232,7 @@ run_benchmark() {
     # Extract key metrics
     local rps time_mean time_p50 time_p95 time_p99 failed
     rps=$(grep "Requests per second" "$output_file.txt" | awk '{print $4}')
-    time_mean=$(grep "Time per request.*mean\)" "$output_file.txt" | head -1 | awk '{print $4}')
+    time_mean=$(grep -E "Time per request.*mean\)" "$output_file.txt" | head -1 | awk '{print $4}')
     time_p50=$(grep "50%" "$output_file.txt" | awk '{print $2}')
     time_p95=$(grep "95%" "$output_file.txt" | awk '{print $2}')
     time_p99=$(grep "99%" "$output_file.txt" | awk '{print $2}')
