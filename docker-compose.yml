@@ -95,7 +95,7 @@ services:
       - rabbitmq-data:/var/lib/rabbitmq
       - ./images/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     labels:
-      - traefik. enable=true
+      - traefik.enable=true
       - traefik.docker.network=proxy
       - traefik.http.routers.rabbit.entrypoints=http
       - traefik.http.routers.rabbit.rule=Host(`rabbit.localhost`)
