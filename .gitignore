@@ -2,3 +2,4 @@
 /.idea
 /src/
 !/src/.keep
+/env/*.env
