@@ -77,7 +77,10 @@ jobs:
           cp env/mariadb.env.example env/mariadb.env
           cp env/opensearch.env.example env/opensearch.env
           cp env/rabbitmq.env.example env/rabbitmq.env
-          cp env/valkey.env.example env/valkey.env 2>/dev/null || true
+          # valkey.env is optional in some configurations
+          if [ -f env/valkey.env.example ]; then
+            cp env/valkey.env.example env/valkey.env
+          fi
           echo "USER_ID=$(id -u)" >> .env
           echo "GROUP_ID=$(id -g)" >> .env
 
@@ -85,19 +88,35 @@ jobs:
         run: docker network create proxy || true
 
       - name: Start services (database only for quick test)
-        run: |
-          docker compose up -d mariadb valkey
-          sleep 10
+        run: docker compose up -d mariadb valkey
 
-      - name: Test MariaDB connectivity
+      - name: Wait for MariaDB to be ready
         run: |
-          docker compose exec -T mariadb mysql -umagento -pmagento -e "SELECT 1" magento
-          echo "✅ MariaDB is accessible"
+          echo "Waiting for MariaDB to be ready..."
+          for i in {1..30}; do
+            if docker compose exec -T mariadb mysql -umagento -pmagento -e "SELECT 1" magento 2>/dev/null; then
+              echo "✅ MariaDB is ready"
+              exit 0
+            fi
+            echo "Attempt $i/30: MariaDB not ready yet, waiting..."
+            sleep 2
+          done
+          echo "❌ MariaDB failed to become ready"
+          exit 1
 
-      - name: Test Valkey connectivity
+      - name: Wait for Valkey to be ready
         run: |
-          docker compose exec -T valkey valkey-cli ping | grep -q "PONG"
-          echo "✅ Valkey is accessible"
+          echo "Waiting for Valkey to be ready..."
+          for i in {1..30}; do
+            if docker compose exec -T valkey valkey-cli ping 2>/dev/null | grep -q "PONG"; then
+              echo "✅ Valkey is ready"
+              exit 0
+            fi
+            echo "Attempt $i/30: Valkey not ready yet, waiting..."
+            sleep 2
+          done
+          echo "❌ Valkey failed to become ready"
+          exit 1
 
       - name: Cleanup
         if: always()
