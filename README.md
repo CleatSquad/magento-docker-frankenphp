@@ -8,7 +8,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/magento-2.4.x-brightgreen.svg?logo=magento" />
-  <img src="https://img.shields.io/badge/php-8.2%20|%208.3%20|%208.4-blue.svg? logo=php" />
+  <img src="https://img.shields.io/badge/php-8.2%20|%208.3%20|%208.4-blue.svg?logo=php" />
   <img src="https://img.shields.io/badge/frankenphp-1.10-purple.svg" />
   <a href="https://hub.docker.com/r/mohelmrabet/magento-frankenphp"><img src="https://img.shields.io/docker/pulls/mohelmrabet/magento-frankenphp.svg" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
