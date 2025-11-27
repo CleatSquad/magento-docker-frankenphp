@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Access MySQL/MariaDB CLI
+# Usage: bin/mysql [options]
+# Example: bin/mysql < dump.sql
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+# Load environment variables
+if [ -f ".env" ]; then
+    # shellcheck source=/dev/null
+    source .env
+fi
+
+# Default values if not set
+MYSQL_HOST="${DB_HOST:-mariadb}"
+MYSQL_USER="${DB_USER:-magento}"
+MYSQL_PASSWORD="${DB_PASSWORD:-magento}"
+MYSQL_DATABASE="${DB_NAME:-magento}"
+
+if [ -t 0 ]; then
+    # Need tty to run mysql shell interactively
+    bin/cli mysql -h"${MYSQL_HOST}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" "${MYSQL_DATABASE}" "$@"
+else
+    # Read from stdin, ex: bin/mysql < dbdump.sql
+    bin/clinotty mysql -h"${MYSQL_HOST}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" "${MYSQL_DATABASE}" "$@"
+fi

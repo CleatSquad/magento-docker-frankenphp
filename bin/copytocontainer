@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Copy files from host to container
+# Usage: bin/copytocontainer <path>
+# Example: bin/copytocontainer vendor
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+[ $# -eq 0 ] && echo "Please specify one or more directories/files to copy to container (ex. vendor, --all)" && exit 1
+
+REAL_SRC="${PROJECT_ROOT}/src"
+CONTAINER_ID=$(docker compose ps -q app | head -n 1)
+
+for ARG in "$@"; do
+    if [ "$ARG" == "--all" ]; then
+        docker cp "$REAL_SRC/." "$CONTAINER_ID":/var/www/html/
+        echo "✅ Completed copying all files from host to container"
+        bin/fixowns
+        bin/fixperms
+    else
+        if [ -f "$REAL_SRC/$ARG" ]; then
+            docker cp "$REAL_SRC/$ARG" "$CONTAINER_ID":/var/www/html/"$ARG"
+        else
+            docker cp "$REAL_SRC/$ARG" "$CONTAINER_ID":/var/www/html/"$(dirname "$ARG")"
+        fi
+        echo "✅ Completed copying $ARG from host to container"
+        bin/fixowns "$ARG"
+        bin/fixperms "$ARG"
+    fi
+done

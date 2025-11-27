@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Run Magento setup upgrade
+# Usage: bin/setup-upgrade
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+echo "⬆️  Running Magento setup:upgrade..."
+bin/magento setup:upgrade "$@"
+echo "✅ Setup upgrade completed successfully!"

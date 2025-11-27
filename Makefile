@@ -1,5 +1,8 @@
 # Magento Docker FrankenPHP - Makefile
 # Common commands for managing the Docker environment
+#
+# NOTE: CLI tools are also available in the bin/ directory.
+# See docs/CLI.md for full documentation.
 
 # Load environment file if it exists
 ifneq ("$(wildcard .env)","")
@@ -18,7 +21,7 @@ SHELL := /bin/bash
         permissions composer-install composer-update composer-require version \
         up down restart build install-magento full-install \
         test-integration test-integration-all test-unit test-api test-api-all \
-        bash logs help
+        bash logs help status remove removeall fixowns fixperms mysql mysqldump redis deploy
 
 # Generate .env file from env/ directory templates
 env:
@@ -81,55 +84,52 @@ setup-magento:
 
 # Clear all Magento caches
 cache:
-	docker compose exec -it $(APP) bin/magento cache:flush
+	./bin/cache-flush
 
 # Reindex all Magento indexers
 reindex:
-	docker compose exec -it $(APP) bin/magento indexer:reindex
+	./bin/reindex
 
 # Compile dependency injection
 compile:
-	docker compose exec -it $(APP) bin/magento setup:di:compile
+	./bin/di-compile
 
 # Run Magento setup upgrade
 upgrade-magento:
-	docker compose exec -it $(APP) bin/magento setup:up
+	./bin/setup-upgrade
 
 # Fix file permissions (development only)
 permissions:
-	docker compose exec -it $(APP) chmod -R 777 var generated pub/static pub/media
-
-# Helper function for running Composer commands
-define run_composer
-	docker compose exec -it --user $(USER_ID):$(GROUP_ID) $(APP) composer $(1)
-endef
+	./bin/fixowns
+	./bin/fixperms
 
 # Install Composer dependencies
 composer-install:
-	$(call run_composer,install)
+	./bin/composer install
 
 # Update Composer dependencies
 composer-update:
-	$(call run_composer,update)
+	./bin/composer update
 
 # Require a new Composer package (usage: make composer-require ARG=vendor/package)
 composer-require:
-	$(call run_composer,require $(ARG))
+	./bin/composer require $(ARG)
 
 # Display PHP version
 version:
-	docker compose exec -it $(APP) php -v
+	./bin/cli php -v
 
 # Start Docker containers
 up:
-	docker compose up -d --remove-orphans
+	./bin/start
 
 # Stop Docker containers
 down:
-	docker compose down
+	./bin/stop
 
 # Restart Docker containers
-restart: down up
+restart:
+	./bin/restart
 
 # Build Docker images
 build:
@@ -144,42 +144,84 @@ full-install: install-magento setup-magento cache reindex
 
 # Run Magento integration tests (usage: make test-integration p=4 c="Magento/Catalog")
 test-integration:
-	docker compose exec -it $(APP) bin/magento dev:tests:run integration --processes $(p) -c"$(c)"
+	./bin/magento dev:tests:run integration --processes $(p) -c"$(c)"
 
 # Run all Magento integration tests (usage: make test-integration-all p=4)
 test-integration-all:
-	docker compose exec -it $(APP) bin/magento dev:tests:run integration --processes $(p)
+	./bin/magento dev:tests:run integration --processes $(p)
 
 # Run Magento unit tests (usage: make test-unit p=4 c="Magento/Catalog")
 test-unit:
-	docker compose exec -it $(APP) bin/magento dev:tests:run unit --processes $(p) -c"$(c)"
+	./bin/magento dev:tests:run unit --processes $(p) -c"$(c)"
 
 # Run Magento API tests (usage: make test-api p=4 c="Magento/Catalog")
 test-api:
-	docker compose exec -it $(APP) bin/magento dev:tests:run api --processes $(p) -c"$(c)"
+	./bin/magento dev:tests:run api --processes $(p) -c"$(c)"
 
 # Run all Magento API tests (usage: make test-api-all p=4)
 test-api-all:
-	docker compose exec -it $(APP) bin/magento dev:tests:run api --processes $(p)
+	./bin/magento dev:tests:run api --processes $(p)
 
 # Open a shell in the app container
 bash:
-	docker compose exec -it $(APP) bash
+	./bin/bash
 
 # Follow container logs
 logs:
-	docker logs $(APP) -f
+	./bin/logs
+
+# Show container status
+status:
+	./bin/status
+
+# Remove containers
+remove:
+	./bin/remove
+
+# Remove containers, volumes and networks
+removeall:
+	./bin/removeall
+
+# Fix file ownership
+fixowns:
+	./bin/fixowns
+
+# Fix file permissions
+fixperms:
+	./bin/fixperms
+
+# Access MySQL CLI
+mysql:
+	./bin/mysql
+
+# Dump database
+mysqldump:
+	./bin/mysqldump
+
+# Access Redis CLI
+redis:
+	./bin/redis
+
+# Deploy static content
+deploy:
+	./bin/deploy -f
 
 # Display help
 help:
 	@echo "Available targets:"
-	@echo "  env                 - Generate .env from env/ directory"
+	@echo ""
+	@echo "Container Management:"
 	@echo "  up                  - Start Docker containers"
 	@echo "  down                - Stop Docker containers"
 	@echo "  restart             - Restart Docker containers"
+	@echo "  status              - Show container status"
 	@echo "  build               - Build Docker images"
+	@echo "  remove              - Remove containers"
+	@echo "  removeall           - Remove containers, volumes and networks"
 	@echo "  bash                - Open shell in app container"
 	@echo "  logs                - Follow container logs"
+	@echo ""
+	@echo "Magento Commands:"
 	@echo "  install-magento     - Create new Magento project"
 	@echo "  setup-magento       - Install Magento with settings"
 	@echo "  full-install        - Full Magento installation"
@@ -187,11 +229,30 @@ help:
 	@echo "  reindex             - Reindex Magento"
 	@echo "  compile             - Compile DI"
 	@echo "  upgrade-magento     - Run setup:upgrade"
-	@echo "  permissions         - Fix file permissions"
+	@echo "  deploy              - Deploy static content"
+	@echo ""
+	@echo "Composer Commands:"
 	@echo "  composer-install    - Install Composer dependencies"
 	@echo "  composer-update     - Update Composer dependencies"
 	@echo "  composer-require    - Require package (ARG=vendor/package)"
-	@echo "  version             - Display PHP version"
+	@echo ""
+	@echo "Database & Cache:"
+	@echo "  mysql               - Access MySQL CLI"
+	@echo "  mysqldump           - Dump database"
+	@echo "  redis               - Access Redis CLI"
+	@echo ""
+	@echo "File Operations:"
+	@echo "  permissions         - Fix file permissions"
+	@echo "  fixowns             - Fix file ownership"
+	@echo "  fixperms            - Fix file permissions"
+	@echo ""
+	@echo "Testing:"
 	@echo "  test-unit           - Run unit tests"
 	@echo "  test-integration    - Run integration tests"
 	@echo "  test-api            - Run API tests"
+	@echo ""
+	@echo "Other:"
+	@echo "  env                 - Generate .env from env/ directory"
+	@echo "  version             - Display PHP version"
+	@echo ""
+	@echo "For detailed CLI documentation, see: docs/CLI.md"

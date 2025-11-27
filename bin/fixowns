@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Fix file ownership in the container
+# Usage: bin/fixowns [path]
+# Example: bin/fixowns vendor
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+echo "🔧 Fixing filesystem ownerships..."
+
+if [ -z "$1" ]; then
+    bin/rootnotty chown -R www-data:www-data /var/www/html
+else
+    bin/rootnotty chown -R www-data:www-data /var/www/html/"$1"
+fi
+
+echo "✅ Filesystem ownerships fixed."

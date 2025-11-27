@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Run commands in the app container without TTY
+# Useful for piping and scripting
+# Usage: bin/clinotty <command>
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+[ -z "$1" ] && echo "Please specify a CLI command (ex. ls)" && exit 1
+
+# -T: Disable pseudo-tty allocation
+docker compose exec -T app "$@"
