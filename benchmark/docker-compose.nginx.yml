@@ -9,7 +9,7 @@
 # For fair benchmark comparison, we use a simple Nginx config
 services:
   nginx:
-    image: nginx:1.27-alpine
+    image: markoshust/magento-nginx:1.24
     container_name: benchmark-nginx
     ports:
       - "8080:80"
@@ -23,7 +23,7 @@ services:
       - benchmark
 
   php-fpm:
-    image: markoshust/magento-php:8.3-fpm-4
+    image: markoshust/magento-php:8.4-fpm
     container_name: benchmark-php-fpm
     volumes:
       - ./html:/var/www/html:cached
