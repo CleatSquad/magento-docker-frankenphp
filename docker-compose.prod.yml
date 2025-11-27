@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: ./images/php/8.3/prod/Dockerfile
+      dockerfile: ./images/php/8.4/prod/Dockerfile
     container_name: magento-app
     restart: unless-stopped
     environment:

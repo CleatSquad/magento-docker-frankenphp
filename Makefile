@@ -12,31 +12,17 @@ ifneq ("$(wildcard .env)","")
 endif
 
 # Configuration
-ENV_DIR := env
 APP := app
 
 # Default shell
 SHELL := /bin/bash
 
-.PHONY: env uninstall-magento setup-magento cache reindex compile upgrade-magento \
+.PHONY: uninstall-magento setup-magento cache reindex compile upgrade-magento \
         permissions composer-install composer-update composer-require version \
         up down restart build install-magento full-install \
         test-integration test-integration-all test-unit test-api test-api-all \
         bash logs help status remove removeall fixowns fixperms mysql mysqldump redis deploy
 
-# Generate .env file from env/ directory templates
-env:
-	@echo "Generating .env from env/ directory..."
-	@rm -f .env
-	@touch .env
-	@for file in $(ENV_DIR)/*.env; do \
-		echo "# Loaded from $$file" >> .env; \
-		cat $$file >> .env; \
-		echo "" >> .env; \
-	done
-	@echo "USER_ID=$$(id -u)" >> .env
-	@echo "GROUP_ID=$$(id -g)" >> .env
-	@echo ".env generated successfully."
 
 # Uninstall Magento (removes all data)
 uninstall-magento:
@@ -253,7 +239,6 @@ help:
 	@echo "  test-api            - Run API tests"
 	@echo ""
 	@echo "Other:"
-	@echo "  env                 - Generate .env from env/ directory"
 	@echo "  version             - Display PHP version"
 	@echo ""
 	@echo "For detailed CLI documentation, see: docs/CLI.md"
