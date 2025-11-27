@@ -80,7 +80,7 @@ cp env/opensearch.env.example env/opensearch.env
 cp env/rabbitmq.env.example env/rabbitmq.env
 
 # Set your user ID (Linux)
-echo "USER_ID=$(id -u)" > . env
+echo "USER_ID=$(id -u)" > .env
 echo "GROUP_ID=$(id -g)" >> .env
 ```
 
