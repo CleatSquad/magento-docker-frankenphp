@@ -318,6 +318,43 @@ docker compose exec app caddy validate --config /etc/caddy/Caddyfile
 
 ---
 
+## 🧪 Integration Tests
+
+This project includes automated integration tests that run on every push and pull request.
+
+### What's tested
+
+- **Docker Image Builds**: All PHP versions (8.2, 8.3, 8.4) build successfully
+- **PHP Extensions**: All required Magento extensions are installed
+- **Composer**: Composer 2 is available and working
+- **FrankenPHP**: FrankenPHP server is properly configured
+- **Service Connectivity**: MariaDB and Valkey services start and respond
+
+### Running tests locally
+
+```bash
+# Build and test a specific PHP version
+docker build -f images/php/8.4/base/Dockerfile -t test-image .
+docker run --rm test-image php -v
+docker run --rm test-image php -m
+
+# Test all services connectivity
+./bin/setup.sh
+docker compose up -d mariadb valkey
+docker compose exec mariadb mysql -umagento -pmagento -e "SELECT 1" magento
+docker compose exec valkey valkey-cli ping
+```
+
+### CI/CD
+
+Integration tests run automatically via GitHub Actions:
+- On every push to `main`/`master` branches
+- On every pull request targeting `main`/`master`
+
+See `.github/workflows/integration-tests.yml` for the full test configuration.
+
+---
+
 ## 📜 Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
