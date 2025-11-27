@@ -282,3 +282,120 @@ sudo apt-get install wrk
 wrk -t12 -c400 -d30s http://localhost:8080/index.php
 wrk -t12 -c400 -d30s http://localhost:8081/index.php
 ```
+
+---
+
+## Benchmark with Real Magento Installation
+
+For more realistic benchmarks, you can test with a full Magento installation including sample data.
+
+### Option 1: Benchmark FrankenPHP (this project)
+
+Use the main docker-compose of this project to install Magento:
+
+```bash
+# 1. Start the environment
+docker compose up -d
+
+# 2. Install Magento with sample data
+docker compose exec app composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition .
+
+# 3. Install sample data
+docker compose exec app bin/magento sampledata:deploy
+docker compose exec app bin/magento setup:upgrade
+docker compose exec app bin/magento setup:di:compile
+docker compose exec app bin/magento setup:static-content:deploy -f
+docker compose exec app bin/magento cache:flush
+
+# 4. Run benchmark on the homepage
+ab -n 1000 -c 10 https://magento.localhost/
+```
+
+### Option 2: Compare with Nginx + PHP-FPM (Mark Shust's docker-magento)
+
+To compare with a traditional Nginx + PHP-FPM setup, use [Mark Shust's docker-magento](https://github.com/markshust/docker-magento):
+
+```bash
+# 1. Clone docker-magento
+git clone https://github.com/markshust/docker-magento.git
+cd docker-magento
+
+# 2. Create a new Magento project
+curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/onelinesetup | bash -s -- magento.test 2.4.7
+
+# 3. Install sample data
+bin/magento sampledata:deploy
+bin/magento setup:upgrade
+bin/magento setup:di:compile
+bin/magento setup:static-content:deploy -f
+bin/magento cache:flush
+
+# 4. Run benchmark on the homepage
+ab -n 1000 -c 10 https://magento.test/
+```
+
+### Benchmark Script for Real Magento
+
+You can use Apache Bench or wrk to test the homepage:
+
+```bash
+# Apache Bench - 1000 requests, 10 concurrent
+ab -n 1000 -c 10 -k https://magento.localhost/
+
+# wrk - 30 seconds test with 12 threads and 100 connections
+wrk -t12 -c100 -d30s https://magento.localhost/
+
+# hey - 1000 requests with 10 workers
+hey -n 1000 -c 10 https://magento.localhost/
+```
+
+### Recommended Test Pages
+
+For comprehensive benchmarking, test these pages:
+
+| Page | URL | Description |
+|------|-----|-------------|
+| Homepage | `/` | Full page with blocks and widgets |
+| Category | `/women/tops-women.html` | Category listing with products |
+| Product | `/radiant-tee.html` | Product detail page |
+| Search | `/catalogsearch/result/?q=shirt` | Search results |
+| Cart | `/checkout/cart/` | Shopping cart |
+
+### Tips for Accurate Benchmarks
+
+1. **Warm up caches first**: Run a few requests before benchmarking
+   ```bash
+   # Warm up
+   for i in {1..10}; do curl -s https://magento.localhost/ > /dev/null; done
+   ```
+
+2. **Disable developer mode**: Use production mode for realistic results
+   ```bash
+   bin/magento deploy:mode:set production
+   ```
+
+3. **Enable all caches**:
+   ```bash
+   bin/magento cache:enable
+   bin/magento cache:flush
+   ```
+
+4. **Use same hardware**: Run both tests on the same machine
+
+5. **Multiple runs**: Run benchmarks multiple times and average results
+
+### Expected Results with Magento
+
+With sample data and caches enabled:
+
+| Page | FrankenPHP | Nginx + PHP-FPM | Improvement |
+|------|------------|-----------------|-------------|
+| Homepage | ~150-200 req/s | ~100-150 req/s | +30-50% |
+| Category | ~100-150 req/s | ~70-100 req/s | +30-50% |
+| Product | ~120-180 req/s | ~80-120 req/s | +30-50% |
+
+**Note**: Results depend heavily on:
+- Hardware (CPU, RAM, SSD)
+- Cache configuration (Varnish, Redis, OPcache)
+- Magento configuration
+- Number of products and categories
