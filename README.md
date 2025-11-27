@@ -36,7 +36,7 @@ High-performance Docker environment for **Magento 2** powered by **FrankenPHP**.
 docker pull mohelmrabet/magento-frankenphp:php8.4-fp1.10-base
 
 # Dev (with Xdebug)
-docker pull mohelmrabet/magento-frankenphp:php8. 4-fp1.10-dev
+docker pull mohelmrabet/magento-frankenphp:php8.4-fp1.10-dev
 ```
 
 ### Available Tags
