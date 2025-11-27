@@ -7,6 +7,7 @@
 # Load environment file if it exists
 ifneq ("$(wildcard .env)","")
 	include .env
+	include env/*.env
 	export
 endif
 
