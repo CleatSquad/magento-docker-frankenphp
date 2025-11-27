@@ -75,7 +75,7 @@ cd magento-frankenphp
 
 ```bash
 # Copy environment files
-cp env/mariadb.env. example env/mariadb.env
+cp env/mariadb.env.example env/mariadb.env
 cp env/opensearch.env.example env/opensearch.env
 cp env/rabbitmq.env.example env/rabbitmq.env
 
