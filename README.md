@@ -378,6 +378,24 @@ The Caddyfile includes:
 | Cold start | Faster | Slower |
 | Config complexity | Simple | Complex |
 
+### Run Your Own Benchmark
+
+Compare FrankenPHP with Nginx + PHP-FPM using the included benchmark tool:
+
+```bash
+# Run benchmark with default settings
+./bin/benchmark
+
+# Run with custom settings (50 concurrent, 5000 requests)
+./bin/benchmark -c 50 -n 5000
+```
+
+The benchmark uses:
+- **FrankenPHP**: `mohelmrabet/magento-frankenphp:php8.4-fp1.10-base`
+- **PHP-FPM**: `markoshust/magento-php:8.3-fpm-4` from [docker-magento](https://github.com/markshust/docker-magento)
+
+For detailed documentation, see [docs/BENCHMARK.md](docs/BENCHMARK.md).
+
 ---
 
 ## 🐛 Troubleshooting

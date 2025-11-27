@@ -1,0 +1,35 @@
+# Nginx + PHP-FPM Stack using Mark Shust's images
+# https://github.com/markshust/docker-magento
+#
+# Note: Mark Shust's images are designed for Magento and use:
+# - Unix sockets for Nginx <-> PHP-FPM communication
+# - Port 8000 for HTTP (redirects to HTTPS)
+# - Port 8443 for HTTPS with SSL
+#
+# For fair benchmark comparison, we use a simple Nginx config
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: benchmark-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx-php-fpm/conf/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx-php-fpm/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./html:/var/www/html:cached
+    depends_on:
+      - php-fpm
+    networks:
+      - benchmark
+
+  php-fpm:
+    image: markoshust/magento-php:8.3-fpm-4
+    container_name: benchmark-php-fpm
+    volumes:
+      - ./html:/var/www/html:cached
+      - ./nginx-php-fpm/conf/php-fpm-tcp.conf:/usr/local/etc/php-fpm.d/zz-docker.conf:ro
+    networks:
+      - benchmark
+
+networks:
+  benchmark:

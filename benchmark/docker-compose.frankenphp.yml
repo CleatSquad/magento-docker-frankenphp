@@ -1,0 +1,18 @@
+# FrankenPHP Stack using mohelmrabet's Magento FrankenPHP image
+# https://github.com/mohelmrabet/magento-docker-frankenphp
+services:
+  frankenphp:
+    image: mohelmrabet/magento-frankenphp:php8.4-fp1.10-base
+    container_name: benchmark-frankenphp
+    ports:
+      - "8081:80"
+    volumes:
+      - ./frankenphp/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./html:/var/www/html:cached
+    environment:
+      SERVER_NAME: ":80"
+    networks:
+      - benchmark
+
+networks:
+  benchmark:
