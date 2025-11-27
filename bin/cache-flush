@@ -9,5 +9,5 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 echo "🧹 Flushing Magento cache..."
-bin/magento cache:flush "$@"
+"${SCRIPT_DIR}/magento" cache:flush "$@"
 echo "✅ Cache flushed successfully!"

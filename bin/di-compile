@@ -9,5 +9,5 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 echo "⚙️  Compiling dependency injection..."
-bin/magento setup:di:compile "$@"
+"${SCRIPT_DIR}/magento" setup:di:compile "$@"
 echo "✅ DI compilation completed successfully!"

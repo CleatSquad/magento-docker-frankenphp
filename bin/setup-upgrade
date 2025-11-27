@@ -9,5 +9,5 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 echo "⬆️  Running Magento setup:upgrade..."
-bin/magento setup:upgrade "$@"
+"${SCRIPT_DIR}/magento" setup:upgrade "$@"
 echo "✅ Setup upgrade completed successfully!"

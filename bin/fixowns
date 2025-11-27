@@ -12,9 +12,9 @@ cd "${PROJECT_ROOT}"
 echo "🔧 Fixing filesystem ownerships..."
 
 if [ -z "$1" ]; then
-    bin/rootnotty chown -R www-data:www-data /var/www/html
+    "${SCRIPT_DIR}/rootnotty" chown -R www-data:www-data /var/www/html
 else
-    bin/rootnotty chown -R www-data:www-data /var/www/html/"$1"
+    "${SCRIPT_DIR}/rootnotty" chown -R www-data:www-data /var/www/html/"$1"
 fi
 
 echo "✅ Filesystem ownerships fixed."

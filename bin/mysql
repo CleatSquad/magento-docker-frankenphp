@@ -23,8 +23,8 @@ MYSQL_DATABASE="${DB_NAME:-magento}"
 
 if [ -t 0 ]; then
     # Need tty to run mysql shell interactively
-    bin/cli mysql -h"${MYSQL_HOST}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" "${MYSQL_DATABASE}" "$@"
+    "${SCRIPT_DIR}/cli" mysql -h"${MYSQL_HOST}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" "${MYSQL_DATABASE}" "$@"
 else
     # Read from stdin, ex: bin/mysql < dbdump.sql
-    bin/clinotty mysql -h"${MYSQL_HOST}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" "${MYSQL_DATABASE}" "$@"
+    "${SCRIPT_DIR}/clinotty" mysql -h"${MYSQL_HOST}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" "${MYSQL_DATABASE}" "$@"
 fi

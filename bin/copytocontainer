@@ -18,8 +18,8 @@ for ARG in "$@"; do
     if [ "$ARG" == "--all" ]; then
         docker cp "$REAL_SRC/." "$CONTAINER_ID":/var/www/html/
         echo "✅ Completed copying all files from host to container"
-        bin/fixowns
-        bin/fixperms
+        "${SCRIPT_DIR}/fixowns"
+        "${SCRIPT_DIR}/fixperms"
     else
         if [ -f "$REAL_SRC/$ARG" ]; then
             docker cp "$REAL_SRC/$ARG" "$CONTAINER_ID":/var/www/html/"$ARG"
@@ -27,7 +27,7 @@ for ARG in "$@"; do
             docker cp "$REAL_SRC/$ARG" "$CONTAINER_ID":/var/www/html/"$(dirname "$ARG")"
         fi
         echo "✅ Completed copying $ARG from host to container"
-        bin/fixowns "$ARG"
-        bin/fixperms "$ARG"
+        "${SCRIPT_DIR}/fixowns" "$ARG"
+        "${SCRIPT_DIR}/fixperms" "$ARG"
     fi
 done

@@ -21,4 +21,4 @@ MYSQL_USER="${DB_USER:-magento}"
 MYSQL_PASSWORD="${DB_PASSWORD:-magento}"
 MYSQL_DATABASE="${DB_NAME:-magento}"
 
-bin/clinotty mysqldump -h"${MYSQL_HOST}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" "${MYSQL_DATABASE}" "$@"
+"${SCRIPT_DIR}/clinotty" mysqldump -h"${MYSQL_HOST}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" "${MYSQL_DATABASE}" "$@"

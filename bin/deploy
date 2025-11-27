@@ -10,5 +10,5 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 echo "🚀 Deploying static content..."
-bin/magento setup:static-content:deploy "$@"
+"${SCRIPT_DIR}/magento" setup:static-content:deploy "$@"
 echo "✅ Static content deployed successfully!"
