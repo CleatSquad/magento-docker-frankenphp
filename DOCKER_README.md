@@ -38,7 +38,7 @@ services:
 ### Production
 
 ```dockerfile
-FROM mohelmrabet/magento-frankenphp:php8.3-base
+FROM mohelmrabet/magento-frankenphp:php8.4-base
 
 COPY --chown=www-data:www-data . /var/www/html/
 
