@@ -20,7 +20,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
-      - traefik.http.routers.traefik. entrypoints=http
+      - traefik.http.routers.traefik.entrypoints=http
       - traefik.http.routers.traefik.rule=Host(`traefik.localhost`)
       - traefik.http. routers.traefik.service=api@internal
 
@@ -41,7 +41,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=proxy
       - traefik.tcp.routers.magento.rule=HostSNI(`magento.localhost`)
-      - traefik. tcp.routers.magento. entrypoints=https
+      - traefik. tcp.routers.magento.entrypoints=https
       - traefik.tcp.routers.magento.tls.passthrough=true
       - traefik.tcp.services.magento.loadbalancer.server.port=443
     depends_on:
@@ -113,7 +113,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
-      - traefik.http.routers.mailhog. entrypoints=http
+      - traefik.http.routers.mailhog.entrypoints=http
       - traefik.http.routers.mailhog.rule=Host(`mailhog.localhost`)
       - traefik.http. services.mailhog.loadbalancer.server.port=8025
 

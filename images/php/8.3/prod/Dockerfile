@@ -45,4 +45,4 @@ USER www-data
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD curl -f http://localhost/health_check.php || exit 1
 
-ENTRYPOINT ["/usr/local/bin/entrypoint. sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
