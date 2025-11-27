@@ -13,11 +13,9 @@
 | `php8.3-dev` | 8.3 | Dev | With Xdebug |
 | `php8.2-base` | 8.2 | Base | Production ready |
 | `php8.2-dev` | 8.2 | Dev | With Xdebug |
-| `php8.1-base` | 8.1 | Base | Production ready |
-| `php8.1-dev` | 8.1 | Dev | With Xdebug |
-| `latest` | 8.3 | Base | Default |
-| `base` | 8.3 | Base | Alias |
-| `dev` | 8.3 | Dev | Alias |
+| `latest` | 8.4 | Base | Default |
+| `base` | 8.4 | Base | Alias |
+| `dev` | 8.4 | Dev | Alias |
 
 ## Quick Start
 
