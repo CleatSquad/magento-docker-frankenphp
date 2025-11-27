@@ -98,7 +98,7 @@ services:
       - traefik. enable=true
       - traefik.docker.network=proxy
       - traefik.http.routers.rabbit.entrypoints=http
-      - traefik.http.routers.rabbit. rule=Host(`rabbit.localhost`)
+      - traefik.http.routers.rabbit.rule=Host(`rabbit.localhost`)
       - traefik.http.services.rabbit.loadbalancer.server.port=15672
     networks:
       - magento
