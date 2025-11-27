@@ -24,7 +24,7 @@
 ```yaml
 services:
   app:
-    image: mohelmrabet/magento-frankenphp:php8.3-dev
+    image: mohelmrabet/magento-frankenphp:php8.4-dev
     environment:
       - USER_ID=1000
       - GROUP_ID=1000
