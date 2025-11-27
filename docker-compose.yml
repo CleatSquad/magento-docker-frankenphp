@@ -27,8 +27,6 @@ services:
   app:
     image: mohelmrabet/magento-frankenphp:php8.3-fp1.10-dev
     container_name: magento-app
-    ports:
-      - "8443:443"
     environment:
       SERVER_NAME: ${SERVER_NAME:-magento.localhost}
       USER_ID: ${USER_ID:-1000}
@@ -40,6 +38,11 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
+      - traefik.http.routers.magento-http.rule=Host(`${SERVER_NAME:-magento.localhost}`)
+      - traefik.http.routers.magento-http.entrypoints=http
+      - traefik.http.routers.magento-http.middlewares=redirect-to-https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
       - traefik.tcp.routers.magento.rule=HostSNI(`${SERVER_NAME:-magento.localhost}`)
       - traefik.tcp.routers.magento.entrypoints=https
       - traefik.tcp.routers.magento.tls.passthrough=true
@@ -127,7 +130,7 @@ services:
       - traefik.http.routers.phpmyadmin.entrypoints=http
       - traefik.http.routers.phpmyadmin.rule=Host(`myadmin.localhost`)
       - traefik.http.services.phpmyadmin.loadbalancer.server.port=80
-      - traefik.http.services.phpmyadmin.loadbalancer. server.scheme=http
+      - traefik.http.services.phpmyadmin.loadbalancer.server.scheme=http
     networks:
       - magento
       - proxy
