@@ -30,7 +30,7 @@ services:
     ports:
       - "8443:443"
     environment:
-      SERVER_NAME: ${SERVER_NAME}
+      SERVER_NAME: ${SERVER_NAME:-magento.localhost}
       USER_ID: ${USER_ID:-1000}
       GROUP_ID: ${GROUP_ID:-1000}
       SENDMAIL_PATH: "/usr/local/bin/mhsendmail --smtp-addr=magento-mailhog:1025"
@@ -40,7 +40,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
-      - traefik.tcp.routers.magento.rule=HostSNI(`${SERVER_NAME}`)
+      - traefik.tcp.routers.magento.rule=HostSNI(`${SERVER_NAME:-magento.localhost}`)
       - traefik.tcp.routers.magento.entrypoints=https
       - traefik.tcp.routers.magento.tls.passthrough=true
       - traefik.tcp.services.magento.loadbalancer.server.port=443
