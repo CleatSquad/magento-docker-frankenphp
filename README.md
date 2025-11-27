@@ -151,7 +151,7 @@ magento-docker-frankenphp/
 │   ├── root                      # Run as root
 │   ├── rootnotty                 # Run as root without TTY
 │   ├── setup-upgrade             # Setup upgrade
-│   ├── setup                  # Environment setup
+│   ├── setup                     # Environment setup
 │   ├── start                     # Start containers
 │   ├── status                    # Show status
 │   └── stop                      # Stop containers
