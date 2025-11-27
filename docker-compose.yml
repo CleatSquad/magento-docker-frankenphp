@@ -22,7 +22,7 @@ services:
       - traefik.docker.network=proxy
       - traefik.http.routers.traefik.entrypoints=http
       - traefik.http.routers.traefik.rule=Host(`traefik.localhost`)
-      - traefik.http. routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.service=api@internal
 
   app:
     image: mohelmrabet/magento-frankenphp:php8.3-fp1.10-dev
@@ -41,7 +41,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=proxy
       - traefik.tcp.routers.magento.rule=HostSNI(`magento.localhost`)
-      - traefik. tcp.routers.magento.entrypoints=https
+      - traefik.tcp.routers.magento.entrypoints=https
       - traefik.tcp.routers.magento.tls.passthrough=true
       - traefik.tcp.services.magento.loadbalancer.server.port=443
     depends_on:
@@ -97,7 +97,7 @@ services:
     labels:
       - traefik. enable=true
       - traefik.docker.network=proxy
-      - traefik.http. routers.rabbit.entrypoints=http
+      - traefik.http.routers.rabbit.entrypoints=http
       - traefik.http.routers.rabbit. rule=Host(`rabbit.localhost`)
       - traefik.http.services.rabbit.loadbalancer.server.port=15672
     networks:
@@ -115,7 +115,7 @@ services:
       - traefik.docker.network=proxy
       - traefik.http.routers.mailhog.entrypoints=http
       - traefik.http.routers.mailhog.rule=Host(`mailhog.localhost`)
-      - traefik.http. services.mailhog.loadbalancer.server.port=8025
+      - traefik.http.services.mailhog.loadbalancer.server.port=8025
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
