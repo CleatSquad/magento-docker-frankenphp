@@ -40,7 +40,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
-      - traefik.tcp.routers.magento.rule=HostSNI(${SERVER_NAME})
+      - traefik.tcp.routers.magento.rule=HostSNI(`${SERVER_NAME}`)
       - traefik.tcp.routers.magento.entrypoints=https
       - traefik.tcp.routers.magento.tls.passthrough=true
       - traefik.tcp.services.magento.loadbalancer.server.port=443
