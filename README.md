@@ -21,7 +21,7 @@ High-performance Docker environment for **Magento 2** powered by **FrankenPHP**.
 ## ✨ Features
 
 - 🚀 **FrankenPHP** — Modern PHP app server with Caddy
-- 🐘 **PHP 8.2, 8.3, 8. 4** — Multi-version support
+- 🐘 **PHP 8.2, 8.3, 8.4** — Multi-version support
 - 🔒 **Automatic HTTPS** — Via Caddy/Let's Encrypt
 - ⚡ **Optimized for Magento** — All extensions pre-installed
 - 🛠️ **Dev & Prod images** — Xdebug included in dev
