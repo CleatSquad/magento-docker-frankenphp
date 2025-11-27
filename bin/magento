@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Run Magento CLI commands
+# Usage: bin/magento <command>
+# Example: bin/magento cache:flush
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+"${SCRIPT_DIR}/cli" bin/magento "$@"

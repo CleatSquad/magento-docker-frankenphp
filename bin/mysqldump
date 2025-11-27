@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Dump MySQL/MariaDB database
+# Usage: bin/mysqldump > dump.sql
+# Example: bin/mysqldump --single-transaction > backup.sql
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+# Load environment variables
+if [ -f ".env" ]; then
+    # shellcheck source=/dev/null
+    source .env
+fi
+
+# Default values if not set
+MYSQL_HOST="${DB_HOST:-mariadb}"
+MYSQL_USER="${DB_USER:-magento}"
+MYSQL_PASSWORD="${DB_PASSWORD:-magento}"
+MYSQL_DATABASE="${DB_NAME:-magento}"
+
+"${SCRIPT_DIR}/clinotty" mysqldump -h"${MYSQL_HOST}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" "${MYSQL_DATABASE}" "$@"

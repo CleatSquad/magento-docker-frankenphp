@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Deploy static content
+# Usage: bin/deploy [options]
+# Example: bin/deploy -f
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+echo "🚀 Deploying static content..."
+"${SCRIPT_DIR}/magento" setup:static-content:deploy "$@"
+echo "✅ Static content deployed successfully!"

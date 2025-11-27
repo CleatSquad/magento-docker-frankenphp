@@ -74,7 +74,7 @@ cd magento-frankenphp
 ### 2. Run the setup script
 
 ```bash
-./bin/setup.sh
+./bin/setup
 ```
 
 This script will:
@@ -124,9 +124,41 @@ magento-docker-frankenphp/
 │   └── workflows/
 │       └── ci.yml                # CI/CD workflow
 ├── bin/
-│   └── setup.sh                  # Environment setup script
+│   ├── bash                      # Open bash shell
+│   ├── build                  # Docker build script
+│   ├── cache-flush               # Flush Magento cache
+│   ├── cli                       # Run commands in container
+│   ├── clinotty                  # Run commands without TTY
+│   ├── composer                  # Run Composer
+│   ├── copyfromcontainer         # Copy from container
+│   ├── copytocontainer           # Copy to container
+│   ├── deploy                    # Deploy static content
+│   ├── di-compile                # Compile DI
+│   ├── fixowns                   # Fix ownership
+│   ├── fixperms                  # Fix permissions
+│   ├── grunt                     # Run Grunt
+│   ├── logs                      # Follow logs
+│   ├── magento                   # Run Magento CLI
+│   ├── mysql                     # MySQL CLI
+│   ├── mysqldump                 # Dump database
+│   ├── node                      # Run Node
+│   ├── npm                       # Run npm
+│   ├── redis                     # Redis CLI
+│   ├── reindex                   # Reindex Magento
+│   ├── remove                    # Remove containers
+│   ├── removeall                 # Remove all
+│   ├── restart                   # Restart containers
+│   ├── root                      # Run as root
+│   ├── rootnotty                 # Run as root without TTY
+│   ├── setup-upgrade             # Setup upgrade
+│   ├── setup                     # Environment setup
+│   ├── start                     # Start containers
+│   ├── status                    # Show status
+│   └── stop                      # Stop containers
 ├── conf/
 │   └── traefik.yml               # Traefik configuration
+├── docs/
+│   └── CLI.md                    # CLI tools documentation
 ├── env/
 │   ├── magento.env.example       # Magento environment template
 │   ├── mariadb.env.example       # MariaDB environment template
@@ -202,7 +234,45 @@ xdebug.idekey = PHPSTORM
 
 ## 🛠️ Commands
 
-### Docker Compose
+### CLI Tools
+
+This project includes a comprehensive set of CLI tools in the `bin/` directory. For full documentation, see [docs/CLI.md](docs/CLI.md).
+
+**Quick Examples:**
+
+```bash
+# Container management
+./bin/start          # Start containers
+./bin/stop           # Stop containers
+./bin/restart        # Restart containers
+./bin/status         # Show status
+./bin/logs           # Follow logs
+
+# Shell access
+./bin/bash           # Open bash shell
+./bin/cli <command>  # Run any command
+
+# Magento
+./bin/magento cache:flush
+./bin/magento setup:upgrade
+./bin/reindex
+./bin/cache-flush
+./bin/deploy -f
+
+# Composer
+./bin/composer install
+./bin/composer update
+
+# Database
+./bin/mysql          # MySQL CLI
+./bin/mysqldump > backup.sql
+
+# File operations
+./bin/fixowns        # Fix ownership
+./bin/fixperms       # Fix permissions
+```
+
+### Docker Compose (Alternative)
 
 ```bash
 # Start
@@ -218,10 +288,26 @@ docker compose logs -f app
 docker compose exec app bash
 ```
 
+### Makefile (Alternative)
+
+```bash
+make up              # Start containers
+make down            # Stop containers
+make bash            # Open shell
+make cache           # Flush cache
+make reindex         # Reindex
+make help            # Show all commands
+```
+
 ### Magento CLI
 
 ```bash
-# Run Magento commands
+# Using CLI tools (recommended)
+./bin/magento cache:flush
+./bin/magento setup:upgrade
+./bin/magento indexer:reindex
+
+# Or directly with docker compose
 docker compose exec app bin/magento cache:flush
 docker compose exec app bin/magento setup:upgrade
 docker compose exec app bin/magento indexer:reindex

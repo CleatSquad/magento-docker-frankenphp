@@ -75,7 +75,7 @@ push_readme() {
         echo ""
         echo "1. Go to https://hub.docker.com/settings/security"
         echo "2. Create a new Access Token"
-        echo "3. Run: DOCKERHUB_TOKEN=your_token ./bin/build.sh push-readme"
+        echo "3. Run: DOCKERHUB_TOKEN=your_token ./bin/build push-readme"
         exit 1
     fi
 

@@ -21,7 +21,7 @@ echo "🚀 Setting up Magento Docker environment..."
 ############################################
 create_docker_network() {
     local network_name="proxy"
-    
+
     if ! docker network ls --format '{{.Name}}' | grep -q "^${network_name}$"; then
         echo "📡 Creating ${network_name} network..."
         if docker network create "${network_name}"; then

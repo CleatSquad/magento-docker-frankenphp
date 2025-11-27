@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Remove Docker containers, volumes and networks
+# Usage: bin/removeall
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+echo "🗑️  Removing Docker containers, volumes and networks..."
+docker compose down -v --remove-orphans "$@"
+echo "✅ All containers, volumes and networks removed successfully!"

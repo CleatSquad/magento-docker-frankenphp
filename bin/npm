@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Run npm commands in the container
+# Usage: bin/npm <command>
+# Example: bin/npm install
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+"${SCRIPT_DIR}/cli" npm "$@"

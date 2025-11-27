@@ -20,7 +20,7 @@ and this project adheres to **Semantic Versioning**.
 - Help target in Makefile with available commands documentation
 
 ### Changed
-- Improved bin/setup.sh with:
+- Improved bin/setup with:
     - Fixed incorrect path for mariadb.env (was using `../env/` instead of `env/`)
     - Added helper function for copying environment files
     - Better error handling and validation
@@ -45,7 +45,7 @@ and this project adheres to **Semantic Versioning**.
     - Fixed comment formatting in traefik.yml
 
 ### Fixed
-- Bug in bin/setup.sh where mariadb.env was looking in wrong directory
+- Bug in bin/setup where mariadb.env was looking in wrong directory
 - Missing newline at end of YAML files
 - Inconsistent comment formatting
 
