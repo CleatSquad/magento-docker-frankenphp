@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Compile Magento DI
+# Usage: bin/di-compile
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+echo "⚙️  Compiling dependency injection..."
+"${SCRIPT_DIR}/magento" setup:di:compile "$@"
+echo "✅ DI compilation completed successfully!"
