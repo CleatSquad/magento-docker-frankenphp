@@ -1,21 +1,21 @@
 services:
   app:
-    image: mohelmrabet/magento-frankenphp:php8.3-fp1.10-base
+    build:
+      context: .
+      dockerfile: ./images/php/8.3/prod/Dockerfile
     container_name: magento-app
     restart: unless-stopped
-    volumes:
-      - ./images/php/8.3/conf/Caddyfile:/etc/caddy/Caddyfile:cached
     environment:
-      SERVER_NAME: "magento.com"
+      SERVER_NAME: ${SERVER_NAME:-magento.com}
       MAGENTO_RUN_MODE: production
+    ports:
+      - "80:80"
+      - "443:443"
     depends_on:
       - mariadb
       - opensearch
       - valkey
       - rabbitmq
-    ports:
-      - "80:80"
-      - "443:443"
     networks:
       - magento
 

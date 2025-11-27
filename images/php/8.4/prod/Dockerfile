@@ -38,7 +38,7 @@ RUN composer install --no-interaction --no-progress --prefer-dist --no-dev --opt
 
 RUN mv app/etc/env.php app/etc/env.php.bak  && php -d memory_limit=4G bin/magento setup:di:compile  && mv app/etc/env.php.bak app/etc/env.php
 
-RUN php -d memory_limit=4G bin/magento setup:static-content:deploy -f --jobs=\$(nproc)
+RUN php -d memory_limit=4G bin/magento setup:static-content:deploy -f --jobs=16
 
 USER www-data
 
