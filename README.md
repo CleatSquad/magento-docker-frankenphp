@@ -50,7 +50,7 @@ docker pull mohelmrabet/magento-frankenphp:php8. 4-fp1.10-dev
 | `php8.2-fp1.10-base` | 8.2 | Base | Production ready |
 | `php8.2-fp1.10-dev` | 8.2 | Dev | With Xdebug |
 | `latest` | 8.4 | Base | Alias for php8.4-fp1.10-base |
-| `dev` | 8.4 | Dev | Alias for php8. 4-fp1.10-dev |
+| `dev` | 8.4 | Dev | Alias for php8.4-fp1.10-dev |
 
 ---
 
