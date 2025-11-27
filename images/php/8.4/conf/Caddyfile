@@ -5,28 +5,26 @@
         {$FRANKENPHP_CONFIG}
     }
 
-    # https://caddyserver.com/docs/caddyfile/directives#sorting-algorithm
     order php_server before file_server
 }
 
 {$CADDY_EXTRA_CONFIG}
 
 (503) {
-	rewrite * /errors/503.php
+    rewrite * /errors/503.php
 }
 
-{$SERVER_NAME} {
+{$SERVER_NAME:localhost} {
     log {
-		# Redact the authorization query parameter that can be set by Mercure
-		format filter {
-			wrap console
-			fields {
-				uri query {
-					replace authorization REDACTED
-				}
-			}
-		}
-	}
+        format filter {
+            wrap console
+            fields {
+                uri query {
+                    replace authorization REDACTED
+                }
+            }
+        }
+    }
     log {
         output stdout
     }
@@ -42,20 +40,17 @@
         rewrite @404 /errors/404.php
     }
 
-    # Deny access to sensitive files
     @sensitiveFiles {
         path_regexp sensitive /(\.user.ini|\.php$|\.phtml$|\.htaccess$|\.htpasswd$|\.git)
     }
     respond @sensitiveFiles 403
 
-    # Disable Topics tracking if not enabled explicitly: https://github.com/jkarlin/topics
     header ?Permissions-Policy "browsing-topics=()"
     php_server
 
     handle /setup/* {
         root * /var/www/html
 
-        # Deny access to the setup directory
         @otherFiles not path /setup/pub/* /setup/index.php /setup /setup/
         handle @otherFiles {
             respond "Access Denied" 403
@@ -74,14 +69,12 @@
             path *.ico *.jpg *.jpeg *.png *.gif *.svg *.svgz *.webp *.avif *.avifs *.js *.css *.eot *.ttf *.otf *.woff *.woff2 *.html *.json *.webmanifest
         }
         handle @staticFiles {
-            # Set headers for matched static assets
             header Cache-Control "public, max-age=31536000"
         }
         @noCacheFiles {
             path *.zip *.gz *.gzip *.bz2 *.csv *.xml
         }
         handle @noCacheFiles {
-            # Set Cache-Control header to no-store
             header Cache-Control "no-store, no-cache, must-revalidate"
         }
 
@@ -91,8 +84,6 @@
     }
 
     handle /media/* {
-
-        # Deny access to specific XML files in the /media/theme_customization/ directory
         @denyXMLFiles path_regexp denyxml ^/media/theme_customization/.*\.xml
         respond @denyXMLFiles 403
 
@@ -100,14 +91,12 @@
             path *.ico *.jpg *.jpeg *.png *.gif *.svg *.svgz *.webp *.avif *.avifs *.js *.css *.eot *.ttf *.otf *.woff *.woff2
         }
         handle @staticFiles {
-            # Set Cache-Control header for 1 year caching
             header Cache-Control "public, max-age=31536000"
         }
         @noCacheFiles {
             path *.zip *.gz *.gzip *.bz2 *.csv *.xml
         }
         handle @noCacheFiles {
-            # Set Cache-Control header to no-store
             header Cache-Control "no-store, no-cache, must-revalidate"
         }
 
@@ -115,15 +104,12 @@
         header X-Frame-Options "SAMEORIGIN"
     }
 
-    # Block access to specific directories
     @blockedDirectories path /media/customer/* /media/downloadable/* /media/import/* /media/custom_options/*
     respond @blockedDirectories 403
 
-    # Block access to XML files in the /errors/ directory
     @blockedXMLFiles path /errors/*.xml
     respond @blockedXMLFiles 403
 
-    # PHP entry point for main application
     @phpFiles path /index.php /get.php /static.php /errors/report.php /errors/404.php /errors/503.php /health_check.php
     handle @phpFiles {
         try_files {path} {path}/ =404

@@ -1,18 +1,52 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: ./images/php/8.4/Dockerfile.dev
-    container_name: magento-app
-    volumes:
-      - ./src:/var/www/html
-      - ./images/php/8.4/conf/Caddyfile:/etc/caddy/Caddyfile:cached
+  traefik:
+    image: traefik:v3.0.0
+    restart: unless-stopped
+    container_name: magento-traefik
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - --configFile=/traefik.yml
+    networks:
+      - magento
+      - proxy
     ports:
       - 80:80
       - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./conf/traefik.yml:/traefik.yml:ro
+      - ./conf/dynamic:/etc/traefik/dynamic
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.traefik.entrypoints=http
+      - traefik.http.routers.traefik.rule=Host(`traefik.localhost`)
+      - traefik.http.routers.traefik.service=api@internal
+
+  app:
+    image: mohelmrabet/magento-frankenphp:php8.3-fp1.10-dev
+    container_name: magento-app
     environment:
-      SERVER_NAME: "magento.localhost"
+      SERVER_NAME: ${SERVER_NAME:-magento.localhost}
+      USER_ID: ${USER_ID:-1000}
+      GROUP_ID: ${GROUP_ID:-1000}
       SENDMAIL_PATH: "/usr/local/bin/mhsendmail --smtp-addr=magento-mailhog:1025"
+    volumes:
+      - ./images/php/8.3/conf/Caddyfile:/etc/caddy/Caddyfile:cached
+      - ./src:/var/www/html
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.magento-http.rule=Host(`${SERVER_NAME:-magento.localhost}`)
+      - traefik.http.routers.magento-http.entrypoints=http
+      - traefik.http.routers.magento-http.middlewares=redirect-to-https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+      - traefik.tcp.routers.magento.rule=HostSNI(`${SERVER_NAME:-magento.localhost}`)
+      - traefik.tcp.routers.magento.entrypoints=https
+      - traefik.tcp.routers.magento.tls.passthrough=true
+      - traefik.tcp.services.magento.loadbalancer.server.port=443
     depends_on:
       - mariadb
       - opensearch
@@ -20,6 +54,7 @@ services:
       - rabbitmq
     networks:
       - magento
+      - proxy
 
   mariadb:
     image: mariadb:11.4
@@ -62,23 +97,48 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
       - ./images/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.rabbit.entrypoints=http
+      - traefik.http.routers.rabbit.rule=Host(`rabbit.localhost`)
+      - traefik.http.services.rabbit.loadbalancer.server.port=15672
     networks:
       - magento
+      - proxy
 
   mailhog:
     image: mailhog/mailhog
     container_name: magento-mailhog
-    ports:
-      - "8025:8025"
-      - "1025:1025"
     networks:
       - magento
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.mailhog.entrypoints=http
+      - traefik.http.routers.mailhog.rule=Host(`mailhog.localhost`)
+      - traefik.http.services.mailhog.loadbalancer.server.port=8025
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: magento-phpmyadmin
+    env_file: env/mariadb.env
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.phpmyadmin.entrypoints=http
+      - traefik.http.routers.phpmyadmin.rule=Host(`myadmin.localhost`)
+      - traefik.http.services.phpmyadmin.loadbalancer.server.port=80
+      - traefik.http.services.phpmyadmin.loadbalancer.server.scheme=http
+    networks:
+      - magento
+      - proxy
 
 networks:
   magento:
+  proxy:
+    external: true
 
 volumes:
   db-data:
