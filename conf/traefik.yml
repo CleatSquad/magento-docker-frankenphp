@@ -35,7 +35,6 @@ entryPoints:
 #        keyFile: privkey.pem
 
 serversTransport:
-  insecureSkipVerify: true
 
 providers:
   docker:
