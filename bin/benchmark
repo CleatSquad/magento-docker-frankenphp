@@ -159,10 +159,10 @@ start_services() {
     cd "$BENCHMARK_DIR"
     
     print_info "Starting Nginx + PHP-FPM stack..."
-    docker compose -f docker-compose.nginx.yml up -d
+    docker compose -p benchmark-nginx -f docker-compose.nginx.yml up -d
     
     print_info "Starting FrankenPHP stack..."
-    docker compose -f docker-compose.frankenphp.yml up -d
+    docker compose -p benchmark-frankenphp -f docker-compose.frankenphp.yml up -d
     
     print_info "Waiting for services to be ready..."
     sleep 5
@@ -202,8 +202,8 @@ stop_services() {
     
     cd "$BENCHMARK_DIR"
     
-    docker compose -f docker-compose.nginx.yml down --remove-orphans 2>/dev/null || true
-    docker compose -f docker-compose.frankenphp.yml down --remove-orphans 2>/dev/null || true
+    docker compose -p benchmark-nginx -f docker-compose.nginx.yml down --remove-orphans 2>/dev/null || true
+    docker compose -p benchmark-frankenphp -f docker-compose.frankenphp.yml down --remove-orphans 2>/dev/null || true
     
     print_success "Services stopped"
 }
