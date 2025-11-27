@@ -1,13 +1,13 @@
 # Benchmark: FrankenPHP vs Nginx + PHP-FPM
 
-This document describes how to run performance benchmarks comparing **FrankenPHP** (using `mohelmrabet/magento-frankenphp`) with a traditional **Nginx + PHP-FPM** setup (using `markoshust/magento-php` and `markoshust/magento-nginx` from [docker-magento](https://github.com/markshust/docker-magento)).
+This document describes how to run performance benchmarks comparing **FrankenPHP** (using `mohelmrabet/magento-frankenphp`) with a traditional **Nginx + PHP-FPM** setup.
 
 ## Overview
 
 The benchmark suite includes:
 
 - **FrankenPHP**: Using `mohelmrabet/magento-frankenphp:php8.4-fp1.10-base`
-- **Nginx + PHP-FPM**: Using `markoshust/magento-nginx:1.24` and `markoshust/magento-php:8.4-fpm`
+- **Nginx + PHP-FPM**: Using `nginx:1.27-alpine` and `php:8.4-fpm-alpine`
 - Identical PHP test scripts for both setups
 - Docker Compose configurations for easy deployment
 - Automated benchmark script using Apache Bench
@@ -63,11 +63,9 @@ The benchmark suite includes:
 
 | Component | Image | Description |
 |-----------|-------|-------------|
-| **Nginx** | `markoshust/magento-nginx:1.24` | Mark Shust's Magento-optimized Nginx |
-| **PHP-FPM** | `markoshust/magento-php:8.4-fpm` | Mark Shust's Magento-optimized PHP-FPM |
+| **Nginx** | `nginx:1.27-alpine` | Official Nginx Alpine image |
+| **PHP-FPM** | `php:8.4-fpm-alpine` | Official PHP-FPM Alpine image |
 | **Port** | 8080 | HTTP endpoint |
-
-> Both images from [markshust/docker-magento](https://github.com/markshust/docker-magento) include all Magento-required extensions and optimizations.
 
 ### FrankenPHP Stack
 

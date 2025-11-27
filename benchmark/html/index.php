@@ -113,6 +113,7 @@ $results['tests']['json_1000'] = [
     'duration' => (microtime(true) - $startTest) * 1000
 ];
 
+$endTime = microtime(true);
 $results['total_duration_ms'] = ($endTime - $startTime) * 1000;
 $results['memory_peak_mb'] = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
 
