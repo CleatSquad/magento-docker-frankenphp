@@ -6,7 +6,7 @@
 
 # Load environment file if it exists
 ifneq ("$(wildcard .env)","")
-	# Only include the generated .env file to avoid variable conflicts.
+	include env/*.env
 	include .env
 	export
 endif
