@@ -2,88 +2,107 @@
 set -e
 
 ############################################
-# FIX : Always run from the project root
+# Setup script for Magento Docker environment
+# This script prepares the development environment by:
+# - Creating the required Docker network
+# - Copying environment file templates
+# - Setting up user permissions
 ############################################
-cd "$(dirname "$0")/.."
+
+# Always run from the project root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
 
 echo "🚀 Setting up Magento Docker environment..."
 
 ############################################
 # 1) Create Docker network if needed
 ############################################
-if ! docker network ls | grep -q "proxy" ; then
-    echo "📡 Creating proxy network..."
-    docker network create proxy
-    echo "✅ Network 'proxy' created"
-else
-    echo "✅ Network 'proxy' already exists"
-fi
+create_docker_network() {
+    local network_name="proxy"
+    
+    if ! docker network ls --format '{{.Name}}' | grep -q "^${network_name}$"; then
+        echo "📡 Creating ${network_name} network..."
+        if docker network create "${network_name}"; then
+            echo "✅ Network '${network_name}' created"
+        else
+            echo "❌ ERROR: Failed to create Docker network '${network_name}'"
+            exit 1
+        fi
+    else
+        echo "✅ Network '${network_name}' already exists"
+    fi
+}
+
+create_docker_network
 
 ############################################
-# 2) Prepare env files
+# 2) Prepare environment files
 ############################################
 echo "📝 Setting up environment files..."
-
-
 
 # Ensure env directory exists
 if [ ! -d "env" ]; then
     echo "❌ ERROR: The 'env' directory does not exist!"
+    echo "   Please ensure you are running this script from the project root."
     exit 1
 fi
 
-# magento.env
-if [ ! -f ".env" ] && [ -f "env/magento.env.example" ]; then
-    cp env/magento.env.example .env
-    echo "✅ Created .env"
-fi
+# Helper function to copy env file if it doesn't exist
+copy_env_file() {
+    local source_file="$1"
+    local target_file="$2"
+    local display_name="$3"
 
-# mariadb.env
-if [ ! -f "../env/mariadb.env" ] && [ -f "../env/mariadb.env.example" ]; then
-    cp ../env/mariadb.env.example ../env/mariadb.env
-    echo "✅ Created env/mariadb.env"
-fi
+    if [ ! -f "${target_file}" ] && [ -f "${source_file}" ]; then
+        if cp "${source_file}" "${target_file}"; then
+            echo "✅ Created ${display_name}"
+        else
+            echo "⚠️  WARNING: Failed to create ${display_name}"
+        fi
+    elif [ -f "${target_file}" ]; then
+        echo "ℹ️  ${display_name} already exists, skipping..."
+    fi
+}
 
-# opensearch.env
-if [ ! -f "env/opensearch.env" ] && [ -f "env/opensearch.env.example" ]; then
-    cp env/opensearch.env.example env/opensearch.env
-    echo "✅ Created env/opensearch.env"
-fi
-
-# rabbitmq.env
-if [ ! -f "env/rabbitmq.env" ] && [ -f "env/rabbitmq.env.example" ]; then
-    cp env/rabbitmq.env.example env/rabbitmq.env
-    echo "✅ Created env/rabbitmq.env"
-fi
-
-# valkey.env
-if [ ! -f "env/valkey.env" ] && [ -f "env/valkey.env.example" ]; then
-    cp env/valkey.env.example env/valkey.env
-    echo "✅ Created env/valkey.env"
-fi
+# Copy environment files from templates
+copy_env_file "env/magento.env.example" ".env" ".env"
+copy_env_file "env/mariadb.env.example" "env/mariadb.env" "env/mariadb.env"
+copy_env_file "env/opensearch.env.example" "env/opensearch.env" "env/opensearch.env"
+copy_env_file "env/rabbitmq.env.example" "env/rabbitmq.env" "env/rabbitmq.env"
+copy_env_file "env/valkey.env.example" "env/valkey.env" "env/valkey.env"
 
 ############################################
-# 3) Append USER_ID & GROUP_ID to .env
+# 3) Append USER_ID and GROUP_ID to .env
 ############################################
 echo "👤 Setting up user permissions..."
 
-if ! grep -q "USER_ID=" .env ; then
+# Ensure .env file exists before appending
+if [ ! -f ".env" ]; then
+    touch .env
+fi
+
+# Add USER_ID if not present
+if ! grep -q "^USER_ID=" .env; then
     echo "USER_ID=$(id -u)" >> .env
 fi
 
-if ! grep -q "GROUP_ID=" .env ; then
+# Add GROUP_ID if not present
+if ! grep -q "^GROUP_ID=" .env; then
     echo "GROUP_ID=$(id -g)" >> .env
 fi
 
-echo "✅ USER_ID=$(id -u), GROUP_ID=$(id -g) added to .env"
-
+echo "✅ USER_ID=$(id -u), GROUP_ID=$(id -g) configured in .env"
 
 ############################################
-# 4) Finish
+# 4) Summary and next steps
 ############################################
 echo ""
 echo "🎉 Setup complete!"
 echo ""
-echo "Start with:"
-echo "  docker compose up -d                       # Development"
-echo "  docker compose -f docker-compose.prod.yml up -d   # Production"
+echo "Next steps:"
+echo "  docker compose up -d                              # Start development environment"
+echo "  docker compose -f docker-compose.prod.yml up -d   # Start production environment"
+echo ""
+echo "For more information, see README.md"

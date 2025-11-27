@@ -6,15 +6,13 @@ api:
   dashboard: true
   insecure: false
 
-  # (Optional) Log information
-# ---
+# (Optional) Log information
 log:
   level: DEBUG  # DEBUG, INFO, WARNING, ERROR, CRITICAL
   format: common  # common, json, logfmt
   filePath: /var/log/traefik/traefik.log
 
 # Entry Points configuration
-# ---
 entryPoints:
   http:
     address: :80
@@ -22,19 +20,18 @@ entryPoints:
   https:
     address: :443
 
-#tls:
-#  certificates:
-#    - certFile: fullchain.pem
-#      keyFile:  privkey.pem
-#      stores:
-#        - default
-#  stores:
-#    default:
-#      defaultCertificate:
-#        certFile: fullchain.pem
-#        keyFile: privkey.pem
-
-serversTransport:
+# TLS configuration (uncomment for custom certificates)
+# tls:
+#   certificates:
+#     - certFile: fullchain.pem
+#       keyFile: privkey.pem
+#       stores:
+#         - default
+#   stores:
+#     default:
+#       defaultCertificate:
+#         certFile: fullchain.pem
+#         keyFile: privkey.pem
 
 providers:
   docker:

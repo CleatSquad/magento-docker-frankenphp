@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 This format follows **Keep a Changelog**,  
@@ -7,6 +8,50 @@ and this project adheres to **Semantic Versioning**.
 ---
 
 ## [Unreleased]
+
+### Added
+- CONTRIBUTING.md with comprehensive contribution guidelines
+- GitHub Actions CI/CD workflow for automated linting and build verification
+- yamllint configuration file for YAML validation
+- Examples directory with deployment guides:
+    - Kubernetes deployment example
+    - Local development setup guide
+    - Production Dockerfile example
+- Help target in Makefile with available commands documentation
+
+### Changed
+- Improved bin/setup.sh with:
+    - Fixed incorrect path for mariadb.env (was using `../env/` instead of `env/`)
+    - Added helper function for copying environment files
+    - Better error handling and validation
+    - Improved comments and documentation
+    - More informative output messages
+- Improved entrypoint scripts with better comments and proper variable quoting
+- Updated README.md with:
+    - Better English and grammar
+    - Updated project structure documentation
+    - Link to CONTRIBUTING.md
+    - Fixed broken Caddy Server link
+    - Removed duplicate step numbering
+- Updated DOCKER_README.md with:
+    - Better English and grammar
+    - Corrected GitHub repository URL
+- Improved Makefile with:
+    - Comprehensive comments for all targets
+    - New help target showing available commands
+    - Proper .PHONY declarations
+- Fixed YAML files to pass yamllint validation:
+    - Added missing newlines at end of files
+    - Fixed comment formatting in traefik.yml
+
+### Fixed
+- Bug in bin/setup.sh where mariadb.env was looking in wrong directory
+- Missing newline at end of YAML files
+- Inconsistent comment formatting
+
+---
+
+## [Unreleased] (Previous)
 
 ### Added
 - Integrated **mhsendmail** into the development Docker image to support MailHog email interception.

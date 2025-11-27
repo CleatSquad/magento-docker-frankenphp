@@ -1,7 +1,7 @@
-# Magento FrankenPHP
+# Magento FrankenPHP Docker Images
 # <img src="https://frankenphp.dev/img/logo_darkbg.svg" width="180" />
 
-🚀 High-performance Docker images for Magento 2 with [FrankenPHP](https://frankenphp.dev/)
+🚀 High-performance Docker images for Magento 2 with [FrankenPHP](https://frankenphp.dev/).
 
 ## Supported Tags
 
@@ -81,5 +81,5 @@ bcmath, gd, intl, mbstring, opcache, pdo_mysql, soap, xsl, zip, sockets, ftp, so
 
 ## Links
 
-- 📦 [GitHub](https://github.com/mohaelmrabet/magento-frankenphp)
+- 📦 [GitHub](https://github.com/CleatSquad/magento-docker-frankenphp)
 - 🚀 [FrankenPHP](https://frankenphp.dev/)

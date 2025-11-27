@@ -1,0 +1,148 @@
+#!/bin/bash
+set -e
+
+############################################
+# Docker Build and Release Script
+# This script builds and pushes Docker images
+# for all supported PHP versions
+############################################
+
+IMAGE="mohelmrabet/magento-frankenphp"
+VERSIONS="8.2 8.3 8.4"
+FP_VERSION="1.10"
+
+# =============================================================================
+# BUILD ALL
+# =============================================================================
+build_all() {
+    echo "🔨 Building all PHP versions..."
+    for v in ${VERSIONS}; do
+        echo "🔨 Building PHP ${v} BASE..."
+        docker build -f "images/php/${v}/base/Dockerfile" -t "${IMAGE}:php${v}-fp${FP_VERSION}-base" .
+
+        echo "🔨 Building PHP ${v} DEV..."
+        docker build -f "images/php/${v}/dev/Dockerfile" -t "${IMAGE}:php${v}-fp${FP_VERSION}-dev" .
+    done
+    echo "✅ All PHP versions built!"
+}
+
+# =============================================================================
+# PUSH ALL
+# =============================================================================
+push_all() {
+    echo "📤 Pushing all PHP versions..."
+    for v in ${VERSIONS}; do
+        echo "📤 Pushing PHP ${v}..."
+        docker push "${IMAGE}:php${v}-fp${FP_VERSION}-base"
+        docker push "${IMAGE}:php${v}-fp${FP_VERSION}-dev"
+    done
+    echo "✅ All PHP versions pushed!"
+}
+
+# =============================================================================
+# PUSH LATEST
+# =============================================================================
+push_latest() {
+    echo "📤 Pushing latest tags..."
+    docker tag "${IMAGE}:php8.4-fp${FP_VERSION}-base" "${IMAGE}:latest"
+    docker tag "${IMAGE}:php8.4-fp${FP_VERSION}-base" "${IMAGE}:base"
+    docker tag "${IMAGE}:php8.4-fp${FP_VERSION}-dev" "${IMAGE}:dev"
+    docker push "${IMAGE}:latest"
+    docker push "${IMAGE}:base"
+    docker push "${IMAGE}:dev"
+    echo "✅ Latest tags pushed!"
+}
+
+# =============================================================================
+# LIST IMAGES
+# =============================================================================
+list_images() {
+    echo "📦 Local images:"
+    docker images | grep "${IMAGE}"
+}
+
+# =============================================================================
+# PUSH README TO DOCKER HUB
+# =============================================================================
+push_readme() {
+    if [ ! -f "DOCKER_README.md" ]; then
+        echo "❌ DOCKER_README.md not found!"
+        exit 1
+    fi
+
+    if [ -z "${DOCKERHUB_TOKEN}" ]; then
+        echo "❌ DOCKERHUB_TOKEN not set!"
+        echo ""
+        echo "1. Go to https://hub.docker.com/settings/security"
+        echo "2. Create a new Access Token"
+        echo "3. Run: DOCKERHUB_TOKEN=your_token ./bin/build.sh push-readme"
+        exit 1
+    fi
+
+    DOCKER_USER="mohelmrabet"
+    REPO="magento-frankenphp"
+
+    echo "🔐 Getting Docker Hub JWT..."
+    JWT=$(curl -s -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"username\": \"${DOCKER_USER}\", \"password\": \"${DOCKERHUB_TOKEN}\"}" \
+        https://hub.docker.com/v2/users/login/ | jq -r .token)
+
+    if [ "${JWT}" == "null" ] || [ -z "${JWT}" ]; then
+        echo "❌ Failed to authenticate!"
+        exit 1
+    fi
+
+    echo "📤 Pushing README to Docker Hub..."
+
+    RESPONSE=$(curl -s -X PATCH \
+        -H "Authorization: JWT ${JWT}" \
+        -H "Content-Type: application/json" \
+        -d "{\"full_description\": $(jq -Rs . < DOCKER_README.md), \"description\": \"Magento 2 + FrankenPHP Docker Images\"}" \
+        "https://hub.docker.com/v2/repositories/${DOCKER_USER}/${REPO}/")
+
+    if echo "${RESPONSE}" | jq -e .full_description > /dev/null 2>&1; then
+        echo "✅ README pushed to Docker Hub!"
+    else
+        echo "❌ Failed to push README!"
+        echo "${RESPONSE}"
+        exit 1
+    fi
+}
+
+# =============================================================================
+# MAIN
+# =============================================================================
+case "$1" in
+    build)
+        build_all
+        ;;
+    push)
+        push_all
+        ;;
+    latest)
+        push_latest
+        ;;
+    push-readme)
+        push_readme
+        ;;
+    release)
+        build_all
+        push_all
+        push_latest
+        ;;
+    list)
+        list_images
+        ;;
+    *)
+        echo "Usage: $0 {build|push|latest|push-readme|release|list}"
+        echo ""
+        echo "  build       - Build all PHP versions"
+        echo "  push        - Push all PHP versions"
+        echo "  latest      - Push latest tags"
+        echo "  push-readme - Push DOCKER_README.md to Docker Hub"
+        echo "  release     - Build + Push + Latest"
+        echo "  list        - List local images"
+        exit 1
+        ;;
+esac

@@ -16,7 +16,7 @@
 
 ---
 
-High-performance Docker environment for **Magento 2** powered by **FrankenPHP**.
+A high-performance Docker environment for **Magento 2** powered by **FrankenPHP**.
 
 ## ✨ Features
 
@@ -71,29 +71,16 @@ git clone https://github.com/mohelmrabet/magento-frankenphp.git
 cd magento-frankenphp
 ```
 
-### 2. Run setup script
+### 2. Run the setup script
 
 ```bash
 ./bin/setup.sh
 ```
 
-This will:
-- ✅ Create the `proxy` network
-- ✅ Copy environment files
-- ✅ Set your user ID/GID
-
-### 3. Setup environment
-
-```bash
-# Copy environment files
-cp env/mariadb.env.example env/mariadb.env
-cp env/opensearch.env.example env/opensearch.env
-cp env/rabbitmq.env.example env/rabbitmq.env
-
-# Set your user ID (Linux)
-echo "USER_ID=$(id -u)" > .env
-echo "GROUP_ID=$(id -g)" >> .env
-```
+This script will:
+- ✅ Create the `proxy` Docker network
+- ✅ Copy environment files from templates
+- ✅ Set your user ID/GID for proper file permissions
 
 ### 3. Start containers
 
@@ -132,34 +119,54 @@ docker compose -f docker-compose.prod.yml up -d
 ## 📁 Project Structure
 
 ```
-magento-frankenphp/
+magento-docker-frankenphp/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                # CI/CD workflow
 ├── bin/
-│   ├── build-all.sh              # Build all images
-│   └── generate-dockerfiles.sh   # Generate Dockerfiles
+│   └── setup.sh                  # Environment setup script
+├── conf/
+│   └── traefik.yml               # Traefik configuration
+├── env/
+│   ├── magento.env.example       # Magento environment template
+│   ├── mariadb.env.example       # MariaDB environment template
+│   ├── opensearch.env.example    # OpenSearch environment template
+│   ├── rabbitmq.env.example      # RabbitMQ environment template
+│   └── valkey.env.example        # Valkey environment template
+├── examples/
+│   ├── kubernetes-deployment.md  # Kubernetes deployment guide
+│   ├── local-development.md      # Local development guide
+│   └── production-dockerfile.md  # Production Dockerfile example
 ├── images/
+│   ├── opensearch/
+│   │   └── Dockerfile            # OpenSearch with plugins
+│   ├── rabbitmq/
+│   │   └── rabbitmq.conf         # RabbitMQ configuration
 │   └── php/
 │       ├── 8.2/
 │       ├── 8.3/
 │       └── 8.4/
 │           ├── base/
-│           │   └── Dockerfile
+│           │   └── Dockerfile    # Base production image
 │           ├── dev/
-│           │   └── Dockerfile
+│           │   └── Dockerfile    # Development image with Xdebug
 │           ├── prod/
-│           │   └── Dockerfile
-│           └── conf/
-│               ├── Caddyfile
-│               ├── app.ini
-│               ├── opcache.ini
-│               └── xdebug.ini
-├── env/
-│   ├── mariadb.env
-│   ├── opensearch.env
-│   └── rabbitmq.env
-├── src/                          # Magento source code
-├── docker-compose.yml            # Development
-├── docker-compose.prod.yml       # Production
-└── README.md
+│           │   └── Dockerfile    # Production build image
+│           ├── conf/
+│           │   ├── Caddyfile     # Caddy/FrankenPHP configuration
+│           │   ├── app.ini       # PHP application settings
+│           │   ├── mail.ini      # Mail configuration
+│           │   ├── opcache.ini   # OPcache settings
+│           │   └── xdebug.ini    # Xdebug configuration
+│           ├── entrypoint.sh     # Development entrypoint
+│           └── entrypoint-prod.sh # Production entrypoint
+├── src/                          # Magento source code (gitignored)
+├── docker-compose.yml            # Development compose file
+├── docker-compose.prod.yml       # Production compose file
+├── CHANGELOG.md                  # Release history
+├── CONTRIBUTING.md               # Contribution guidelines
+├── Makefile                      # Common commands
+└── README.md                     # This file
 ```
 
 ---
@@ -355,7 +362,7 @@ See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## 🤝 Contributing
 
-Contributions are welcome!
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 1. Fork the repository 
 2. Create a feature branch (`git checkout -b feature/amazing`)
@@ -385,5 +392,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - [FrankenPHP](https://frankenphp.dev/)
 - [Magento 2](https://magento.com/)
-- [Caddy Server](https://caddyserver. com/)
+- [Caddy Server](https://caddyserver.com/)
 - [Docker Hub](https://hub.docker.com/r/mohelmrabet/magento-frankenphp)
