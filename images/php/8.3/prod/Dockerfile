@@ -40,8 +40,6 @@ RUN mv app/etc/env.php app/etc/env.php.bak  && php -d memory_limit=4G bin/magent
 
 RUN php -d memory_limit=4G bin/magento setup:static-content:deploy -f --jobs=16
 
-USER www-data
-
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD curl -f http://localhost/health_check.php || exit 1
 
