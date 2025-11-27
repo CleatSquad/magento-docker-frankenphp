@@ -74,7 +74,7 @@ cd magento-frankenphp
 ### 2. Run the setup script
 
 ```bash
-./bin/setup.sh
+./bin/setup
 ```
 
 This script will:
@@ -125,7 +125,7 @@ magento-docker-frankenphp/
 │       └── ci.yml                # CI/CD workflow
 ├── bin/
 │   ├── bash                      # Open bash shell
-│   ├── build.sh                  # Docker build script
+│   ├── build                  # Docker build script
 │   ├── cache-flush               # Flush Magento cache
 │   ├── cli                       # Run commands in container
 │   ├── clinotty                  # Run commands without TTY
@@ -151,7 +151,7 @@ magento-docker-frankenphp/
 │   ├── root                      # Run as root
 │   ├── rootnotty                 # Run as root without TTY
 │   ├── setup-upgrade             # Setup upgrade
-│   ├── setup.sh                  # Environment setup
+│   ├── setup                  # Environment setup
 │   ├── start                     # Start containers
 │   ├── status                    # Show status
 │   └── stop                      # Stop containers

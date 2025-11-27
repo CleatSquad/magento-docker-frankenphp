@@ -22,7 +22,7 @@ cd magento-docker-frankenphp
 ### 2. Run Setup Script
 
 ```bash
-./bin/setup.sh
+./bin/setup
 ```
 
 This script will:

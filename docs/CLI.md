@@ -367,7 +367,7 @@ Run grunt commands in the container.
 
 ## Setup Scripts
 
-### `bin/setup.sh`
+### `bin/setup`
 
 Initial setup script that:
 - Creates the Docker network
@@ -375,25 +375,25 @@ Initial setup script that:
 - Sets up user permissions
 
 ```bash
-./bin/setup.sh
+./bin/setup
 ```
 
-### `bin/build.sh`
+### `bin/build`
 
 Script for building and pushing Docker images.
 
 ```bash
 # Build all PHP versions
-./bin/build.sh build
+./bin/build build
 
 # Push all PHP versions
-./bin/build.sh push
+./bin/build push
 
 # Build and push latest
-./bin/build.sh release
+./bin/build release
 
 # List local images
-./bin/build.sh list
+./bin/build list
 ```
 
 ---

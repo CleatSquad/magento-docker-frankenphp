@@ -49,7 +49,7 @@ Before contributing, ensure you have the following installed:
 4. Run the setup script:
 
    ```bash
-   ./bin/setup.sh
+   ./bin/setup
    ```
 
 ## How to Contribute
@@ -142,7 +142,7 @@ We welcome various types of contributions:
 - Run `shellcheck` to check for issues:
 
   ```bash
-  shellcheck bin/setup.sh
+  shellcheck bin/setup
   ```
 
 ### YAML Files
