@@ -223,7 +223,8 @@ run_benchmark() {
     local name=$2
     local output_file=$3
     
-    print_info "Benchmarking $name: $REQUESTS requests, $CONCURRENCY concurrent..."
+    # Print info to stderr so it doesn't mix with results
+    echo -e "${BLUE}ℹ ${NC} Benchmarking $name: $REQUESTS requests, $CONCURRENCY concurrent..." >&2
     
     # Run ab and capture output
     $AB_CMD -n "$REQUESTS" -c "$CONCURRENCY" -g "$output_file.tsv" "$url" > "$output_file.txt" 2>&1 || true
@@ -246,17 +247,36 @@ format_comparison() {
     local val2=$2
     local higher_is_better=$3
     
+    # Check if values are empty or not numeric
     if [ -z "$val1" ] || [ -z "$val2" ]; then
+        echo "N/A"
+        return
+    fi
+    
+    # Validate that values are numeric (allow decimals)
+    if ! echo "$val1" | grep -qE '^[0-9]+\.?[0-9]*$' || ! echo "$val2" | grep -qE '^[0-9]+\.?[0-9]*$'; then
+        echo "N/A"
+        return
+    fi
+    
+    # Check for division by zero
+    if [ "$val2" = "0" ] || [ "$val2" = "0.0" ]; then
         echo "N/A"
         return
     fi
     
     # Use awk for better portability (bc may not be available everywhere)
     local diff
-    diff=$(awk "BEGIN {printf \"%.2f\", (($val1 - $val2) / $val2) * 100}")
+    diff=$(awk "BEGIN {printf \"%.2f\", (($val1 - $val2) / $val2) * 100}" 2>/dev/null)
     
     local is_val1_greater
-    is_val1_greater=$(awk "BEGIN {print ($val1 > $val2) ? 1 : 0}")
+    is_val1_greater=$(awk "BEGIN {print ($val1 > $val2) ? 1 : 0}" 2>/dev/null)
+    
+    # Check if awk succeeded
+    if [ -z "$diff" ] || [ -z "$is_val1_greater" ]; then
+        echo "N/A"
+        return
+    fi
     
     if [ "$higher_is_better" = "true" ]; then
         if [ "$is_val1_greater" = "1" ]; then
@@ -349,16 +369,21 @@ main() {
     IFS='|' read -r nginx_rps _ _ _ _ _ <<< "$nginx_results"
     IFS='|' read -r fp_rps _ _ _ _ _ <<< "$frankenphp_results"
     
-    if [ -n "$nginx_rps" ] && [ -n "$fp_rps" ]; then
+    # Validate values are numeric before comparison
+    if [ -n "$nginx_rps" ] && [ -n "$fp_rps" ] && \
+       echo "$nginx_rps" | grep -qE '^[0-9]+\.?[0-9]*$' && \
+       echo "$fp_rps" | grep -qE '^[0-9]+\.?[0-9]*$'; then
         local improvement difference is_fp_faster
-        is_fp_faster=$(awk "BEGIN {print ($fp_rps > $nginx_rps) ? 1 : 0}")
+        is_fp_faster=$(awk "BEGIN {print ($fp_rps > $nginx_rps) ? 1 : 0}" 2>/dev/null)
         if [ "$is_fp_faster" = "1" ]; then
-            improvement=$(awk "BEGIN {printf \"%.1f\", (($fp_rps - $nginx_rps) / $nginx_rps) * 100}")
+            improvement=$(awk "BEGIN {printf \"%.1f\", (($fp_rps - $nginx_rps) / $nginx_rps) * 100}" 2>/dev/null)
             print_success "FrankenPHP is ${GREEN}${improvement}%${NC} faster than Nginx + PHP-FPM"
         else
-            difference=$(awk "BEGIN {printf \"%.1f\", (($nginx_rps - $fp_rps) / $fp_rps) * 100}")
+            difference=$(awk "BEGIN {printf \"%.1f\", (($nginx_rps - $fp_rps) / $fp_rps) * 100}" 2>/dev/null)
             print_info "Nginx + PHP-FPM is ${difference}% faster in this test"
         fi
+    else
+        print_warning "Could not calculate performance comparison (invalid metrics)"
     fi
     
     echo ""
