@@ -1,0 +1,144 @@
+---
+name: Tests
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - "LICENSE*"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - "LICENSE*"
+permissions:
+  contents: read
+
+jobs:
+  docker-build-test:
+    name: Build & Test (PHP ${{ matrix.php_version }})
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    strategy:
+      fail-fast: false
+      matrix:
+        php_version: ["8.2", "8.3", "8.4"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build base image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./images/php/${{ matrix.php_version }}/base/Dockerfile
+          push: false
+          load: true
+          tags: magento-frankenphp:php${{ matrix.php_version }}-base-test
+          cache-from: type=gha,scope=test-base-php${{ matrix.php_version }}
+          cache-to: type=gha,scope=test-base-php${{ matrix.php_version }},mode=max
+
+      - name: Build dev image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./images/php/${{ matrix.php_version }}/dev/Dockerfile
+          push: false
+          load: true
+          tags: magento-frankenphp:php${{ matrix.php_version }}-dev-test
+          cache-from: type=gha,scope=test-dev-php${{ matrix.php_version }}
+          cache-to: type=gha,scope=test-dev-php${{ matrix.php_version }},mode=max
+
+      - name: Test PHP version
+        run: |
+          docker run --rm magento-frankenphp:php${{ matrix.php_version }}-base-test php -v | grep -q "PHP ${{ matrix.php_version }}"
+          echo "✅ PHP ${{ matrix.php_version }} version verified"
+
+      - name: Test required PHP extensions
+        run: |
+          EXTENSIONS="bcmath gd intl mbstring opcache pdo_mysql soap xsl zip sockets sodium"
+          for ext in $EXTENSIONS; do
+            if docker run --rm magento-frankenphp:php${{ matrix.php_version }}-base-test php -m | grep -qi "$ext"; then
+              echo "✅ Extension $ext is installed"
+            else
+              echo "❌ Extension $ext is missing"
+              exit 1
+            fi
+          done
+
+      - name: Test Composer availability
+        run: |
+          docker run --rm magento-frankenphp:php${{ matrix.php_version }}-base-test composer --version
+          echo "✅ Composer is available"
+
+      - name: Test FrankenPHP availability
+        run: |
+          docker run --rm magento-frankenphp:php${{ matrix.php_version }}-base-test frankenphp version
+          echo "✅ FrankenPHP is available"
+
+      - name: Test dev image Xdebug
+        run: |
+          if docker run --rm magento-frankenphp:php${{ matrix.php_version }}-dev-test php -m | grep -qi "xdebug"; then
+            echo "✅ Xdebug is installed in dev image"
+          else
+            echo "⚠️ Xdebug not found in dev image (may be optional)"
+          fi
+
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: './bin'
+          additional_files: >
+            images/php/common/entrypoint-base.sh
+            images/php/common/entrypoint-dev.sh
+            images/php/8.2/entrypoint-prod.sh
+            images/php/8.3/entrypoint-prod.sh
+            images/php/8.4/entrypoint-prod.sh
+          severity: warning
+
+  hadolint:
+    name: Hadolint Dockerfiles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run hadolint on Dockerfiles
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          recursive: true
+          ignore: DL3008,DL3018,DL3002
+
+  yamllint:
+    name: YAML Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run yamllint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: .
+          config_file: .yamllint.yml

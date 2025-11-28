@@ -1,0 +1,57 @@
+---
+name: Lint Code Base
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+permissions:
+  contents: read
+  packages: read
+  statuses: write
+jobs:
+  lint:
+    name: Lint Code Base
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Lint Code Base
+        uses: super-linter/super-linter/slim@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LINTER_RULES_PATH: /
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_DOCKERFILE_HADOLINT: true
+          VALIDATE_SHELL_SHFMT: true
+          VALIDATE_BASH: true
+          VALIDATE_BASH_EXEC: true
+          VALIDATE_YAML: true
+          VALIDATE_MARKDOWN: true
+          # Disable linters not relevant to this project
+          VALIDATE_JSCPD: false
+          VALIDATE_GO: false
+          VALIDATE_GO_MODULES: false
+          VALIDATE_PHP_PHPCS: false
+          VALIDATE_PHP_PHPSTAN: false
+          VALIDATE_PHP_PSALM: false
+          VALIDATE_TERRAFORM_TFLINT: false
+          VALIDATE_TERRAGRUNT: false
+          VALIDATE_TRIVY: false
+          VALIDATE_KUBERNETES_KUBECONFORM: false
+          # Prettier, Biome and StandardJS are incompatible
+          VALIDATE_JAVASCRIPT_PRETTIER: false
+          VALIDATE_TYPESCRIPT_PRETTIER: false
+          VALIDATE_BIOME_FORMAT: false
+          VALIDATE_BIOME_LINT: false
+          # Conflicts with MARKDOWN
+          VALIDATE_MARKDOWN_PRETTIER: false
