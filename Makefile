@@ -20,7 +20,7 @@ SHELL := /bin/bash
 .PHONY: help uninstall-magento setup-magento cache reindex compile upgrade-magento \
         permissions composer-install composer-update composer-require version \
         up down restart build install-magento full-install \
-        test-integration test-integration-all test-unit test-api test-api-all \
+        test-integration test-unit test-api \
         bash logs status remove removeall fixowns fixperms mysql mysqldump redis deploy
 
 # Default target - display help
@@ -94,25 +94,17 @@ install-magento:
 # Full Magento installation (create project, setup, cache, reindex)
 full-install: install-magento setup-magento cache reindex
 
-# Run Magento integration tests (usage: make test-integration p=4 c="Magento/Catalog")
+# Run Magento integration tests (usage: make test-integration)
 test-integration:
-	./bin/magento dev:tests:run integration --processes $(p) -c"$(c)"
+	./bin/magento dev:tests:run integration
 
-# Run all Magento integration tests (usage: make test-integration-all p=4)
-test-integration-all:
-	./bin/magento dev:tests:run integration --processes $(p)
-
-# Run Magento unit tests (usage: make test-unit p=4 c="Magento/Catalog")
+# Run Magento unit tests (usage: make test-unit)
 test-unit:
-	./bin/magento dev:tests:run unit --processes $(p) -c"$(c)"
+	./bin/magento dev:tests:run unit
 
-# Run Magento API tests (usage: make test-api p=4 c="Magento/Catalog")
+# Run Magento API tests (usage: make test-api)
 test-api:
-	./bin/magento dev:tests:run api --processes $(p) -c"$(c)"
-
-# Run all Magento API tests (usage: make test-api-all p=4)
-test-api-all:
-	./bin/magento dev:tests:run api --processes $(p)
+	./bin/magento dev:tests:run api
 
 # Open a shell in the app container
 bash:
