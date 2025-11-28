@@ -33,9 +33,14 @@ services:
       USER_ID: ${USER_ID:-1000}
       GROUP_ID: ${GROUP_ID:-1000}
       MAGENTO_RUN_MODE: developer
+      ENABLE_SSL_DEV: "true"
       SENDMAIL_PATH: "/usr/local/bin/mhsendmail --smtp-addr=magento-mailhog:1025"
     volumes:
-      - ./images/php/8.4/conf/Caddyfile:/etc/caddy/Caddyfile:cached
+      # Custom Caddyfile template (optional - uncomment to customize)
+      # - ./images/php/common/Caddyfile.template:/etc/caddy/Caddyfile.template:ro
+      # Mount your host mkcert CA to trust SSL certificates in browser
+      # Run 'mkcert -CAROOT' to find your CA path, then uncomment and update:
+      # - /path/to/your/.local/share/mkcert:/root/.local/share/mkcert:ro
       - ./src:/var/www/html
     labels:
       - traefik.enable=true
