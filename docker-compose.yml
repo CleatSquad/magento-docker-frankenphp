@@ -2,7 +2,7 @@ services:
   traefik:
     image: traefik:v3.6
     restart: unless-stopped
-    container_name: magento-traefik
+    container_name: ${PROJECT_NAME:-magento}-traefik
     security_opt:
       - no-new-privileges:true
     command:
@@ -26,7 +26,7 @@ services:
 
   app:
     image: mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-dev
-    container_name: magento-app
+    container_name: ${PROJECT_NAME:-magento}-app
     user: www-data
     environment:
       SERVER_NAME: ${SERVER_NAME:-magento.localhost}
@@ -68,7 +68,7 @@ services:
 
   mariadb:
     image: mariadb:11.4
-    container_name: magento-db
+    container_name: ${PROJECT_NAME:-magento}-db
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: magento
@@ -83,7 +83,7 @@ services:
     build:
       context: ./images/opensearch
       dockerfile: Dockerfile
-    container_name: magento-opensearch
+    container_name: ${PROJECT_NAME:-magento}-opensearch
     networks:
       - magento
       - proxy
@@ -97,14 +97,14 @@ services:
 
   valkey:
     image: valkey/valkey:8.1.4
-    container_name: magento-valkey
+    container_name: ${PROJECT_NAME:-magento}-valkey
     networks:
       - magento
       - proxy
 
   rabbitmq:
     image: rabbitmq:4.1-management-alpine
-    container_name: magento-rabbitmq
+    container_name: ${PROJECT_NAME:-magento}-rabbitmq
     env_file: env/rabbitmq.env
     networks:
       - magento
@@ -121,7 +121,7 @@ services:
 
   mailhog:
     image: mailhog/mailhog
-    container_name: magento-mailhog
+    container_name: ${PROJECT_NAME:-magento}-mailhog
     networks:
       - magento
       - proxy
@@ -134,7 +134,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
-    container_name: magento-phpmyadmin
+    container_name: ${PROJECT_NAME:-magento}-phpmyadmin
     networks:
       - magento
       - proxy
