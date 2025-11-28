@@ -1,6 +1,6 @@
 # Traefik static configuration file
 global:
-  checkNewVersion: true
+  checkNewVersion: false
   sendAnonymousUsage: false
 
 # Enable Traefik dashboard and API
