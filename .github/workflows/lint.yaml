@@ -25,11 +25,28 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Debug — show repo state before lint
+        run: |
+          echo "=== GITHUB EVENT ==="
+          jq . < $GITHUB_EVENT_PATH || true
+          echo "=== GIT HEAD ==="
+          git --no-pager log -1 --oneline || true
+          echo "=== PWD ==="
+          pwd
+          echo "=== LIST ROOT ==="
+          ls -la || true
+          echo "=== LIST .github ==="
+          ls -la .github || true
+          echo "=== LIST .github/linters ==="
+          ls -la .github/linters || true
+          echo "=== WORKSPACE ENV VARS ==="
+          env | grep -E 'LINTER|GITHUB|GIT' || true
+
       - name: Lint Code Base
         uses: github/super-linter@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Si tu as des règles personnalisées, place-les sous .github/linters et décommentes la ligne ci‑dessous :
+          # Si tu as des règles personnalisées, place-les sous .github/linters
           LINTER_RULES_PATH: .github/linters
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_DOCKERFILE_HADOLINT: true
