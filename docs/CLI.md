@@ -40,6 +40,8 @@ Start all Docker containers.
 ./bin/start
 ```
 
+**Auto-setup:** If `.env` file is missing, `bin/start` will automatically run `bin/setup` first to initialize the environment.
+
 ### `bin/stop`
 
 Stop all Docker containers.
@@ -370,13 +372,16 @@ Run grunt commands in the container.
 ### `bin/setup`
 
 Initial setup script that:
-- Creates the Docker network
+- Creates the Docker network (`proxy`)
 - Copies environment files from templates
-- Sets up user permissions
+- Sets up user permissions (USER_ID, GROUP_ID)
+- **Automatically generates SSL certificates** if `SERVER_NAME` is set in `.env`
 
 ```bash
 ./bin/setup
 ```
+
+**SSL Auto-setup:** If `SERVER_NAME` is defined in your `.env` file, `bin/setup` will automatically call `bin/setup-ssl` to generate trusted SSL certificates for that domain.
 
 ### `bin/setup-ssl`
 
