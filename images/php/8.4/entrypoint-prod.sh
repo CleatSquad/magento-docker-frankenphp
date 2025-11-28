@@ -7,6 +7,7 @@ CADDYFILE_TARGET="/etc/caddy/Caddyfile"
 
 if [ -f "$TEMPLATE_SOURCE" ]; then
     cp "$TEMPLATE_SOURCE" "$CADDYFILE_TARGET"
+    echo "📝 Caddyfile template processed"
 fi
 
 exec frankenphp run --config /etc/caddy/Caddyfile
