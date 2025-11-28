@@ -29,8 +29,18 @@ jobs:
       - name: Detect FrankenPHP version from Dockerfile
         id: detect
         run: |
-          VERSION=$(grep -oP 'dunglas/frankenphp:\K[0-9]+\.[0-9]+' images/php/8.4/base/Dockerfile | head -1)
-          echo "Detected FrankenPHP version: ${VERSION}"
+          # Find any base Dockerfile and extract version (major.minor only for image tagging)
+          DOCKERFILE=$(find images/php -name "Dockerfile" -path "*/base/*" | head -1)
+          if [ -z "$DOCKERFILE" ]; then
+            echo "❌ No base Dockerfile found"
+            exit 1
+          fi
+          VERSION=$(grep -oP 'dunglas/frankenphp:\K[0-9]+\.[0-9]+' "$DOCKERFILE" | head -1)
+          if [ -z "$VERSION" ]; then
+            echo "❌ Could not detect FrankenPHP version from $DOCKERFILE"
+            exit 1
+          fi
+          echo "Detected FrankenPHP version: ${VERSION} from ${DOCKERFILE}"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
   build-and-push:
