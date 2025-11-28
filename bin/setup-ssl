@@ -94,12 +94,6 @@ show_ca_info() {
     
     echo ""
     echo "📌 mkcert CA Root: ${ca_root}"
-    echo ""
-    echo "To share CA with Docker container, add this volume to docker-compose.yml:"
-    echo ""
-    echo "    volumes:"
-    echo "      - ${ca_root}:/root/.local/share/mkcert:ro"
-    echo ""
 }
 
 show_ca_info
@@ -107,13 +101,17 @@ show_ca_info
 ############################################
 # 6) Summary and next steps
 ############################################
+echo ""
 echo "🎉 SSL setup complete!"
 echo ""
 echo "Next steps:"
-echo "  1. Update docker-compose.yml to mount the SSL certificates:"
+echo "  1. Update docker-compose.yml to mount the SSL certificates and set TLS config:"
 echo ""
-echo "     volumes:"
-echo "       - ./conf/ssl:/data/caddy/certificates/local:ro"
+echo "     app:"
+echo "       environment:"
+echo "         CADDY_TLS_CONFIG: \"/etc/caddy/ssl/${DOMAIN}.pem /etc/caddy/ssl/${DOMAIN}-key.pem\""
+echo "       volumes:"
+echo "         - ./conf/ssl:/etc/caddy/ssl:ro"
 echo ""
 echo "  2. Set your domain in .env or docker-compose.yml:"
 echo ""

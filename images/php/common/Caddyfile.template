@@ -11,6 +11,7 @@
 #   - FRANKENPHP_CONFIG: FrankenPHP specific configuration
 #   - CADDY_EXTRA_CONFIG: Additional Caddy configuration blocks
 #   - CADDY_SERVER_EXTRA_DIRECTIVES: Extra directives for the server block
+#   - CADDY_TLS_CONFIG: TLS configuration (e.g., "internal" for self-signed or path to cert/key)
 #
 # Documentation:
 #   - Caddy: https://caddyserver.com/docs/
@@ -34,6 +35,8 @@
 }
 
 {$SERVER_NAME:localhost} {
+    tls {$CADDY_TLS_CONFIG:internal}
+    
     log {
         format filter {
             wrap console
