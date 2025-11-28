@@ -410,23 +410,34 @@ app:
     - ./conf/ssl:/etc/caddy/ssl:ro
 ```
 
-### `bin/build`
+### `bin/setup-magento`
 
-Script for building and pushing Docker images.
+Interactive Magento installation script. This script prompts for admin settings during setup instead of requiring them in environment files.
 
 ```bash
-# Build all PHP versions
-./bin/build build
-
-# Push all PHP versions
-./bin/build push
-
-# Build and push latest
-./bin/build release
-
-# List local images
-./bin/build list
+./bin/setup-magento
 ```
+
+The script will ask for:
+- Admin first name and last name
+- Admin email
+- Admin username and password
+- Language, currency, and timezone
+
+All other settings (database, search engine, cache) are read from environment files.
+
+### `bin/uninstall-magento`
+
+Uninstall Magento and remove all data.
+
+```bash
+./bin/uninstall-magento
+```
+
+This will remove:
+- All Magento database tables
+- Generated configuration files (app/etc/env.php, app/etc/config.php)
+- Generated code and cache
 
 ---
 
