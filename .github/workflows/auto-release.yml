@@ -1,14 +1,11 @@
 name: Auto Release on FrankenPHP Update
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - main
       - master
-    paths:
-      - 'images/php/**/base/Dockerfile'
-      - 'bin/build'
-      - '.github/workflows/build-release.yml'
 
 env:
   IMAGE: mohelmrabet/magento-frankenphp
@@ -20,6 +17,7 @@ jobs:
   detect-version:
     name: Detect FrankenPHP Version
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'frankenphp')
     outputs:
       frankenphp_version: ${{ steps.detect.outputs.version }}
     steps:

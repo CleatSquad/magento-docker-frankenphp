@@ -3,15 +3,21 @@
   "extends": [
     "config:recommended"
   ],
+  "enabledManagers": ["dockerfile", "regex"],
   "packageRules": [
     {
-      "description": "Group and auto-merge FrankenPHP updates",
+      "description": "Disable all dependencies except FrankenPHP",
+      "matchPackagePatterns": ["*"],
+      "enabled": false
+    },
+    {
+      "description": "Enable FrankenPHP updates only",
       "matchPackageNames": ["dunglas/frankenphp"],
       "matchDatasources": ["docker"],
+      "enabled": true,
       "groupName": "frankenphp",
-      "automerge": true,
-      "automergeType": "pr",
-      "labels": ["dependencies", "frankenphp", "auto-merge"]
+      "automerge": false,
+      "labels": ["dependencies", "frankenphp"]
     }
   ],
   "customManagers": [
