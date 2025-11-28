@@ -61,6 +61,7 @@ RUN bin/magento setup:static-content:deploy -f
 - ✅ Everything in Base +
 - ✅ Xdebug 3
 - ✅ mkcert (local HTTPS)
+- ✅ Self-signed SSL certificates (auto-generated)
 - ✅ git
 - ✅ Mailhog support
 - ✅ Runtime UID/GID mapping
@@ -78,6 +79,19 @@ bcmath, gd, intl, mbstring, opcache, pdo_mysql, soap, xsl, zip, sockets, ftp, so
 | `USER_ID` | `1000` | UID for www-data |
 | `GROUP_ID` | `1000` | GID for www-data |
 | `MAGENTO_RUN_MODE` | `developer` | Magento mode |
+| `SERVER_NAME` | `localhost` | Server hostname for SSL |
+| `ENABLE_SSL_DEV` | `true` | Enable self-signed SSL |
+
+## Caddyfile Configuration
+
+The Caddyfile can be customized by mounting your own template:
+
+```yaml
+volumes:
+  - ./my-Caddyfile.template:/etc/caddy/Caddyfile.template:ro
+```
+
+See the [Caddyfile Configuration Guide](https://github.com/CleatSquad/magento-docker-frankenphp/blob/main/docs/Caddyfile.md) for detailed documentation.
 
 ## Links
 

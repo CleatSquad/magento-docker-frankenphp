@@ -95,6 +95,36 @@ fi
 
 echo "✅ USER_ID=$(id -u), GROUP_ID=$(id -g) configured in .env"
 
+# --- SSL setup: use SERVER_NAME from .env to call bin/setup-ssl ---
+# Extract SERVER_NAME safely (strip surrounding quotes and whitespace)
+SERVER_NAME=""
+if [ -f ".env" ] && grep -q '^SERVER_NAME=' .env; then
+    SERVER_NAME=$(grep -m1 -E '^SERVER_NAME=' .env | cut -d'=' -f2- | sed -e 's/^[[:space:]]*["'"'"']\{0,1\}//' -e 's/["'"'"']\{0,1\}[[:space:]]*$//' | xargs)
+fi
+
+if [ -n "${SERVER_NAME}" ]; then
+    echo "🔐 Setting up SSL for ${SERVER_NAME}..."
+    if [ -x "bin/setup-ssl" ]; then
+        if bin/setup-ssl "${SERVER_NAME}"; then
+            echo "✅ SSL setup completed for ${SERVER_NAME}"
+        else
+            echo "⚠️  ERROR: SSL setup failed for ${SERVER_NAME}"
+        fi
+    elif [ -f "bin/setup-ssl" ]; then
+        echo "⚠️  bin/setup-ssl is not executable, running with bash..."
+        if bash bin/setup-ssl "${SERVER_NAME}"; then
+            echo "✅ SSL setup completed for ${SERVER_NAME}"
+        else
+            echo "⚠️  ERROR: SSL setup failed for ${SERVER_NAME}"
+        fi
+    else
+        echo "ℹ️  bin/setup-ssl not found, skipping SSL setup"
+    fi
+else
+    echo "ℹ️  SERVER_NAME not set in .env, skipping SSL setup"
+fi
+# --- end SSL setup ---
+
 ############################################
 # 4) Summary and next steps
 ############################################

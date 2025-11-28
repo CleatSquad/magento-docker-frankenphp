@@ -1,16 +1,17 @@
+# Traefik static configuration file
 global:
   checkNewVersion: true
-  sendAnonymousUsage: false  # true by default
+  sendAnonymousUsage: false
 
+# Enable Traefik dashboard and API
 api:
   dashboard: true
   insecure: false
 
-# (Optional) Log information
+# Logging configuration
 log:
-  level: DEBUG  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-  format: common  # common, json, logfmt
-  filePath: /var/log/traefik/traefik.log
+  level: INFO
+  format: common
 
 # Entry Points configuration
 entryPoints:
@@ -20,19 +21,7 @@ entryPoints:
   https:
     address: :443
 
-# TLS configuration (uncomment for custom certificates)
-# tls:
-#   certificates:
-#     - certFile: fullchain.pem
-#       keyFile: privkey.pem
-#       stores:
-#         - default
-#   stores:
-#     default:
-#       defaultCertificate:
-#         certFile: fullchain.pem
-#         keyFile: privkey.pem
-
+# Providers configuration
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"

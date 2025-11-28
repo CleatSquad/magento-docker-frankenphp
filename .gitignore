@@ -3,3 +3,4 @@
 /src/
 !/src/.keep
 /env/*.env
+/conf/ssl/
