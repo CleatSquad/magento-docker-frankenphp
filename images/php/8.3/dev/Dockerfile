@@ -15,6 +15,7 @@ RUN curl -L -o /usr/local/bin/mhsendmail \
 
 COPY images/php/8.3/conf/mail.ini /usr/local/etc/php/conf.d/zz-mail.ini
 COPY images/php/8.3/conf/xdebug.ini /usr/local/etc/php/conf.d/zz-xdebug.ini
+COPY images/php/8.3/conf/disable-opcache.ini /usr/local/etc/php/conf.d/zzz-disable-opcache.ini
 
 COPY images/php/common/entrypoint-dev.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
