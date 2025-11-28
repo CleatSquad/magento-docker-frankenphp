@@ -23,7 +23,8 @@ if command -v mkcert &> /dev/null && [ "${ENABLE_SSL_DEV:-true}" = "true" ]; the
     SSL_DOMAIN=$(echo "$SSL_DOMAIN" | sed -E 's|^https?://||' | sed -E 's|:[0-9]+$||')
     
     # Initialize mkcert CA if not already done
-    if [ ! -f "$(mkcert -CAROOT)/rootCA.pem" ] 2>/dev/null; then
+    MKCERT_CAROOT=$(mkcert -CAROOT 2>/dev/null || echo "/root/.local/share/mkcert")
+    if [ ! -f "$MKCERT_CAROOT/rootCA.pem" ]; then
         echo "🔐 Initializing mkcert local CA..."
         mkcert -install 2>/dev/null || true
     fi
@@ -43,7 +44,7 @@ if command -v mkcert &> /dev/null && [ "${ENABLE_SSL_DEV:-true}" = "true" ]; the
     
     echo "✅ Self-signed SSL certificate ready for: $SSL_DOMAIN"
     echo "📌 To trust this certificate on your host, install the CA from:"
-    echo "   Container path: \$(mkcert -CAROOT)/rootCA.pem"
+    echo "   Container path: $MKCERT_CAROOT/rootCA.pem"
     echo "   Or mount your host's mkcert CA to the container"
 fi
 

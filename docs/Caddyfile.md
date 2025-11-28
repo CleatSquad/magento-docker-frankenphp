@@ -124,13 +124,24 @@ To avoid browser warnings, you can trust the mkcert CA on your host machine:
    ```
 
 3. **Share the CA with the container:**
+   
+   First, get your mkcert CA path on the host:
+   ```bash
+   mkcert -CAROOT
+   # Example output: /home/user/.local/share/mkcert
+   ```
+   
+   Then use that path in your docker-compose.yml:
    ```yaml
    services:
      app:
        image: mohelmrabet/magento-frankenphp:dev
        volumes:
-         - "$(mkcert -CAROOT):/root/.local/share/mkcert:ro"
+         # Replace with your actual mkcert CA path from the command above
+         - "/home/user/.local/share/mkcert:/root/.local/share/mkcert:ro"
    ```
+   
+   > **Note:** Command substitution like `$(mkcert -CAROOT)` does not work directly in docker-compose.yml files. You need to expand it manually or use a shell script to start your containers.
 
 #### Disabling Self-Signed SSL
 
