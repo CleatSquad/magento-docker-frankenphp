@@ -1,6 +1,16 @@
 name: Build and Release Docker Images
-
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**Dockerfile"
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       action:
@@ -19,7 +29,7 @@ on:
 
 env:
   IMAGE: mohelmrabet/magento-frankenphp
-  FRANKENPHP_VERSION: '1.10'
+  FRANKENPHP_VERSION: '1.10.1'
 
 permissions:
   contents: read
