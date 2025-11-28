@@ -82,7 +82,6 @@ jobs:
           echo "php_versions=${PHP_VERSIONS}" >> "${GITHUB_OUTPUT}"
         env:
           INPUT_PHP_VERSIONS: ${{ inputs.php_versions }}
-
   build-base:
     name: Build base images
     runs-on: ubuntu-latest
