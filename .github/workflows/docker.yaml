@@ -4,15 +4,12 @@ concurrency:
   cancel-in-progress: true
   group: ${{ github.workflow }}-${{ github.ref }}
 on:
-  pull_request:
+  push:
     branches:
       - main
     paths:
       - "images/**"
       - ".github/workflows/docker.yaml"
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       php_versions:
