@@ -2,5 +2,44 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "enabledManagers": ["dockerfile", "regex"],
+  "packageRules": [
+    {
+      "description": "Disable all dependencies except FrankenPHP",
+      "matchPackagePatterns": ["*"],
+      "enabled": false
+    },
+    {
+      "description": "Enable FrankenPHP updates only",
+      "matchPackageNames": ["dunglas/frankenphp"],
+      "matchDatasources": ["docker"],
+      "enabled": true,
+      "groupName": "frankenphp",
+      "automerge": false,
+      "labels": ["dependencies", "frankenphp"]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update FrankenPHP version in bin/build",
+      "fileMatch": ["^bin/build$"],
+      "matchStrings": ["FP_VERSION=\"(?<currentValue>\\d+\\.\\d+)\""],
+      "depNameTemplate": "dunglas/frankenphp",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+)"
+    },
+    {
+      "customType": "regex",
+      "description": "Update FrankenPHP version in GitHub workflow",
+      "fileMatch": ["^\\.github/workflows/build-release\\.yml$"],
+      "matchStrings": ["FRANKENPHP_VERSION:\\s*'(?<currentValue>\\d+\\.\\d+)'"],
+      "depNameTemplate": "dunglas/frankenphp",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+)"
+    }
   ]
 }
