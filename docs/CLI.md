@@ -378,6 +378,24 @@ Initial setup script that:
 ./bin/setup
 ```
 
+### `bin/setup-ssl`
+
+Generate SSL certificates for development using mkcert.
+
+```bash
+# Generate certificate for default domain (magento.localhost)
+./bin/setup-ssl
+
+# Generate certificate for custom domain
+./bin/setup-ssl mystore.localhost
+```
+
+This script:
+- Installs the local mkcert CA (trusted by your browser)
+- Generates SSL certificate and key for the specified domain
+- Places certificates in `conf/ssl/` directory
+- Shows instructions for mounting certificates in Docker
+
 ### `bin/build`
 
 Script for building and pushing Docker images.
