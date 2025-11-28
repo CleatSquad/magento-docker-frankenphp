@@ -1,0 +1,45 @@
+---
+name: Cleanup Caches
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  cleanup:
+    name: Delete all caches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Cleanup caches
+        run: |
+          echo "🧹 Starting cache cleanup..."
+
+          set +e
+          while true; do
+            # Fetch caches in batches
+            cacheKeys=$(gh cache list --limit 100 --json key --jq '.[].key')
+
+            if [ -z "$cacheKeys" ]; then
+              echo "No more caches to delete."
+              break
+            fi
+
+            echo "🗑️ Deleting batch of caches..."
+            for cacheKey in $cacheKeys
+            do
+              echo "Deleting cache: $cacheKey"
+              gh cache delete "$cacheKey" || echo "Failed to delete cache $cacheKey"
+            done
+          done
+          set -e
+
+          echo "✅ Cache cleanup completed!"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
