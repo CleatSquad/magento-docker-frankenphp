@@ -1,3 +1,23 @@
+# Magento 2 FrankenPHP Caddyfile Template
+# ========================================
+#
+# This is a template file that gets processed at container startup.
+# You can customize this file and mount your own version at:
+#   /etc/caddy/Caddyfile.template
+#
+# Environment variables (with defaults):
+#   - SERVER_NAME: Server hostname (default: localhost)
+#   - CADDY_GLOBAL_OPTIONS: Global Caddy options
+#   - FRANKENPHP_CONFIG: FrankenPHP specific configuration
+#   - CADDY_EXTRA_CONFIG: Additional Caddy configuration blocks
+#   - CADDY_SERVER_EXTRA_DIRECTIVES: Extra directives for the server block
+#   - CADDY_TLS_CONFIG: TLS configuration (e.g., "internal" for self-signed or path to cert/key)
+#
+# Documentation:
+#   - Caddy: https://caddyserver.com/docs/
+#   - FrankenPHP: https://frankenphp.dev/docs/
+#   - Caddyfile: https://caddyserver.com/docs/caddyfile
+
 {
     {$CADDY_GLOBAL_OPTIONS}
 
@@ -15,6 +35,8 @@
 }
 
 {$SERVER_NAME:localhost} {
+    tls {$CADDY_TLS_CONFIG:internal}
+    
     log {
         format filter {
             wrap console

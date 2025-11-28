@@ -16,6 +16,9 @@ RUN curl -L -o /usr/local/bin/mhsendmail \
 COPY images/php/8.2/conf/mail.ini /usr/local/etc/php/conf.d/zz-mail.ini
 COPY images/php/8.2/conf/xdebug.ini /usr/local/etc/php/conf.d/zz-xdebug.ini
 
+COPY images/php/common/entrypoint-dev.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 ENV SENDMAIL_PATH=/usr/local/bin/mhsendmail
 ENV MAGENTO_RUN_MODE=developer
-
+ENV ENABLE_SSL_DEV=true

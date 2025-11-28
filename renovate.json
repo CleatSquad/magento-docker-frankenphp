@@ -5,11 +5,12 @@
   ],
   "enabledManagers": [
     "dockerfile",
+    "docker-compose",
     "custom.regex"
   ],
   "packageRules": [
     {
-      "description": "Disable all dependencies except FrankenPHP",
+      "description": "Disable all dependencies except FrankenPHP and Traefik",
       "enabled": false,
       "matchPackageNames": [
         "*"
@@ -29,6 +30,22 @@
       "labels": [
         "dependencies",
         "frankenphp"
+      ]
+    },
+    {
+      "description": "Enable Traefik updates",
+      "matchPackageNames": [
+        "traefik"
+      ],
+      "matchDatasources": [
+        "docker"
+      ],
+      "enabled": true,
+      "groupName": "traefik",
+      "automerge": false,
+      "labels": [
+        "dependencies",
+        "traefik"
       ]
     }
   ],

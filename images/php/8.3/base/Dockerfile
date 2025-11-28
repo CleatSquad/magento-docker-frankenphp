@@ -43,8 +43,8 @@ RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
 RUN mkdir -p /etc/caddy /data/caddy /var/www/html /var/www/. composer \
  && chown -R www-data:www-data /var/www /data /etc/caddy
 
-COPY images/php/8.3/conf/Caddyfile /etc/caddy/Caddyfile
-COPY images/php/8.3/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY images/php/common/Caddyfile.template /etc/caddy/Caddyfile.template
+COPY images/php/common/entrypoint-base.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 COPY images/php/8.3/conf/app.ini /usr/local/etc/php/conf.d/zz-app.ini

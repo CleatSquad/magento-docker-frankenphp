@@ -8,6 +8,27 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
+# If .env is missing, run bin/setup
+if [ ! -f ".env" ]; then
+    echo "⚙️  .env not found — running bin/setup..."
+    if [ -x "bin/setup" ]; then
+        if bin/setup; then
+            echo "✅ bin/setup completed"
+        else
+            echo "⚠️  bin/setup failed"
+        fi
+    elif [ -f "bin/setup" ]; then
+        echo "⚠️  bin/setup is not executable, running with bash..."
+        if bash bin/setup; then
+            echo "✅ bin/setup completed"
+        else
+            echo "⚠️  bin/setup failed"
+        fi
+    else
+        echo "ℹ️  bin/setup not found, skipping"
+    fi
+fi
+
 echo "🚀 Starting Docker containers..."
 docker compose up -d --remove-orphans "$@"
 echo "✅ Containers started successfully!"

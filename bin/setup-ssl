@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+############################################
+# Generate SSL certificates for development
+# Uses mkcert to create trusted certificates
+#
+# Usage: bin/setup-ssl [domain]
+# Example: bin/setup-ssl magento.localhost
+############################################
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+# Default domain
+DOMAIN="${1:-magento.localhost}"
+
+# SSL certificates directory
+SSL_DIR="${PROJECT_ROOT}/conf/ssl"
+
+echo "🔐 Setting up SSL certificates for: ${DOMAIN}"
+
+############################################
+# 1) Check if mkcert is installed
+############################################
+check_mkcert() {
+    if ! command -v mkcert &> /dev/null; then
+        echo "❌ ERROR: mkcert is not installed."
+        echo ""
+        echo "Please install mkcert first:"
+        echo ""
+        echo "  macOS:        brew install mkcert"
+        echo "  Ubuntu/Debian: apt install mkcert"
+        echo "  Windows:      choco install mkcert"
+        echo ""
+        echo "📚 Documentation: https://github.com/FiloSottile/mkcert"
+        exit 1
+    fi
+    echo "✅ mkcert is installed"
+}
+
+check_mkcert
+
+############################################
+# 2) Install local CA (if not already done)
+############################################
+install_ca() {
+    echo "📜 Installing local CA..."
+    mkcert -install
+    echo "✅ Local CA installed and trusted"
+}
+
+install_ca
+
+############################################
+# 3) Create SSL directory
+############################################
+create_ssl_dir() {
+    if [ ! -d "${SSL_DIR}" ]; then
+        mkdir -p "${SSL_DIR}"
+        echo "📁 Created SSL directory: ${SSL_DIR}"
+    fi
+}
+
+create_ssl_dir
+
+############################################
+# 4) Generate certificate for domain
+############################################
+generate_cert() {
+    local cert_file="${SSL_DIR}/${DOMAIN}.pem"
+    local key_file="${SSL_DIR}/${DOMAIN}-key.pem"
+
+    echo "🔑 Generating certificate for ${DOMAIN}..."
+    
+    mkcert -cert-file "${cert_file}" \
+           -key-file "${key_file}" \
+           "${DOMAIN}" "*.${DOMAIN}" localhost 127.0.0.1 ::1
+
+    echo "✅ Certificate generated:"
+    echo "   📄 Certificate: ${cert_file}"
+    echo "   🔑 Key: ${key_file}"
+}
+
+generate_cert
+
+############################################
+# 5) Get mkcert CA root path
+############################################
+show_ca_info() {
+    local ca_root
+    ca_root=$(mkcert -CAROOT)
+    
+    echo ""
+    echo "📌 mkcert CA Root: ${ca_root}"
+}
+
+show_ca_info
+
+############################################
+# 6) Summary and next steps
+############################################
+echo ""
+echo "🎉 SSL setup complete!"
+echo ""
+echo "Next steps:"
+echo "  1. Update docker-compose.yml to mount the SSL certificates and set TLS config:"
+echo ""
+echo "     app:"
+echo "       environment:"
+echo "         CADDY_TLS_CONFIG: \"/etc/caddy/ssl/${DOMAIN}.pem /etc/caddy/ssl/${DOMAIN}-key.pem\""
+echo "       volumes:"
+echo "         - ./conf/ssl:/etc/caddy/ssl:ro"
+echo ""
+echo "  2. Set your domain in .env or docker-compose.yml:"
+echo ""
+echo "     SERVER_NAME=${DOMAIN}"
+echo ""
+echo "  3. Restart containers: ./bin/restart"
+echo ""
+echo "📚 For more information, see docs/Caddyfile.md"
