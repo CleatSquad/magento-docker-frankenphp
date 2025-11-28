@@ -2,5 +2,38 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "description": "Group and auto-merge FrankenPHP updates",
+      "matchPackageNames": ["dunglas/frankenphp"],
+      "matchDatasources": ["docker"],
+      "groupName": "frankenphp",
+      "automerge": true,
+      "automergeType": "pr",
+      "labels": ["dependencies", "frankenphp", "auto-merge"]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update FrankenPHP version in bin/build",
+      "fileMatch": ["^bin/build$"],
+      "matchStrings": ["FP_VERSION=\"(?<currentValue>\\d+\\.\\d+)\""],
+      "depNameTemplate": "dunglas/frankenphp",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+)"
+    },
+    {
+      "customType": "regex",
+      "description": "Update FrankenPHP version in GitHub workflow",
+      "fileMatch": ["^\\.github/workflows/build-release\\.yml$"],
+      "matchStrings": ["FRANKENPHP_VERSION:\\s*'(?<currentValue>\\d+\\.\\d+)'"],
+      "depNameTemplate": "dunglas/frankenphp",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+)"
+    }
   ]
 }
