@@ -15,9 +15,6 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 COPY --chown=www-data:www-data src/ ${MAGENTO_ROOT}/
 
-COPY images/php/8.4/conf/app.ini /usr/local/etc/php/conf.d/zz-app.ini
-COPY images/php/8.4/conf/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
-
 ENV CADDY_LOG_OUTPUT=stdout
 ENV SENDMAIL_PATH=/usr/sbin/sendmail
 ENV MAGENTO_RUN_MODE=production

@@ -53,6 +53,7 @@ COPY images/php/common/entrypoint-base.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 COPY images/php/8.3/conf/app.ini /usr/local/etc/php/conf.d/zz-app.ini
+COPY images/php/8.3/conf/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 
 ENV CADDY_LOG_OUTPUT=stdout \
     COMPOSER_ALLOW_SUPERUSER=0 \
