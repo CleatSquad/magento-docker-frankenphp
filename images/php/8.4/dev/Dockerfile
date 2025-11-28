@@ -1,5 +1,5 @@
 #syntax=docker/dockerfile:1.20
-FROM mohelmrabet/magento-frankenphp:php8.4-fp1.10-base
+FROM mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-base
 LABEL maintainer="Mohamed El Mrabet <contact@cleatsquad.dev>"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

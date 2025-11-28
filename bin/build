@@ -9,7 +9,7 @@ set -e
 
 IMAGE="mohelmrabet/magento-frankenphp"
 VERSIONS="8.2 8.3 8.4"
-FP_VERSION="1.10"
+FP_VERSION="1.10.1"
 
 # =============================================================================
 # BUILD ALL
