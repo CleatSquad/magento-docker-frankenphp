@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: ./images/php/8.4/prod/Dockerfile
-    container_name: magento-app
+    container_name: ${PROJECT_NAME:-magento}-app
     restart: unless-stopped
     environment:
       SERVER_NAME: ${SERVER_NAME:-magento.com}
@@ -24,7 +24,7 @@ services:
 
   mariadb:
     image: mariadb:11.4
-    container_name: magento-db
+    container_name: ${PROJECT_NAME:-magento}-db
     restart: unless-stopped
     env_file: env/mariadb.env
     volumes:
@@ -36,7 +36,7 @@ services:
     build:
       context: ./images/opensearch
       dockerfile: Dockerfile
-    container_name: magento-opensearch
+    container_name: ${PROJECT_NAME:-magento}-opensearch
     restart: unless-stopped
     env_file: env/opensearch.env
     environment:
@@ -50,14 +50,14 @@ services:
 
   valkey:
     image: valkey/valkey:8.1.4
-    container_name: magento-valkey
+    container_name: ${PROJECT_NAME:-magento}-valkey
     restart: unless-stopped
     networks:
       - magento
 
   rabbitmq:
     image: rabbitmq:4.1-management-alpine
-    container_name: magento-rabbitmq
+    container_name: ${PROJECT_NAME:-magento}-rabbitmq
     restart: unless-stopped
     env_file: env/rabbitmq.env
     volumes:
