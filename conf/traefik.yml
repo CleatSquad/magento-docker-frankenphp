@@ -1,6 +1,6 @@
 global:
   checkNewVersion: true
-  sendAnonymousUsage: false  # true by default
+  sendAnonymousUsage: false
 
 api:
   dashboard: true
@@ -8,9 +8,8 @@ api:
 
 # (Optional) Log information
 log:
-  level: DEBUG  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-  format: common  # common, json, logfmt
-  filePath: /var/log/traefik/traefik.log
+  level: INFO
+  format: common
 
 # Entry Points configuration
 entryPoints:
@@ -19,19 +18,6 @@ entryPoints:
 
   https:
     address: :443
-
-# TLS configuration (uncomment for custom certificates)
-# tls:
-#   certificates:
-#     - certFile: fullchain.pem
-#       keyFile: privkey.pem
-#       stores:
-#         - default
-#   stores:
-#     default:
-#       defaultCertificate:
-#         certFile: fullchain.pem
-#         keyFile: privkey.pem
 
 providers:
   docker:
