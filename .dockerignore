@@ -6,7 +6,6 @@ src/var/log
 src/var/report
 src/var/tmp
 src/var/view_preprocessed
-src/var/generation
 
 # Generated code
 src/generated/code
