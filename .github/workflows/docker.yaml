@@ -82,9 +82,12 @@ jobs:
           echo "php_versions=${PHP_VERSIONS}" >> "${GITHUB_OUTPUT}"
         env:
           INPUT_PHP_VERSIONS: ${{ inputs.php_versions }}
+
   build-base:
+    name: Build base images
     runs-on: ubuntu-latest
-    needs: prepare
+    needs:
+      - prepare
     strategy:
       fail-fast: false
       matrix:
@@ -104,16 +107,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Generate tags
+      - name: Generate tags (base)
         id: tags
         run: |
           FP_VERSION="${{ needs.prepare.outputs.frankenphp_version }}"
           PHP_VERSION="${{ matrix.php_version }}"
-          VARIANT="base"
           IMAGE="${{ needs.prepare.outputs.image_name }}"
 
-          TAGS="${IMAGE}:php${PHP_VERSION}-fp${FP_VERSION}-${VARIANT}"
+          TAGS="${IMAGE}:php${PHP_VERSION}-fp${FP_VERSION}-base"
 
+          # Add latest tag for PHP 8.4 base variant
           if [[ "${PHP_VERSION}" == "8.4" && "${{ needs.prepare.outputs.push }}" == "true" ]]; then
             TAGS="${TAGS},${IMAGE}:latest,${IMAGE}:base"
           fi
@@ -131,17 +134,26 @@ jobs:
           cache-from: type=gha,scope=base-php${{ matrix.php_version }}-${{ github.ref }}
           cache-to: type=gha,scope=base-php${{ matrix.php_version }}-${{ github.ref }},mode=max,ignore-error=true
 
-      - name: Run tests
+      - name: Run tests (base)
         if: needs.prepare.outputs.push != 'true'
         run: |
           IMAGE_TAG="${{ needs.prepare.outputs.image_name }}:php${{ matrix.php_version }}-fp${{ needs.prepare.outputs.frankenphp_version }}-base"
 
           echo "🧪 Testing image: ${IMAGE_TAG}"
 
+          # Test PHP version
           docker run --rm "${IMAGE_TAG}" php -v | grep -q "PHP ${{ matrix.php_version }}"
-          docker run --rm "${IMAGE_TAG}" frankenphp version
-          docker run --rm "${IMAGE_TAG}" composer --version
+          echo "✅ PHP ${{ matrix.php_version }} version verified"
 
+          # Test FrankenPHP
+          docker run --rm "${IMAGE_TAG}" frankenphp version
+          echo "✅ FrankenPHP is available"
+
+          # Test Composer
+          docker run --rm "${IMAGE_TAG}" composer --version
+          echo "✅ Composer is available"
+
+          # Test required PHP extensions
           EXTENSIONS="bcmath gd intl mbstring opcache pdo_mysql soap xsl zip sockets sodium"
           for ext in $EXTENSIONS; do
             if docker run --rm "${IMAGE_TAG}" php -m | grep -qi "$ext"; then
@@ -153,9 +165,9 @@ jobs:
           done
 
   build-dev:
+    name: Build dev images
     runs-on: ubuntu-latest
     needs:
-      - prepare
       - build-base
     strategy:
       fail-fast: false
@@ -176,17 +188,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Generate tags
+      - name: Generate tags (dev)
         id: tags
         run: |
           FP_VERSION="${{ needs.prepare.outputs.frankenphp_version }}"
           PHP_VERSION="${{ matrix.php_version }}"
-          VARIANT="dev"
           IMAGE="${{ needs.prepare.outputs.image_name }}"
 
-          TAGS="${IMAGE}:php${PHP_VERSION}-fp${FP_VERSION}-${VARIANT}"
+          TAGS="${IMAGE}:php${PHP_VERSION}-fp${FP_VERSION}-dev"
 
-          if [[ "${PHP_VERSION}" == "8.4" && "${VARIANT}" == "dev" && "${{ needs.prepare.outputs.push }}" == "true" ]]; then
+          # Add dev tag for PHP 8.4 dev variant
+          if [[ "${PHP_VERSION}" == "8.4" && "${{ needs.prepare.outputs.push }}" == "true" ]]; then
             TAGS="${TAGS},${IMAGE}:dev"
           fi
 
@@ -203,17 +215,26 @@ jobs:
           cache-from: type=gha,scope=dev-php${{ matrix.php_version }}-${{ github.ref }}
           cache-to: type=gha,scope=dev-php${{ matrix.php_version }}-${{ github.ref }},mode=max,ignore-error=true
 
-      - name: Run tests
+      - name: Run tests (dev)
         if: needs.prepare.outputs.push != 'true'
         run: |
           IMAGE_TAG="${{ needs.prepare.outputs.image_name }}:php${{ matrix.php_version }}-fp${{ needs.prepare.outputs.frankenphp_version }}-dev"
 
           echo "🧪 Testing image: ${IMAGE_TAG}"
 
+          # Test PHP version
           docker run --rm "${IMAGE_TAG}" php -v | grep -q "PHP ${{ matrix.php_version }}"
-          docker run --rm "${IMAGE_TAG}" frankenphp version
-          docker run --rm "${IMAGE_TAG}" composer --version
+          echo "✅ PHP ${{ matrix.php_version }} version verified"
 
+          # Test FrankenPHP
+          docker run --rm "${IMAGE_TAG}" frankenphp version
+          echo "✅ FrankenPHP is available"
+
+          # Test Composer
+          docker run --rm "${IMAGE_TAG}" composer --version
+          echo "✅ Composer is available"
+
+          # Test required PHP extensions
           EXTENSIONS="bcmath gd intl mbstring opcache pdo_mysql soap xsl zip sockets sodium"
           for ext in $EXTENSIONS; do
             if docker run --rm "${IMAGE_TAG}" php -m | grep -qi "$ext"; then
@@ -223,11 +244,13 @@ jobs:
               exit 1
             fi
           done
+
   push-readme:
     name: Push README to Docker Hub
     runs-on: ubuntu-latest
     needs:
       - prepare
+      - build-base
       - build-dev
     if: needs.prepare.outputs.push == 'true'
     steps:
