@@ -14,6 +14,12 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License MIT" /></a>
 </p>
 
+## Links
+
+- 📦 [Docker Hub](https://hub.docker.com/r/mohelmrabet/magento-frankenphp)
+- 🚀 [FrankenPHP](https://frankenphp.dev/)
+- 🛒 [Magento 2](https://business.adobe.com/products/magento/magento-commerce.html)
+
 ---
 
 ## Why FrankenPHP for Magento?
@@ -36,7 +42,7 @@ cd magento-frankenphp
 ./bin/setup
 
 # 3. Start
-docker compose up -d
+./bin/start
 
 # 4. Access https://magento.localhost
 ```
@@ -51,19 +57,21 @@ docker pull mohelmrabet/magento-frankenphp:latest
 docker pull mohelmrabet/magento-frankenphp:dev
 ```
 
-| Tag | PHP | Use Case |
-|-----|-----|----------|
-| `php8.4-fp1.10-base` / `latest` | 8.4 | Production |
-| `php8.4-fp1.10-dev` / `dev` | 8.4 | Development |
-| `php8.3-fp1.10-base` | 8.3 | Production |
-| `php8.3-fp1.10-dev` | 8.3 | Development |
-| `php8.2-fp1.10-base` | 8.2 | Production |
-| `php8.2-fp1.10-dev` | 8.2 | Development |
+| Tag                               | PHP | Franken | Use Case     |
+|-----------------------------------|-----|---------|--------------|
+| `php8.4-fp1.10.1-base` / `latest` | 8.4 | 1.10.1  | Production   |
+| `php8.4-fp1.10.1-dev` / `dev`     | 8.4 | 1.10.1  | Development  |
+| `php8.3-fp1.10.1-base` / `base`   | 8.3 | 1.10.1  | Production   |
+| `php8.3-fp1.10.1-dev`             | 8.3 | 1.10.1  | Development  |
+| `php8.2-fp1.10.1-base`            | 8.2 | 1.10.1  | Production   |
+| `php8.2-fp1.10.1-dev`             | 8.2 | 1.10.1  | Development  |
 
 ## Features
 
 - ✅ **PHP 8.2, 8.3, 8.4** — All Magento-required extensions included
-- ✅ **Automatic HTTPS** — Via Caddy/Let's Encrypt
+- ✅ **Automatic HTTPS** — Via Caddy web server
+- ✅ **OPcache optimized** — Pre-configured for best performance
+- ✅ **Composer 2** — Latest version included
 - ✅ **Xdebug ready** — Pre-configured in dev images
 - ✅ **Full stack included** — MariaDB, OpenSearch, Valkey, RabbitMQ, Mailhog
 - ✅ **CLI tools** — Convenient scripts in `bin/` directory
@@ -86,6 +94,8 @@ docker pull mohelmrabet/magento-frankenphp:dev
 ./bin/start              # Start containers
 ./bin/stop               # Stop containers
 ./bin/magento cache:flush
+./bin/bash               # Access app container shell
+./bin/setup              # Initial setup
 ./bin/composer install
 ./bin/mysql              # Database CLI
 ```
@@ -105,10 +115,3 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## License
 
 MIT — see [LICENSE](LICENSE.txt)
-
-## Links
-
-- 📦 [Docker Hub](https://hub.docker.com/r/mohelmrabet/magento-frankenphp)
-- 🚀 [FrankenPHP](https://frankenphp.dev/)
-- 🛒 [Magento 2](https://business.adobe.com/products/magento/magento-commerce.html)
-- 📝 [Changelog](CHANGELOG.md)
