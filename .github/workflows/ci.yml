@@ -43,11 +43,10 @@ jobs:
         with:
           scandir: './bin'
           additional_files: >
-            images/php/8.2/entrypoint.sh
+            images/php/common/entrypoint-base.sh
+            images/php/common/entrypoint-dev.sh
             images/php/8.2/entrypoint-prod.sh
-            images/php/8.3/entrypoint.sh
             images/php/8.3/entrypoint-prod.sh
-            images/php/8.4/entrypoint.sh
             images/php/8.4/entrypoint-prod.sh
 
   lint-yaml:
