@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Uninstall Magento (removes all data)
+# Usage: bin/uninstall-magento
+# shellcheck disable=SC2162
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+echo "⚠️  Magento Uninstall"
+echo "===================="
+echo ""
+echo "This will remove:"
+echo "  - All Magento database tables"
+echo "  - Generated configuration files (app/etc/env.php, app/etc/config.php)"
+echo "  - Generated code and cache"
+echo ""
+
+read -p "Are you sure you want to uninstall Magento? [y/N]: " confirm
+if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+    echo "❌ Uninstall cancelled."
+    exit 0
+fi
+
+echo ""
+echo "🗑️  Uninstalling Magento..."
+
+docker compose exec -T app bin/magento setup:uninstall
+
+echo ""
+echo "✅ Magento has been uninstalled."
+echo ""
+echo "To reinstall, run: ./bin/setup-magento"

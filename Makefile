@@ -17,57 +17,22 @@ APP := app
 # Default shell
 SHELL := /bin/bash
 
-.PHONY: uninstall-magento setup-magento cache reindex compile upgrade-magento \
+.PHONY: help uninstall-magento setup-magento cache reindex compile upgrade-magento \
         permissions composer-install composer-update composer-require version \
         up down restart build install-magento full-install \
         test-integration test-integration-all test-unit test-api test-api-all \
-        bash logs help status remove removeall fixowns fixperms mysql mysqldump redis deploy
+        bash logs status remove removeall fixowns fixperms mysql mysqldump redis deploy
 
+# Default target - display help
+.DEFAULT_GOAL := help
 
 # Uninstall Magento (removes all data)
 uninstall-magento:
-	docker compose exec -it $(APP) bin/magento setup:uninstall
+	./bin/uninstall-magento
 
-# Install Magento with configured settings
+# Install Magento with interactive setup
 setup-magento:
-	docker compose exec -it $(APP) bin/magento setup:install \
-		--base-url=$(BASE_URL) \
-		--db-host=$(DB_HOST) \
-		--db-name=$(DB_NAME) \
-		--db-user=$(DB_USER) \
-		--db-password=$(DB_PASSWORD) \
-		--backend-frontname=$(BACKEND_FRONTNAME) \
-		--admin-firstname=$(ADMIN_FIRSTNAME) \
-		--admin-lastname=$(ADMIN_LASTNAME) \
-		--admin-email=$(ADMIN_EMAIL) \
-		--admin-user=$(ADMIN_USER) \
-		--admin-password=$(ADMIN_PASSWORD) \
-		--language=fr_FR \
-		--currency=EUR \
-		--timezone=Europe/Paris \
-		--use-rewrites=1 \
-		--search-engine=$(SEARCH_ENGINE) \
-		--opensearch-host=$(OPENSEARCH_HOST) \
-		--opensearch-port=$(OPENSEARCH_PORT) \
-		--amqp-host=$(RABBITMQ_HOST) \
-		--amqp-port=$(RABBITMQ_PORT) \
-		--amqp-user=$(RABBITMQ_DEFAULT_USER) \
-		--amqp-password=$(RABBITMQ_DEFAULT_PASS) \
-		--amqp-virtualhost=$(RABBITMQ_DEFAULT_VHOST) \
-		--amqp-ssl=0 \
-		--session-save=redis \
-		--session-save-redis-host=$(VALKEY_HOST) \
-		--session-save-redis-port=$(VALKEY_PORT) \
-		--session-save-redis-db=2 \
-		--session-save-redis-disable-locking=1 \
-		--cache-backend=redis \
-		--cache-backend-redis-server=$(VALKEY_HOST) \
-		--cache-backend-redis-port=$(VALKEY_PORT) \
-		--cache-backend-redis-db=0 \
-		--page-cache=redis \
-		--page-cache-redis-server=$(VALKEY_HOST) \
-		--page-cache-redis-port=$(VALKEY_PORT) \
-		--page-cache-redis-db=1
+	./bin/setup-magento
 
 # Clear all Magento caches
 cache:
@@ -210,7 +175,8 @@ help:
 	@echo ""
 	@echo "Magento Commands:"
 	@echo "  install-magento     - Create new Magento project"
-	@echo "  setup-magento       - Install Magento with settings"
+	@echo "  setup-magento       - Interactive Magento installation"
+	@echo "  uninstall-magento   - Uninstall Magento"
 	@echo "  full-install        - Full Magento installation"
 	@echo "  cache               - Clear Magento caches"
 	@echo "  reindex             - Reindex Magento"

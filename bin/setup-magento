@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+# Install Magento with interactive setup
+# Usage: bin/setup-magento
+# shellcheck disable=SC1090,SC1091,SC2162
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+# Load environment files
+if [ -f ".env" ]; then
+    set -a
+    source .env
+    set +a
+fi
+
+for env_file in env/*.env; do
+    if [ -f "$env_file" ]; then
+        set -a
+        source "$env_file"
+        set +a
+    fi
+done
+
+echo "🚀 Magento Setup"
+echo "================"
+echo ""
+
+# Interactive prompts for admin settings
+read -p "Admin First Name [Admin]: " input_firstname
+ADMIN_FIRSTNAME="${input_firstname:-Admin}"
+
+read -p "Admin Last Name [User]: " input_lastname
+ADMIN_LASTNAME="${input_lastname:-User}"
+
+read -p "Admin Email [admin@example.com]: " input_email
+ADMIN_EMAIL="${input_email:-admin@example.com}"
+
+read -p "Admin Username [admin]: " input_user
+ADMIN_USER="${input_user:-admin}"
+
+read -sp "Admin Password: " input_password
+echo ""
+if [ -z "$input_password" ]; then
+    echo "❌ Password is required."
+    exit 1
+fi
+ADMIN_PASSWORD="${input_password}"
+
+read -p "Language [en_US]: " input_language
+LANGUAGE="${input_language:-en_US}"
+
+read -p "Currency [USD]: " input_currency
+CURRENCY="${input_currency:-USD}"
+
+read -p "Timezone [UTC]: " input_timezone
+TIMEZONE="${input_timezone:-UTC}"
+
+read -p "Admin Front Name [admin]: " input_admin_frontname
+BACKEND_FRONTNAME="${input_admin_frontname:-admin}"
+
+echo ""
+echo "📋 Installation Summary:"
+echo "  Base URL: ${BASE_URL}"
+echo "  Admin: ${ADMIN_USER} (${ADMIN_EMAIL})"
+echo "  Admin Front Name: ${BACKEND_FRONTNAME}"
+echo "  Language: ${LANGUAGE}"
+echo "  Currency: ${CURRENCY}"
+echo "  Timezone: ${TIMEZONE}"
+echo ""
+
+read -p "Proceed with installation? [Y/n]: " confirm
+if [[ "$confirm" =~ ^[Nn]$ ]]; then
+    echo "❌ Installation cancelled."
+    exit 0
+fi
+
+echo ""
+echo "🔧 Installing Magento..."
+
+docker compose exec -T app bin/magento setup:install \
+    --base-url="${BASE_URL}" \
+    --db-host="${DB_HOST}" \
+    --db-name="${DB_NAME}" \
+    --db-user="${DB_USER}" \
+    --db-password="${DB_PASSWORD}" \
+    --backend-frontname="${BACKEND_FRONTNAME}" \
+    --admin-firstname="${ADMIN_FIRSTNAME}" \
+    --admin-lastname="${ADMIN_LASTNAME}" \
+    --admin-email="${ADMIN_EMAIL}" \
+    --admin-user="${ADMIN_USER}" \
+    --admin-password="${ADMIN_PASSWORD}" \
+    --language="${LANGUAGE}" \
+    --currency="${CURRENCY}" \
+    --timezone="${TIMEZONE}" \
+    --use-rewrites=1 \
+    --search-engine="${SEARCH_ENGINE}" \
+    --opensearch-host="${OPENSEARCH_HOST}" \
+    --opensearch-port="${OPENSEARCH_PORT}" \
+    --amqp-host="${RABBITMQ_HOST}" \
+    --amqp-port="${RABBITMQ_PORT}" \
+    --amqp-user="${RABBITMQ_DEFAULT_USER}" \
+    --amqp-password="${RABBITMQ_DEFAULT_PASS}" \
+    --amqp-virtualhost="${RABBITMQ_DEFAULT_VHOST}" \
+    --amqp-ssl=0 \
+    --session-save=redis \
+    --session-save-redis-host="${VALKEY_HOST}" \
+    --session-save-redis-port="${VALKEY_PORT}" \
+    --session-save-redis-db=2 \
+    --session-save-redis-disable-locking=1 \
+    --cache-backend=redis \
+    --cache-backend-redis-server="${VALKEY_HOST}" \
+    --cache-backend-redis-port="${VALKEY_PORT}" \
+    --cache-backend-redis-db=0 \
+    --page-cache=redis \
+    --page-cache-redis-server="${VALKEY_HOST}" \
+    --page-cache-redis-port="${VALKEY_PORT}" \
+    --page-cache-redis-db=1
+
+echo ""
+echo "✅ Magento installation complete!"
+echo ""
+echo "🔗 Access your store:"
+echo "  Frontend: ${BASE_URL}"
+echo "  Admin: ${BASE_URL}${BACKEND_FRONTNAME:-admin}"
+echo "  Username: ${ADMIN_USER}"
