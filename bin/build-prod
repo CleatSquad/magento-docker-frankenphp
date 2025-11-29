@@ -164,12 +164,14 @@ parse_with_yq() {
     local admin_theme=""
     local all_languages=""
     
-    # Get all theme names
-    local themes=$(yq -r '.build.SCD_MATRIX | keys | .[]' "$config_file" 2>/dev/null || echo "")
+    # Get all theme names - SC2155: Declare and assign separately to avoid masking return values
+    local themes
+    themes=$(yq -r '.build.SCD_MATRIX | keys | .[]' "$config_file" 2>/dev/null || echo "")
     
     for theme in $themes; do
-        # Get languages for this theme
-        local langs=$(yq -r ".build.SCD_MATRIX[\"$theme\"].language[]" "$config_file" 2>/dev/null || echo "")
+        # Get languages for this theme - SC2155: Declare and assign separately
+        local langs
+        langs=$(yq -r ".build.SCD_MATRIX[\"$theme\"].language[]" "$config_file" 2>/dev/null || echo "")
         
         if [[ "$theme" == "Magento/backend" ]]; then
             admin_theme="$theme"
@@ -183,7 +185,8 @@ parse_with_yq() {
         
         # Collect unique languages
         for lang in $langs; do
-            if [[ ! " $all_languages " =~ " $lang " ]]; then
+            # Use wildcard pattern matching for literal string check
+            if [[ ! " $all_languages " == *" $lang "* ]]; then
                 if [ -n "$all_languages" ]; then
                     all_languages="$all_languages $lang"
                 else
@@ -264,12 +267,11 @@ build_image() {
 push_image() {
     if [ "$PUSH_IMAGE" = true ]; then
         log_info "Pushing image to registry: $IMAGE_TAG"
-        docker push "$IMAGE_TAG"
-        
-        if [ $? -eq 0 ]; then
+        if docker push "$IMAGE_TAG"; then
             log_success "Image pushed successfully: $IMAGE_TAG"
         else
-            log_error "Push failed"
+            log_error "Push failed for image: $IMAGE_TAG"
+            log_error "Please check your registry credentials and network connection"
             exit 1
         fi
     fi
