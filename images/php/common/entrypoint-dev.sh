@@ -13,22 +13,20 @@ if [ -f "$TEMPLATE_SOURCE" ]; then
     echo "📝 Caddyfile template processed: $TEMPLATE_SOURCE -> $CADDYFILE_TARGET"
 fi
 
-# Process Xdebug configuration from environment variables
-XDEBUG_TEMPLATE="/etc/php/xdebug.ini.template"
-XDEBUG_TARGET="/usr/local/etc/php/conf.d/zz-xdebug.ini"
-
-if [ -f "$XDEBUG_TEMPLATE" ]; then
-    # Set defaults for Xdebug environment variables
-    export XDEBUG_MODE="${XDEBUG_MODE:-debug}"
-    export XDEBUG_CLIENT_HOST="${XDEBUG_CLIENT_HOST:-host.docker.internal}"
-    export XDEBUG_CLIENT_PORT="${XDEBUG_CLIENT_PORT:-9003}"
-    export XDEBUG_START_WITH_REQUEST="${XDEBUG_START_WITH_REQUEST:-trigger}"
-    export XDEBUG_IDEKEY="${XDEBUG_IDEKEY:-PHPSTORM}"
-
-    # Substitute only specific Xdebug environment variables in template
-    # shellcheck disable=SC2016
-    envsubst '${XDEBUG_MODE} ${XDEBUG_CLIENT_HOST} ${XDEBUG_CLIENT_PORT} ${XDEBUG_START_WITH_REQUEST} ${XDEBUG_IDEKEY}' < "$XDEBUG_TEMPLATE" > "$XDEBUG_TARGET"
-    echo "🐛 Xdebug configured: mode=${XDEBUG_MODE}, host=${XDEBUG_CLIENT_HOST}, port=${XDEBUG_CLIENT_PORT}"
+# Xdebug configuration is now handled via environment variables
+# Xdebug 3.x natively reads XDEBUG_MODE and XDEBUG_CONFIG from environment
+# See: https://xdebug.org/docs/all_settings
+if [ -n "$XDEBUG_MODE" ] && [ "$XDEBUG_MODE" != "off" ]; then
+    echo "🐛 Xdebug enabled: mode=${XDEBUG_MODE}"
+    # Build XDEBUG_CONFIG from individual environment variables if not already set
+    if [ -z "$XDEBUG_CONFIG" ]; then
+        XDEBUG_CONFIG="client_host=${XDEBUG_CLIENT_HOST:-host.docker.internal}"
+        XDEBUG_CONFIG="$XDEBUG_CONFIG client_port=${XDEBUG_CLIENT_PORT:-9003}"
+        XDEBUG_CONFIG="$XDEBUG_CONFIG start_with_request=${XDEBUG_START_WITH_REQUEST:-trigger}"
+        XDEBUG_CONFIG="$XDEBUG_CONFIG idekey=${XDEBUG_IDEKEY:-PHPSTORM}"
+        export XDEBUG_CONFIG
+    fi
+    echo "   XDEBUG_CONFIG: $XDEBUG_CONFIG"
 fi
 
 # Display SSL information

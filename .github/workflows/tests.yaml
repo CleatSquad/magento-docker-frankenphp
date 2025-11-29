@@ -98,42 +98,34 @@ jobs:
 
       - name: Test Xdebug environment variables
         run: |
-          # Test that xdebug config template exists
-          docker run --rm magento-frankenphp:php${{ matrix.php_version }}-dev-test test -f /etc/php/xdebug.ini.template
-          echo "✅ Xdebug template exists"
+          # Test that xdebug config exists
+          docker run --rm magento-frankenphp:php${{ matrix.php_version }}-dev-test test -f /usr/local/etc/php/conf.d/zz-xdebug.ini
+          echo "✅ Xdebug config exists"
 
-          # Test custom xdebug configuration via environment variables
+          # Test that XDEBUG_MODE environment variable is used by PHP
           XDEBUG_OUTPUT=$(docker run --rm \
             -e XDEBUG_MODE=coverage \
-            -e XDEBUG_CLIENT_HOST=192.168.1.100 \
-            -e XDEBUG_CLIENT_PORT=9999 \
-            --entrypoint /bin/bash \
             magento-frankenphp:php${{ matrix.php_version }}-dev-test \
-            -c 'export XDEBUG_MODE="${XDEBUG_MODE:-debug}" && \
-                export XDEBUG_CLIENT_HOST="${XDEBUG_CLIENT_HOST:-host.docker.internal}" && \
-                export XDEBUG_CLIENT_PORT="${XDEBUG_CLIENT_PORT:-9003}" && \
-                export XDEBUG_START_WITH_REQUEST="${XDEBUG_START_WITH_REQUEST:-trigger}" && \
-                export XDEBUG_IDEKEY="${XDEBUG_IDEKEY:-PHPSTORM}" && \
-                envsubst '"'"'${XDEBUG_MODE} ${XDEBUG_CLIENT_HOST} ${XDEBUG_CLIENT_PORT} ${XDEBUG_START_WITH_REQUEST} ${XDEBUG_IDEKEY}'"'"' < /etc/php/xdebug.ini.template')
+            php -r 'echo ini_get("xdebug.mode");')
 
-          if echo "$XDEBUG_OUTPUT" | grep -q "xdebug.mode = coverage"; then
+          if echo "$XDEBUG_OUTPUT" | grep -q "coverage"; then
             echo "✅ XDEBUG_MODE environment variable works"
           else
-            echo "❌ XDEBUG_MODE not properly substituted"
+            echo "❌ XDEBUG_MODE not properly set. Got: $XDEBUG_OUTPUT"
             exit 1
           fi
 
-          if echo "$XDEBUG_OUTPUT" | grep -q "xdebug.client_host = 192.168.1.100"; then
-            echo "✅ XDEBUG_CLIENT_HOST environment variable works"
-          else
-            echo "❌ XDEBUG_CLIENT_HOST not properly substituted"
-            exit 1
-          fi
+          # Test that XDEBUG_CONFIG environment variable is processed
+          XDEBUG_CONFIG_TEST=$(docker run --rm \
+            -e XDEBUG_MODE=debug \
+            -e XDEBUG_CONFIG="client_host=192.168.1.100 client_port=9999" \
+            magento-frankenphp:php${{ matrix.php_version }}-dev-test \
+            php -r 'echo ini_get("xdebug.client_host") . ":" . ini_get("xdebug.client_port");')
 
-          if echo "$XDEBUG_OUTPUT" | grep -q "xdebug.client_port = 9999"; then
-            echo "✅ XDEBUG_CLIENT_PORT environment variable works"
+          if echo "$XDEBUG_CONFIG_TEST" | grep -q "192.168.1.100:9999"; then
+            echo "✅ XDEBUG_CONFIG environment variable works"
           else
-            echo "❌ XDEBUG_CLIENT_PORT not properly substituted"
+            echo "❌ XDEBUG_CONFIG not properly set. Got: $XDEBUG_CONFIG_TEST"
             exit 1
           fi
 

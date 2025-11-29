@@ -103,7 +103,7 @@ RUN curl -L -o /usr/local/bin/mhsendmail \
 
 # Copy PHP dev configuration from common
 COPY images/php/common/conf/mail.ini /usr/local/etc/php/conf.d/zz-mail.ini
-COPY images/php/common/conf/xdebug.ini.template /etc/php/xdebug.ini.template
+COPY images/php/common/conf/xdebug.ini /usr/local/etc/php/conf.d/zz-xdebug.ini
 COPY images/php/common/conf/disable-opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 
 COPY images/php/common/entrypoint-dev.sh /usr/local/bin/entrypoint.sh
