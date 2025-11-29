@@ -50,14 +50,28 @@ opcache.validate_timestamps=0
 
 ### Xdebug (Development)
 
-The dev image includes Xdebug with this default configuration:
+The dev image includes Xdebug with configurable settings via environment variables:
 
-```ini
-xdebug.mode = debug
-xdebug.client_host = host.docker.internal
-xdebug.client_port = 9003
-xdebug.start_with_request = trigger
-xdebug.idekey = PHPSTORM
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `XDEBUG_MODE` | `debug` | Xdebug mode (debug, coverage, develop, profile, trace, off) |
+| `XDEBUG_CLIENT_HOST` | `host.docker.internal` | IDE host address |
+| `XDEBUG_CLIENT_PORT` | `9003` | IDE listening port |
+| `XDEBUG_START_WITH_REQUEST` | `trigger` | When to start debugging (trigger, yes, no) |
+| `XDEBUG_IDEKEY` | `PHPSTORM` | IDE key for session identification |
+
+Example configuration:
+
+```yaml
+services:
+  app:
+    image: mohelmrabet/magento-frankenphp:dev
+    environment:
+      XDEBUG_MODE: debug
+      XDEBUG_CLIENT_HOST: host.docker.internal
+      XDEBUG_CLIENT_PORT: 9003
+      XDEBUG_START_WITH_REQUEST: trigger
+      XDEBUG_IDEKEY: PHPSTORM
 ```
 
 **Triggering Xdebug:**

@@ -9,7 +9,7 @@ This guide explains how to configure and use Xdebug for debugging your Magento 2
 
 ## Default Configuration
 
-The development image comes with Xdebug pre-configured with the following settings:
+The development image comes with Xdebug pre-configured with the following default settings:
 
 ```ini
 xdebug.mode = debug
@@ -17,6 +17,42 @@ xdebug.client_host = host.docker.internal
 xdebug.client_port = 9003
 xdebug.start_with_request = trigger
 xdebug.idekey = PHPSTORM
+```
+
+## Environment Variable Configuration
+
+You can customize Xdebug settings using environment variables. These are processed at container startup:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `XDEBUG_MODE` | `debug` | Xdebug mode (debug, coverage, develop, profile, trace, off) |
+| `XDEBUG_CLIENT_HOST` | `host.docker.internal` | IDE host address |
+| `XDEBUG_CLIENT_PORT` | `9003` | IDE listening port |
+| `XDEBUG_START_WITH_REQUEST` | `trigger` | When to start debugging (trigger, yes, no) |
+| `XDEBUG_IDEKEY` | `PHPSTORM` | IDE key for session identification |
+
+### Example: docker-compose.yml
+
+```yaml
+services:
+  app:
+    image: mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-dev
+    environment:
+      XDEBUG_MODE: debug
+      XDEBUG_CLIENT_HOST: host.docker.internal
+      XDEBUG_CLIENT_PORT: 9003
+      XDEBUG_START_WITH_REQUEST: trigger
+      XDEBUG_IDEKEY: PHPSTORM
+```
+
+### Example: Docker Run
+
+```bash
+docker run -d \
+  -e XDEBUG_MODE=debug,coverage \
+  -e XDEBUG_CLIENT_HOST=192.168.1.100 \
+  -e XDEBUG_CLIENT_PORT=9003 \
+  mohelmrabet/magento-frankenphp:dev
 ```
 
 ## Using the Development Image
@@ -139,9 +175,24 @@ docker compose exec -e XDEBUG_SESSION=1 app bin/magento cache:flush
 
 ## Customizing Xdebug Configuration
 
-### Override Configuration
+### Option 1: Environment Variables (Recommended)
 
-Mount a custom `xdebug.ini` file to override default settings:
+The easiest way to customize Xdebug is via environment variables:
+
+```yaml
+services:
+  app:
+    environment:
+      XDEBUG_MODE: debug,develop
+      XDEBUG_CLIENT_HOST: host.docker.internal
+      XDEBUG_CLIENT_PORT: 9003
+      XDEBUG_START_WITH_REQUEST: yes  # Always start debugging
+      XDEBUG_IDEKEY: PHPSTORM
+```
+
+### Option 2: Custom Configuration File
+
+For advanced settings not covered by environment variables, mount a custom `xdebug.ini` file:
 
 ```yaml
 services:

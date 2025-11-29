@@ -55,9 +55,9 @@ jobs:
           fi
 
           # Detect FrankenPHP version from Dockerfile
-          DOCKERFILE="images/php/8.4/base/Dockerfile"
+          DOCKERFILE="images/php/Dockerfile"
           if [ -f "$DOCKERFILE" ]; then
-            VERSION=$(grep -oP 'dunglas/frankenphp:\K[0-9]+\.[0-9]+(\.[0-9]+)?' "$DOCKERFILE" | head -1)
+            VERSION=$(grep -oP 'ARG FRANKENPHP_VERSION=\K[0-9]+\.[0-9]+(\.[0-9]+)?' "$DOCKERFILE" | head -1)
             if [ -n "$VERSION" ]; then
               echo "frankenphp_version=${VERSION}" >> "${GITHUB_OUTPUT}"
             else
@@ -123,7 +123,12 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./images/php/${{ matrix.php_version }}/base/Dockerfile
+          file: ./images/php/Dockerfile
+          target: base
+          build-args: |
+            PHP_VERSION=${{ matrix.php_version }}
+            FRANKENPHP_VERSION=${{ needs.prepare.outputs.frankenphp_version }}
+            BUILD_TYPE=base
           push: ${{ needs.prepare.outputs.push == 'true' }}
           load: ${{ needs.prepare.outputs.push != 'true' }}
           tags: ${{ steps.tags.outputs.tags }}
@@ -134,7 +139,12 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./images/php/${{ matrix.php_version }}/dev/Dockerfile
+          file: ./images/php/Dockerfile
+          target: dev
+          build-args: |
+            PHP_VERSION=${{ matrix.php_version }}
+            FRANKENPHP_VERSION=${{ needs.prepare.outputs.frankenphp_version }}
+            BUILD_TYPE=dev
           push: ${{ needs.prepare.outputs.push == 'true' }}
           load: ${{ needs.prepare.outputs.push != 'true' }}
           tags: ${{ needs.prepare.outputs.image_name }}:php${{ matrix.php_version }}-fp${{ needs.prepare.outputs.frankenphp_version }}-dev

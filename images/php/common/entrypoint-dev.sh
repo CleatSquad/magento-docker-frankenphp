@@ -13,6 +13,22 @@ if [ -f "$TEMPLATE_SOURCE" ]; then
     echo "📝 Caddyfile template processed: $TEMPLATE_SOURCE -> $CADDYFILE_TARGET"
 fi
 
+# Xdebug configuration is now handled via environment variables
+# Xdebug 3.x natively reads XDEBUG_MODE and XDEBUG_CONFIG from environment
+# See: https://xdebug.org/docs/all_settings
+if [ -n "$XDEBUG_MODE" ] && [ "$XDEBUG_MODE" != "off" ]; then
+    echo "🐛 Xdebug enabled: mode=${XDEBUG_MODE}"
+    # Build XDEBUG_CONFIG from individual environment variables if not already set
+    if [ -z "$XDEBUG_CONFIG" ]; then
+        XDEBUG_CONFIG="client_host=${XDEBUG_CLIENT_HOST:-host.docker.internal}"
+        XDEBUG_CONFIG="$XDEBUG_CONFIG client_port=${XDEBUG_CLIENT_PORT:-9003}"
+        XDEBUG_CONFIG="$XDEBUG_CONFIG start_with_request=${XDEBUG_START_WITH_REQUEST:-trigger}"
+        XDEBUG_CONFIG="$XDEBUG_CONFIG idekey=${XDEBUG_IDEKEY:-PHPSTORM}"
+        export XDEBUG_CONFIG
+    fi
+    echo "   XDEBUG_CONFIG: $XDEBUG_CONFIG"
+fi
+
 # Display SSL information
 SSL_DOMAIN="${SERVER_NAME:-localhost}"
 SSL_DOMAIN=$(echo "$SSL_DOMAIN" | sed -E 's|^https?://||' | sed -E 's|:[0-9]+$||')
