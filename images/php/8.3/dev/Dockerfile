@@ -19,7 +19,7 @@ COPY --chown=www-data:www-data images/php/8.3/conf/disable-opcache.ini /usr/loca
 
 # Xdebug template for runtime configuration via environment variables
 RUN mkdir -p /etc/php
-COPY images/php/common/xdebug.ini.template /etc/php/xdebug.ini.template
+COPY --chown=www-data:www-data images/php/common/xdebug.ini.template /etc/php/xdebug.ini.template
 
 COPY images/php/common/entrypoint-dev.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
