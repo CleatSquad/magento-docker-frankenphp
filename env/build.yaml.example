@@ -1,0 +1,72 @@
+# Build Configuration for Magento Docker FrankenPHP
+# Inspired by Adobe ECE-Tools .magento.env.yaml
+#
+# This is a REFERENCE TEMPLATE for CI/CD pipelines and future implementation.
+# Currently, the Dockerfile uses build arguments directly. Copy this file to 
+# your project and use it as a reference when configuring your CI/CD pipeline.
+# 
+# To use with current Dockerfile, pass settings as build arguments:
+#   docker build --build-arg STATIC_CONTENT_THEMES="Magento/blank Vendor/Theme" \
+#                --build-arg STATIC_CONTENT_LANGUAGES="en_US fr_FR" ...
+
+build:
+  # Static Content Deployment settings
+  SCD_STRATEGY: "compact"    # Options: compact, quick, standard
+  SCD_THREADS: 5             # Number of parallel threads for SCD
+
+  # SCD Matrix - Define themes and languages to deploy
+  # Format: Theme name -> list of languages
+  SCD_MATRIX:
+    # Frontend themes
+    "Magento/blank":
+      language:
+        - en_US
+    "Magento/luma":
+      language:
+        - en_US
+    # Add your custom theme:
+    # "Vendor/CustomTheme":
+    #   language:
+    #     - en_US
+    #     - fr_FR
+    #     - de_DE
+    #     - es_ES
+    #     - it_IT
+    #     - nl_NL
+    
+    # Admin theme
+    "Magento/backend":
+      language:
+        - en_US
+        # Add more admin languages as needed:
+        # - fr_FR
+        # - de_DE
+
+# Example multi-language, multi-theme configuration:
+# build:
+#   SCD_STRATEGY: "compact"
+#   SCD_THREADS: 5
+#   SCD_MATRIX:
+#     "Vendor/Theme1":
+#       language:
+#         - en_US
+#         - fr_FR
+#         - en_GB
+#         - es_ES
+#         - it_IT
+#         - de_DE
+#         - nl_NL
+#     "Vendor/Theme2":
+#       language:
+#         - en_US
+#         - fr_FR
+#     "Magento/backend":
+#       language:
+#         - en_US
+#         - fr_FR
+#         - es_ES
+#
+# To convert SCD_MATRIX to build arguments:
+#   STATIC_CONTENT_THEMES="Vendor/Theme1 Vendor/Theme2"
+#   STATIC_CONTENT_ADMINHTML_THEME="Magento/backend"
+#   STATIC_CONTENT_LANGUAGES="en_US fr_FR en_GB es_ES it_IT de_DE nl_NL"

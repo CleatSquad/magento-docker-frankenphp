@@ -1,4 +1,4 @@
-# Var directory
+# Var directory (Magento project root)
 src/var/cache
 src/var/page_cache
 src/var/session
@@ -7,17 +7,16 @@ src/var/report
 src/var/tmp
 src/var/view_preprocessed
 
-# Generated code
+# Generated code (Magento project root)
 src/generated/code
 src/generated/metadata
 
-# Static files
+# Static files (Magento project root)
 src/pub/static/frontend
 src/pub/static/adminhtml
 src/pub/static/deployed_version.txt
 
-# Media
-src/pub/media/catalog
+# Media (Magento project root)
 src/pub/media/tmp
 src/pub/media/cache
 
