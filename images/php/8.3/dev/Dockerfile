@@ -13,9 +13,13 @@ RUN curl -L -o /usr/local/bin/mhsendmail \
     https://github.com/mailhog/mhsendmail/releases/download/v0.2.0/mhsendmail_linux_amd64 \
  && chmod +x /usr/local/bin/mhsendmail
 
-COPY images/php/8.3/conf/mail.ini /usr/local/etc/php/conf.d/zz-mail.ini
-COPY images/php/8.3/conf/xdebug.ini /usr/local/etc/php/conf.d/zz-xdebug.ini
-COPY images/php/8.3/conf/disable-opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
+COPY --chown=www-data:www-data images/php/8.3/conf/mail.ini /usr/local/etc/php/conf.d/zz-mail.ini
+COPY --chown=www-data:www-data images/php/8.3/conf/xdebug.ini /usr/local/etc/php/conf.d/zz-xdebug.ini
+COPY --chown=www-data:www-data images/php/8.3/conf/disable-opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
+
+# Xdebug template for runtime configuration via environment variables
+RUN mkdir -p /etc/php
+COPY images/php/common/xdebug.ini.template /etc/php/xdebug.ini.template
 
 COPY images/php/common/entrypoint-dev.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh

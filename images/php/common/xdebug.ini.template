@@ -1,0 +1,13 @@
+; Xdebug configuration - generated from environment variables
+; Environment variables (with defaults):
+;   XDEBUG_MODE: debug mode (default: debug)
+;   XDEBUG_CLIENT_HOST: IDE host (default: host.docker.internal)
+;   XDEBUG_CLIENT_PORT: IDE port (default: 9003)
+;   XDEBUG_START_WITH_REQUEST: when to start (default: trigger)
+;   XDEBUG_IDEKEY: IDE key (default: PHPSTORM)
+
+xdebug.mode = ${XDEBUG_MODE}
+xdebug.client_host = ${XDEBUG_CLIENT_HOST}
+xdebug.client_port = ${XDEBUG_CLIENT_PORT}
+xdebug.start_with_request = ${XDEBUG_START_WITH_REQUEST}
+xdebug.idekey = ${XDEBUG_IDEKEY}
