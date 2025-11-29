@@ -34,74 +34,11 @@ services:
 
 ## images/Dockerfile.prod
 
-```dockerfile
-# Use the production-ready base image
-FROM mohelmrabet/magento-frankenphp:php8.4-fp1.10-base
-
-# Set build arguments
-ARG MAGENTO_ROOT=/var/www/html
-
-# Switch to root for installation
-USER root
-
-# Install additional production dependencies if needed
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    msmtp-mta \
- && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Copy Magento source code with proper ownership
-COPY --chown=www-data:www-data . ${MAGENTO_ROOT}/
-
-# PHP configuration is already optimized in the base image
-# You can override by mounting custom config files if needed
-
-# Set environment variables
-ENV CADDY_LOG_OUTPUT=stdout
-ENV SENDMAIL_PATH=/usr/sbin/sendmail
-ENV MAGENTO_RUN_MODE=production
-
-WORKDIR ${MAGENTO_ROOT}
-
-# Create required directories
-RUN mkdir -p var/cache var/log var/session var/page_cache var/tmp \
-    generated/code generated/metadata \
-    pub/static pub/media \
- && chown -R www-data:www-data var generated pub/static pub/media \
- && chmod -R 775 var generated pub/static pub/media
-
-# Switch to www-data user for build steps
-USER www-data
-
-# Install Composer dependencies without dev packages
-RUN composer install \
-    --no-interaction \
-    --no-progress \
-    --prefer-dist \
-    --no-dev \
-    --optimize-autoloader \
- && composer dump-autoload --no-dev --optimize --apcu
-
-# Compile DI (Dependency Injection)
-RUN mv app/etc/env.php app/etc/env.php.bak \
- && php -d memory_limit=4G bin/magento setup:di:compile \
- && mv app/etc/env.php.bak app/etc/env.php
-
-# Deploy static content
-RUN php -d memory_limit=4G bin/magento setup:static-content:deploy -f --jobs=16
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost/health_check.php || exit 1
-
-# Set entrypoint
-ENTRYPOINT ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
-```
-
-## Build Commands
+A ready-to-use production Dockerfile is provided at `images/app/Dockerfile`:
 
 ```bash
 # Build the production image
-docker build -f images/Dockerfile.prod -t my-magento-store:latest .
+docker build -f images/app/Dockerfile -t my-magento-store:latest src/
 
 # Run the container
 docker run -d \
@@ -112,9 +49,153 @@ docker run -d \
   my-magento-store:latest
 ```
 
-## Multi-stage Build (Recommended)
+Or use docker-compose by uncommenting the build section in `docker-compose.prod.yml`:
 
-For smaller production images, use a multi-stage build:
+```yaml
+services:
+  app:
+    # Option 1: Use pre-built image (default)
+    # image: mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-base
+    # Option 2: Build production image with compiled DI and static content
+    build:
+      context: .
+      dockerfile: images/app/Dockerfile
+```
+
+## Build Pipeline (Recommended)
+
+Use the build script for automated production builds (inspired by ECE-Tools):
+
+```bash
+# 1. Create your build configuration (copy from template)
+cp env/build.yaml.example build.yaml
+
+# PHP configuration is already optimized in the base image
+# You can override by mounting custom config files if needed
+
+# 3. Run the build script
+./bin/build-prod -t my-magento-store:latest
+
+# 4. Push to registry (optional)
+./bin/build-prod -t ghcr.io/myorg/magento:v1.0 --push
+```
+
+### Build Script Options
+
+```bash
+./bin/build-prod [OPTIONS]
+
+Options:
+  -c, --config FILE     Path to build.yaml config file (default: build.yaml)
+  -t, --tag TAG         Docker image tag (default: magento-prod:latest)
+  -f, --dockerfile FILE Path to Dockerfile (default: images/app/Dockerfile)
+  --context PATH        Docker build context (default: current directory)
+  --push                Push image to registry after build
+  --no-cache            Build without Docker cache
+  -h, --help            Show help message
+```
+
+### CI/CD Pipeline (GitHub Actions)
+
+Copy `examples/build-prod-workflow.yaml` to `.github/workflows/` for automated builds:
+
+```yaml
+# Trigger manually or on release
+name: Build Production Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag'
+        default: 'latest'
+  release:
+    types: [published]
+```
+
+See `examples/build-prod-workflow.yaml` for full GitHub Actions workflow.
+
+### Other CI/CD Platforms
+
+For Azure DevOps, GitLab CI, Jenkins, and other platforms, see **[CI/CD Pipeline Examples](./ci-cd-pipelines.md)** for complete pipeline examples.
+
+## Static Content Deployment Configuration
+
+### Option 1: Build Configuration File (ECE-Tools Style)
+
+Create `build.yaml` in your project root:
+
+```yaml
+build:
+  SCD_STRATEGY: "compact"
+  SCD_THREADS: 5
+  SCD_MATRIX:
+    "Vendor/Theme1":
+      language:
+        - en_US
+        - fr_FR
+        - de_DE
+    "Vendor/Theme2":
+      language:
+        - en_US
+        - fr_FR
+    "Magento/backend":
+      language:
+        - en_US
+        - fr_FR
+```
+
+Then run: `./bin/build-prod`
+
+### Option 2: Build Arguments (Manual)
+
+Configure themes and languages via build arguments:
+
+```bash
+# Build the production image
+docker build -f images/Dockerfile.prod -t my-magento-store:latest .
+
+Available build arguments:
+- `STATIC_CONTENT_THEMES` - Space-separated list of frontend themes (default: "Magento/blank Magento/luma")
+- `STATIC_CONTENT_ADMINHTML_THEME` - Admin theme (default: "Magento/backend")
+- `STATIC_CONTENT_LANGUAGES` - Space-separated list of locales (default: "en_US")
+- `SCD_THREADS` - Number of parallel threads (default: 5)
+- `SCD_STRATEGY` - Deployment strategy: compact, quick, standard (default: "compact")
+
+For a reference configuration file inspired by Adobe ECE-Tools, see `env/build.yaml.example`.
+
+## Kubernetes Deployment
+
+After building your image, deploy to Kubernetes:
+
+```bash
+# Build and push to registry
+./bin/build-prod -t ghcr.io/myorg/magento:v1.0 --push
+
+# Deploy to Kubernetes
+kubectl apply -f kubernetes/deployment.yaml
+```
+
+See `examples/kubernetes-deployment.md` for Kubernetes manifests.
+
+## Docker Compose Production
+
+```yaml
+# docker-compose.prod.yml
+services:
+  app:
+    image: ghcr.io/myorg/magento:v1.0  # Use your built image
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - SERVER_NAME=mystore.example.com
+      - MAGENTO_RUN_MODE=production
+```
+
+## Multi-stage Build (Reference)
+
+The `images/app/Dockerfile` already uses a multi-stage build. Here's the pattern:
 
 ```dockerfile
 # Stage 1: Build
