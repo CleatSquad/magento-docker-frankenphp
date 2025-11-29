@@ -1,20 +1,18 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: ./images/php/Dockerfile
-      target: prod
-      args:
-        PHP_VERSION: "8.4"
-        BUILD_TYPE: prod
+    # Option 1: Use pre-built image (default)
+    image: mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-base
+    # Option 2: Build production image with compiled DI and static content
+    # build:
+    #   context: .
+    #   dockerfile: images/Dockerfile.prod
     container_name: ${PROJECT_NAME:-magento}-app
     restart: unless-stopped
     environment:
       SERVER_NAME: ${SERVER_NAME:-magento.com}
       MAGENTO_RUN_MODE: production
-    # Custom Caddyfile template (optional - uncomment to customize)
-    # volumes:
-    #   - ./images/php/common/Caddyfile.template:/etc/caddy/Caddyfile.template:ro
+    volumes:
+      - ./src:/var/www/html
     ports:
       - "80:80"
       - "443:443"

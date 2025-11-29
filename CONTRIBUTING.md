@@ -129,7 +129,7 @@ We welcome various types of contributions:
 - Run `hadolint` to check for issues:
 
   ```bash
-  hadolint images/php/8.4/base/Dockerfile
+  hadolint images/opensearch/Dockerfile
   ```
 
 ### Shell Scripts

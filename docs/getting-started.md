@@ -15,8 +15,8 @@ This guide walks you through setting up a Magento 2 development environment usin
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/mohelmrabet/magento-frankenphp.git
-cd magento-frankenphp
+git clone https://github.com/CleatSquad/magento-docker-frankenphp.git
+cd magento-docker-frankenphp
 ```
 
 ### 2. Run the Setup Script
@@ -150,10 +150,8 @@ magento-docker-frankenphp/
 ├── env/                    # Environment templates
 ├── examples/               # Deployment examples
 ├── images/                 # Docker images
-│   └── php/
-│       ├── 8.2/
-│       ├── 8.3/
-│       └── 8.4/
+│   ├── opensearch/         # OpenSearch configuration
+│   └── rabbitmq/           # RabbitMQ configuration
 ├── src/                    # Magento source (gitignored)
 ├── docker-compose.yml      # Development
 ├── docker-compose.prod.yml # Production

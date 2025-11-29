@@ -5,33 +5,9 @@
   ],
   "enabledManagers": [
     "dockerfile",
-    "docker-compose",
-    "custom.regex"
+    "docker-compose"
   ],
   "packageRules": [
-    {
-      "description": "Disable all dependencies except FrankenPHP and Traefik",
-      "enabled": false,
-      "matchPackageNames": [
-        "*"
-      ]
-    },
-    {
-      "description": "Enable FrankenPHP updates only",
-      "matchPackageNames": [
-        "dunglas/frankenphp"
-      ],
-      "matchDatasources": [
-        "docker"
-      ],
-      "enabled": true,
-      "groupName": "frankenphp",
-      "automerge": false,
-      "labels": [
-        "dependencies",
-        "frankenphp"
-      ]
-    },
     {
       "description": "Enable Traefik updates",
       "matchPackageNames": [
@@ -47,36 +23,6 @@
         "dependencies",
         "traefik"
       ]
-    }
-  ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "description": "Update FrankenPHP version in bin/build",
-      "managerFilePatterns": [
-        "/^bin/build$/"
-      ],
-      "matchStrings": [
-        "FP_VERSION=\"(?<currentValue>\\d+\\.\\d+)\""
-      ],
-      "depNameTemplate": "dunglas/frankenphp",
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+)"
-    },
-    {
-      "customType": "regex",
-      "description": "Update FrankenPHP version in GitHub workflow",
-      "managerFilePatterns": [
-        "/^\\.github/workflows/build-release\\.yml$/"
-      ],
-      "matchStrings": [
-        "FRANKENPHP_VERSION:\\s*'(?<currentValue>\\d+\\.\\d+)'"
-      ],
-      "depNameTemplate": "dunglas/frankenphp",
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+)"
     }
   ]
 }

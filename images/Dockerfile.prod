@@ -1,0 +1,70 @@
+# Production Dockerfile for Magento 2 with FrankenPHP
+# This Dockerfile builds a production-ready image with compiled DI and static content
+#
+# Usage:
+#   docker build -f Dockerfile.prod -t my-magento-store:latest .
+#   docker run -d -p 80:80 -p 443:443 -e SERVER_NAME=mystore.com my-magento-store:latest
+
+# Stage 1: Build
+FROM mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-base AS builder
+
+ARG MAGENTO_ROOT=/var/www/html
+
+USER root
+
+WORKDIR ${MAGENTO_ROOT}
+
+# Copy Magento source code
+COPY --chown=www-data:www-data . ${MAGENTO_ROOT}/
+
+# Create required directories
+RUN mkdir -p var/cache var/log var/session var/page_cache var/tmp \
+    generated/code generated/metadata \
+    pub/static pub/media \
+ && chown -R www-data:www-data var generated pub/static pub/media \
+ && chmod -R 775 var generated pub/static pub/media
+
+USER www-data
+
+# Install Composer dependencies (production only)
+RUN composer install \
+    --no-interaction \
+    --no-progress \
+    --prefer-dist \
+    --no-dev \
+    --optimize-autoloader \
+ && composer dump-autoload --no-dev --optimize --apcu
+
+# Compile DI (Dependency Injection)
+RUN if [ -f app/etc/env.php ]; then \
+        cp app/etc/env.php app/etc/env.php.bak && \
+        php -d memory_limit=4G bin/magento setup:di:compile && \
+        mv app/etc/env.php.bak app/etc/env.php; \
+    else \
+        php -d memory_limit=4G bin/magento setup:di:compile; \
+    fi
+
+# Deploy static content
+RUN php -d memory_limit=4G bin/magento setup:static-content:deploy -f --jobs=16
+
+# Stage 2: Production image
+FROM mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-base
+
+ARG MAGENTO_ROOT=/var/www/html
+
+WORKDIR ${MAGENTO_ROOT}
+
+# Copy built application from builder stage
+COPY --from=builder --chown=www-data:www-data ${MAGENTO_ROOT} ${MAGENTO_ROOT}
+
+# Set production environment
+ENV MAGENTO_RUN_MODE=production \
+    CADDY_LOG_OUTPUT=stdout
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost/health_check.php || exit 1
+
+USER www-data
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

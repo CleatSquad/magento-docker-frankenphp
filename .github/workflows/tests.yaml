@@ -8,127 +8,15 @@ on:
     branches:
       - main
     paths:
+      - "bin/**"
       - "images/**"
-      - ".github/workflows/test.yaml"
+      - "docker-compose*.yml"
+      - ".github/workflows/tests.yaml"
 
 permissions:
   contents: read
 
 jobs:
-  docker-build-test:
-    name: Build & Test (PHP ${{ matrix.php_version }})
-    runs-on: ubuntu-latest
-    continue-on-error: false
-    strategy:
-      fail-fast: false
-      matrix:
-        php_version: ["8.2", "8.3", "8.4"]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build base image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./images/php/Dockerfile
-          target: base
-          build-args: |
-            PHP_VERSION=${{ matrix.php_version }}
-            BUILD_TYPE=base
-          push: false
-          load: true
-          tags: magento-frankenphp:php${{ matrix.php_version }}-base-test
-          cache-from: type=gha,scope=test-base-php${{ matrix.php_version }}
-          cache-to: type=gha,scope=test-base-php${{ matrix.php_version }},mode=max
-
-      - name: Build dev image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./images/php/Dockerfile
-          target: dev
-          build-args: |
-            PHP_VERSION=${{ matrix.php_version }}
-            BUILD_TYPE=dev
-          push: false
-          load: true
-          tags: magento-frankenphp:php${{ matrix.php_version }}-dev-test
-          cache-from: type=gha,scope=test-dev-php${{ matrix.php_version }}
-          cache-to: type=gha,scope=test-dev-php${{ matrix.php_version }},mode=max
-
-      - name: Test PHP version
-        run: |
-          docker run --rm magento-frankenphp:php${{ matrix.php_version }}-base-test php -v | grep -q "PHP ${{ matrix.php_version }}"
-          echo "✅ PHP ${{ matrix.php_version }} version verified"
-
-      - name: Test required PHP extensions
-        run: |
-          EXTENSIONS="bcmath gd intl mbstring opcache pdo_mysql soap xsl zip sockets sodium"
-          for ext in $EXTENSIONS; do
-            if docker run --rm magento-frankenphp:php${{ matrix.php_version }}-base-test php -m | grep -qi "$ext"; then
-              echo "✅ Extension $ext is installed"
-            else
-              echo "❌ Extension $ext is missing"
-              exit 1
-            fi
-          done
-
-      - name: Test Composer availability
-        run: |
-          docker run --rm magento-frankenphp:php${{ matrix.php_version }}-base-test composer --version
-          echo "✅ Composer is available"
-
-      - name: Test FrankenPHP availability
-        run: |
-          docker run --rm magento-frankenphp:php${{ matrix.php_version }}-base-test frankenphp version
-          echo "✅ FrankenPHP is available"
-
-      - name: Test dev image Xdebug
-        run: |
-          if docker run --rm magento-frankenphp:php${{ matrix.php_version }}-dev-test php -m | grep -qi "xdebug"; then
-            echo "✅ Xdebug is installed in dev image"
-          else
-            echo "⚠️ Xdebug not found in dev image (may be optional)"
-          fi
-
-      - name: Test Xdebug environment variables
-        run: |
-          # Test that xdebug config exists
-          docker run --rm magento-frankenphp:php${{ matrix.php_version }}-dev-test test -f /usr/local/etc/php/conf.d/zz-xdebug.ini
-          echo "✅ Xdebug config exists"
-
-          # Test that XDEBUG_MODE environment variable is used by PHP
-          XDEBUG_OUTPUT=$(docker run --rm \
-            -e XDEBUG_MODE=coverage \
-            magento-frankenphp:php${{ matrix.php_version }}-dev-test \
-            php -r 'echo ini_get("xdebug.mode");')
-
-          if echo "$XDEBUG_OUTPUT" | grep -q "coverage"; then
-            echo "✅ XDEBUG_MODE environment variable works"
-          else
-            echo "❌ XDEBUG_MODE not properly set. Got: $XDEBUG_OUTPUT"
-            exit 1
-          fi
-
-          # Test that XDEBUG_CONFIG environment variable is processed
-          XDEBUG_CONFIG_TEST=$(docker run --rm \
-            -e XDEBUG_MODE=debug \
-            -e XDEBUG_CONFIG="client_host=192.168.1.100 client_port=9999" \
-            magento-frankenphp:php${{ matrix.php_version }}-dev-test \
-            php -r 'echo ini_get("xdebug.client_host") . ":" . ini_get("xdebug.client_port");')
-
-          if echo "$XDEBUG_CONFIG_TEST" | grep -q "192.168.1.100:9999"; then
-            echo "✅ XDEBUG_CONFIG environment variable works"
-          else
-            echo "❌ XDEBUG_CONFIG not properly set. Got: $XDEBUG_CONFIG_TEST"
-            exit 1
-          fi
-
   shellcheck:
     name: ShellCheck
     runs-on: ubuntu-latest
@@ -141,10 +29,6 @@ jobs:
         uses: ludeeus/action-shellcheck@2.0.0
         with:
           scandir: './bin'
-          additional_files: >
-            images/php/common/entrypoint-base.sh
-            images/php/common/entrypoint-dev.sh
-            images/php/common/entrypoint-prod.sh
           severity: warning
   hadolint:
     name: Hadolint Dockerfiles

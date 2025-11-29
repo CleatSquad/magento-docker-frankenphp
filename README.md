@@ -17,6 +17,7 @@
 ## Links
 
 - 📦 [Docker Hub](https://hub.docker.com/r/mohelmrabet/magento-frankenphp)
+- 🐳 [Docker Images Repository](https://github.com/CleatSquad/magento-frankenphp-images)
 - 🚀 [FrankenPHP](https://frankenphp.dev/)
 - 🛒 [Magento 2](https://business.adobe.com/products/magento/magento-commerce.html)
 
@@ -35,8 +36,8 @@
 
 ```bash
 # 1. Clone
-git clone https://github.com/mohelmrabet/magento-frankenphp.git
-cd magento-frankenphp
+git clone https://github.com/CleatSquad/magento-docker-frankenphp.git
+cd magento-docker-frankenphp
 
 # 2. Setup
 ./bin/setup
