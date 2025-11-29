@@ -84,6 +84,7 @@ docker pull mohelmrabet/magento-frankenphp:dev
 | 🛠️ [CLI Tools](docs/CLI.md) | All available commands |
 | ⚙️ [Configuration](docs/configuration.md) | Environment variables and settings |
 | 🌐 [Caddyfile](docs/Caddyfile.md) | Web server configuration |
+| 🐛 [Xdebug](docs/xdebug.md) | Debugging with Xdebug |
 | 🚀 [Production](examples/production-dockerfile.md) | Production deployment |
 | 💻 [Local Dev](examples/local-development.md) | Development environment setup |
 | ☸️ [Kubernetes](examples/kubernetes-deployment.md) | K8s deployment guide |

@@ -164,5 +164,5 @@ magento-docker-frankenphp/
 
 - [Configure environment variables](configuration.md)
 - [Learn the CLI tools](CLI.md)
-- [Setup Xdebug](local-development.md#xdebug-configuration)
+- [Setup Xdebug](xdebug.md)
 - [Deploy to production](../examples/production-dockerfile.md)

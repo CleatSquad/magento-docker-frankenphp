@@ -64,36 +64,7 @@ xdebug.idekey = PHPSTORM
 - Add `?XDEBUG_SESSION=PHPSTORM` to URL
 - Use browser extension (Xdebug Helper)
 
-### PHPStorm Setup
-
-1. **Settings > PHP > Debug** — Set Xdebug port to `9003`
-2. **Settings > PHP > Servers** — Add server:
-   - Name: `magento.localhost`
-   - Host: `magento.localhost`
-   - Port: `443`
-   - Debugger: `Xdebug`
-   - Path mapping: `/var/www/html` → your local `src/`
-
-### VS Code Setup
-
-`.vscode/launch.json`:
-
-```json
-{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Listen for Xdebug",
-            "type": "php",
-            "request": "launch",
-            "port": 9003,
-            "pathMappings": {
-                "/var/www/html": "${workspaceFolder}/src"
-            }
-        }
-    ]
-}
-```
+For detailed Xdebug configuration including IDE setup, CLI debugging, and troubleshooting, see the [Xdebug Configuration Guide](xdebug.md).
 
 ## Environment Files
 
@@ -227,5 +198,6 @@ docker compose exec app caddy validate --config /etc/caddy/Caddyfile
 ## See Also
 
 - [CLI Tools](CLI.md)
+- [Xdebug Configuration](xdebug.md)
 - [Caddyfile Configuration](Caddyfile.md)
 - [Local Development Guide](../examples/local-development.md)
