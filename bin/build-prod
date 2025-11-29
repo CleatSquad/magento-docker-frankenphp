@@ -1,0 +1,321 @@
+#!/bin/bash
+# =============================================================================
+# Magento Production Image Builder
+# Inspired by Adobe ECE-Tools build pipeline
+# =============================================================================
+#
+# This script builds a production-ready Magento Docker image with:
+# - DI compilation
+# - Static content deployment
+# - Optimized for Kubernetes/Docker Compose deployment
+#
+# Usage:
+#   ./bin/build-prod [OPTIONS]
+#
+# Options:
+#   -c, --config FILE     Path to build.yaml config file (default: build.yaml)
+#   -t, --tag TAG         Docker image tag (default: magento-prod:latest)
+#   -f, --dockerfile FILE Path to Dockerfile (default: images/app/Dockerfile)
+#   --context PATH        Docker build context (default: current directory)
+#   --push                Push image to registry after build
+#   --no-cache            Build without Docker cache
+#   -h, --help            Show this help message
+#
+# Examples:
+#   ./bin/build-prod
+#   ./bin/build-prod -c my-build.yaml -t myregistry/magento:v1.0
+#   ./bin/build-prod --push --tag ghcr.io/myorg/magento:latest
+#
+# =============================================================================
+
+set -e
+
+# Default values
+CONFIG_FILE="build.yaml"
+IMAGE_TAG="magento-prod:latest"
+DOCKERFILE="images/app/Dockerfile"
+BUILD_CONTEXT="."
+PUSH_IMAGE=false
+NO_CACHE=""
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Helper functions
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+show_help() {
+    cat << 'EOF'
+Magento Production Image Builder
+================================
+
+This script builds a production-ready Magento Docker image with:
+- DI compilation
+- Static content deployment
+- Optimized for Kubernetes/Docker Compose deployment
+
+Usage:
+  ./bin/build-prod [OPTIONS]
+
+Options:
+  -c, --config FILE     Path to build.yaml config file (default: build.yaml)
+  -t, --tag TAG         Docker image tag (default: magento-prod:latest)
+  -f, --dockerfile FILE Path to Dockerfile (default: images/app/Dockerfile)
+  --context PATH        Docker build context (default: current directory)
+  --push                Push image to registry after build
+  --no-cache            Build without Docker cache
+  -h, --help            Show this help message
+
+Examples:
+  ./bin/build-prod
+  ./bin/build-prod -c my-build.yaml -t myregistry/magento:v1.0
+  ./bin/build-prod --push --tag ghcr.io/myorg/magento:latest
+EOF
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -c|--config)
+            CONFIG_FILE="$2"
+            shift 2
+            ;;
+        -t|--tag)
+            IMAGE_TAG="$2"
+            shift 2
+            ;;
+        -f|--dockerfile)
+            DOCKERFILE="$2"
+            shift 2
+            ;;
+        --context)
+            BUILD_CONTEXT="$2"
+            shift 2
+            ;;
+        --push)
+            PUSH_IMAGE=true
+            shift
+            ;;
+        --no-cache)
+            NO_CACHE="--no-cache"
+            shift
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        *)
+            log_error "Unknown option: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+done
+
+# =============================================================================
+# Parse build.yaml configuration
+# =============================================================================
+
+parse_config() {
+    local config_file="$1"
+    
+    if [ ! -f "$config_file" ]; then
+        log_warning "Config file '$config_file' not found. Using default values."
+        return 1
+    fi
+    
+    log_info "Parsing configuration from $config_file"
+    
+    # Check if yq is available for proper YAML parsing
+    if command -v yq &> /dev/null; then
+        parse_with_yq "$config_file"
+    else
+        parse_with_grep "$config_file"
+    fi
+}
+
+parse_with_yq() {
+    local config_file="$1"
+    
+    # Extract SCD settings
+    SCD_STRATEGY=$(yq -r '.build.SCD_STRATEGY // "compact"' "$config_file" 2>/dev/null || echo "compact")
+    SCD_THREADS=$(yq -r '.build.SCD_THREADS // 5' "$config_file" 2>/dev/null || echo "5")
+    
+    # Extract themes and languages from SCD_MATRIX
+    local frontend_themes=""
+    local admin_theme=""
+    local all_languages=""
+    
+    # Get all theme names - SC2155: Declare and assign separately to avoid masking return values
+    local themes
+    themes=$(yq -r '.build.SCD_MATRIX | keys | .[]' "$config_file" 2>/dev/null || echo "")
+    
+    for theme in $themes; do
+        # Get languages for this theme - SC2155: Declare and assign separately
+        local langs
+        langs=$(yq -r ".build.SCD_MATRIX[\"$theme\"].language[]" "$config_file" 2>/dev/null || echo "")
+        
+        if [[ "$theme" == "Magento/backend" ]]; then
+            admin_theme="$theme"
+        else
+            if [ -n "$frontend_themes" ]; then
+                frontend_themes="$frontend_themes $theme"
+            else
+                frontend_themes="$theme"
+            fi
+        fi
+        
+        # Collect unique languages
+        for lang in $langs; do
+            # SC2076: Use pattern variable without quotes for literal string match
+            local pattern=" $lang "
+            if [[ ! " $all_languages " =~ $pattern ]]; then
+                if [ -n "$all_languages" ]; then
+                    all_languages="$all_languages $lang"
+                else
+                    all_languages="$lang"
+                fi
+            fi
+        done
+    done
+    
+    STATIC_CONTENT_THEMES="${frontend_themes:-Magento/blank Magento/luma}"
+    STATIC_CONTENT_ADMINHTML_THEME="${admin_theme:-Magento/backend}"
+    STATIC_CONTENT_LANGUAGES="${all_languages:-en_US}"
+}
+
+parse_with_grep() {
+    local config_file="$1"
+    
+    log_warning "yq not found. Using basic grep parsing (limited SCD_MATRIX support)."
+    
+    # Simple grep-based parsing for basic values (handles both quoted and unquoted)
+    SCD_STRATEGY=$(grep -E '^\s*SCD_STRATEGY:' "$config_file" 2>/dev/null | head -1 | sed 's/.*: *"\?\([^"]*\)"\?.*/\1/' || echo "compact")
+    SCD_THREADS=$(grep -E '^\s*SCD_THREADS:' "$config_file" 2>/dev/null | head -1 | sed 's/.*: *"\?\([^"]*\)"\?.*/\1/' || echo "5")
+    
+    # Default values for themes/languages (grep can't easily parse YAML structure)
+    STATIC_CONTENT_THEMES="${STATIC_CONTENT_THEMES:-Magento/blank Magento/luma}"
+    STATIC_CONTENT_ADMINHTML_THEME="${STATIC_CONTENT_ADMINHTML_THEME:-Magento/backend}"
+    STATIC_CONTENT_LANGUAGES="${STATIC_CONTENT_LANGUAGES:-en_US}"
+    
+    log_warning "For full SCD_MATRIX support, install yq: https://github.com/mikefarah/yq"
+}
+
+# =============================================================================
+# Build Docker image
+# =============================================================================
+
+build_image() {
+    log_info "=========================================="
+    log_info "Building Magento Production Image"
+    log_info "=========================================="
+    log_info "Image Tag: $IMAGE_TAG"
+    log_info "Dockerfile: $DOCKERFILE"
+    log_info "Build Context: $BUILD_CONTEXT"
+    log_info ""
+    log_info "Static Content Configuration:"
+    log_info "  Strategy: $SCD_STRATEGY"
+    log_info "  Threads: $SCD_THREADS"
+    log_info "  Frontend Themes: $STATIC_CONTENT_THEMES"
+    log_info "  Admin Theme: $STATIC_CONTENT_ADMINHTML_THEME"
+    log_info "  Languages: $STATIC_CONTENT_LANGUAGES"
+    log_info "=========================================="
+    
+    # Build the Docker image
+    docker build \
+        $NO_CACHE \
+        -f "$DOCKERFILE" \
+        --build-arg STATIC_CONTENT_THEMES="$STATIC_CONTENT_THEMES" \
+        --build-arg STATIC_CONTENT_ADMINHTML_THEME="$STATIC_CONTENT_ADMINHTML_THEME" \
+        --build-arg STATIC_CONTENT_LANGUAGES="$STATIC_CONTENT_LANGUAGES" \
+        --build-arg SCD_THREADS="$SCD_THREADS" \
+        --build-arg SCD_STRATEGY="$SCD_STRATEGY" \
+        -t "$IMAGE_TAG" \
+        "$BUILD_CONTEXT"
+    
+    local exit_code=$?
+    
+    if [ $exit_code -eq 0 ]; then
+        log_success "Image built successfully: $IMAGE_TAG"
+    else
+        log_error "Build failed with exit code: $exit_code"
+        exit $exit_code
+    fi
+}
+
+# =============================================================================
+# Push image to registry
+# =============================================================================
+
+push_image() {
+    if [ "$PUSH_IMAGE" = true ]; then
+        log_info "Pushing image to registry: $IMAGE_TAG"
+        if docker push "$IMAGE_TAG"; then
+            log_success "Image pushed successfully: $IMAGE_TAG"
+        else
+            log_error "Push failed"
+            exit 1
+        fi
+    fi
+}
+
+# =============================================================================
+# Main execution
+# =============================================================================
+
+main() {
+    log_info "Magento Production Image Builder"
+    log_info "================================="
+    
+    # Set default values
+    SCD_STRATEGY="compact"
+    SCD_THREADS="5"
+    STATIC_CONTENT_THEMES="Magento/blank Magento/luma"
+    STATIC_CONTENT_ADMINHTML_THEME="Magento/backend"
+    STATIC_CONTENT_LANGUAGES="en_US"
+    
+    # Parse configuration file if it exists
+    parse_config "$CONFIG_FILE" || true
+    
+    # Allow environment variables to override config
+    SCD_STRATEGY="${SCD_STRATEGY_OVERRIDE:-$SCD_STRATEGY}"
+    SCD_THREADS="${SCD_THREADS_OVERRIDE:-$SCD_THREADS}"
+    STATIC_CONTENT_THEMES="${STATIC_CONTENT_THEMES_OVERRIDE:-$STATIC_CONTENT_THEMES}"
+    STATIC_CONTENT_ADMINHTML_THEME="${STATIC_CONTENT_ADMINHTML_THEME_OVERRIDE:-$STATIC_CONTENT_ADMINHTML_THEME}"
+    STATIC_CONTENT_LANGUAGES="${STATIC_CONTENT_LANGUAGES_OVERRIDE:-$STATIC_CONTENT_LANGUAGES}"
+    
+    # Build the image
+    build_image
+    
+    # Push if requested
+    push_image
+    
+    log_success "Build pipeline completed!"
+    echo ""
+    echo "To run the container:"
+    echo "  docker run -d -p 80:80 -p 443:443 -e SERVER_NAME=mystore.com $IMAGE_TAG"
+    echo ""
+    echo "For Kubernetes deployment, push to your registry:"
+    echo "  docker tag $IMAGE_TAG your-registry.com/magento:latest"
+    echo "  docker push your-registry.com/magento:latest"
+}
+
+main
