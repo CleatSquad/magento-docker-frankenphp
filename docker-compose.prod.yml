@@ -5,7 +5,7 @@ services:
     # Option 2: Build production image with compiled DI and static content
     # build:
     #   context: .
-    #   dockerfile: images/app/Dockerfile
+    #   dockerfile: images/Dockerfile.prod
     container_name: ${PROJECT_NAME:-magento}-app
     restart: unless-stopped
     environment:

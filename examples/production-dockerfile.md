@@ -4,6 +4,36 @@ This example shows how to create a production-ready Magento Docker image using t
 
 ## Quick Start
 
+A ready-to-use production Dockerfile is provided at `images/Dockerfile.prod`:
+
+```bash
+# Build the production image
+docker build -f images/Dockerfile.prod -t my-magento-store:latest .
+
+# Run the container
+docker run -d \
+  --name magento-prod \
+  -p 80:80 \
+  -p 443:443 \
+  -e SERVER_NAME=mystore.example.com \
+  my-magento-store:latest
+```
+
+Or use docker-compose by uncommenting the build section in `docker-compose.prod.yml`:
+
+```yaml
+services:
+  app:
+    # Option 1: Use pre-built image (default)
+    # image: mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-base
+    # Option 2: Build production image with compiled DI and static content
+    build:
+      context: .
+      dockerfile: images/Dockerfile.prod
+```
+
+## images/Dockerfile.prod
+
 A ready-to-use production Dockerfile is provided at `images/app/Dockerfile`:
 
 ```bash
@@ -40,8 +70,8 @@ Use the build script for automated production builds (inspired by ECE-Tools):
 # 1. Create your build configuration (copy from template)
 cp env/build.yaml.example build.yaml
 
-# 2. Customize build.yaml with your themes and languages
-# Edit the SCD_MATRIX section
+# PHP configuration is already optimized in the base image
+# You can override by mounting custom config files if needed
 
 # 3. Run the build script
 ./bin/build-prod -t my-magento-store:latest
@@ -122,14 +152,8 @@ Then run: `./bin/build-prod`
 Configure themes and languages via build arguments:
 
 ```bash
-docker build -f images/app/Dockerfile \
-  --build-arg STATIC_CONTENT_THEMES="Magento/blank Vendor/CustomTheme" \
-  --build-arg STATIC_CONTENT_ADMINHTML_THEME="Magento/backend" \
-  --build-arg STATIC_CONTENT_LANGUAGES="en_US fr_FR de_DE" \
-  --build-arg SCD_THREADS=5 \
-  --build-arg SCD_STRATEGY="compact" \
-  -t my-magento-store:latest .
-```
+# Build the production image
+docker build -f images/Dockerfile.prod -t my-magento-store:latest .
 
 Available build arguments:
 - `STATIC_CONTENT_THEMES` - Space-separated list of frontend themes (default: "Magento/blank Magento/luma")
