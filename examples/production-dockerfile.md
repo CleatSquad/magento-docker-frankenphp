@@ -2,7 +2,37 @@
 
 This example shows how to create a production-ready Magento Docker image using the FrankenPHP base image.
 
-## Dockerfile.production
+## Quick Start
+
+A ready-to-use production Dockerfile is provided at `images/Dockerfile.prod`:
+
+```bash
+# Build the production image
+docker build -f images/Dockerfile.prod -t my-magento-store:latest .
+
+# Run the container
+docker run -d \
+  --name magento-prod \
+  -p 80:80 \
+  -p 443:443 \
+  -e SERVER_NAME=mystore.example.com \
+  my-magento-store:latest
+```
+
+Or use docker-compose by uncommenting the build section in `docker-compose.prod.yml`:
+
+```yaml
+services:
+  app:
+    # Option 1: Use pre-built image (default)
+    # image: mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-base
+    # Option 2: Build production image with compiled DI and static content
+    build:
+      context: .
+      dockerfile: images/Dockerfile.prod
+```
+
+## images/Dockerfile.prod
 
 ```dockerfile
 # Use the production-ready base image
@@ -22,9 +52,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy Magento source code with proper ownership
 COPY --chown=www-data:www-data . ${MAGENTO_ROOT}/
 
-# Copy PHP configuration
-COPY images/php/8.4/conf/app.ini /usr/local/etc/php/conf.d/zz-app.ini
-COPY images/php/8.4/conf/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
+# PHP configuration is already optimized in the base image
+# You can override by mounting custom config files if needed
 
 # Set environment variables
 ENV CADDY_LOG_OUTPUT=stdout
@@ -72,7 +101,7 @@ ENTRYPOINT ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
 
 ```bash
 # Build the production image
-docker build -f Dockerfile.production -t my-magento-store:latest .
+docker build -f images/Dockerfile.prod -t my-magento-store:latest .
 
 # Run the container
 docker run -d \
