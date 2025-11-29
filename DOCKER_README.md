@@ -82,6 +82,30 @@ bcmath, gd, intl, mbstring, opcache, pdo_mysql, soap, xsl, zip, sockets, ftp, so
 | `SERVER_NAME` | `localhost` | Server hostname for SSL |
 | `ENABLE_SSL_DEV` | `true` | Enable self-signed SSL |
 
+## Xdebug Configuration (Dev)
+
+Xdebug can be configured via environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `XDEBUG_MODE` | `debug` | Xdebug mode (debug, coverage, develop, profile, trace, off) |
+| `XDEBUG_CLIENT_HOST` | `host.docker.internal` | IDE host address |
+| `XDEBUG_CLIENT_PORT` | `9003` | IDE listening port |
+| `XDEBUG_START_WITH_REQUEST` | `trigger` | When to start debugging (trigger, yes, no) |
+| `XDEBUG_IDEKEY` | `PHPSTORM` | IDE key for session identification |
+
+Example:
+
+```yaml
+services:
+  app:
+    image: mohelmrabet/magento-frankenphp:dev
+    environment:
+      XDEBUG_MODE: debug
+      XDEBUG_CLIENT_HOST: host.docker.internal
+      XDEBUG_CLIENT_PORT: 9003
+```
+
 ## Caddyfile Configuration
 
 The Caddyfile can be customized by mounting your own template:

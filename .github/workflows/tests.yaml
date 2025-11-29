@@ -35,7 +35,11 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./images/php/${{ matrix.php_version }}/base/Dockerfile
+          file: ./images/php/Dockerfile
+          target: base
+          build-args: |
+            PHP_VERSION=${{ matrix.php_version }}
+            BUILD_TYPE=base
           push: false
           load: true
           tags: magento-frankenphp:php${{ matrix.php_version }}-base-test
@@ -46,7 +50,11 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./images/php/${{ matrix.php_version }}/dev/Dockerfile
+          file: ./images/php/Dockerfile
+          target: dev
+          build-args: |
+            PHP_VERSION=${{ matrix.php_version }}
+            BUILD_TYPE=dev
           push: false
           load: true
           tags: magento-frankenphp:php${{ matrix.php_version }}-dev-test
@@ -88,6 +96,47 @@ jobs:
             echo "⚠️ Xdebug not found in dev image (may be optional)"
           fi
 
+      - name: Test Xdebug environment variables
+        run: |
+          # Test that xdebug config template exists
+          docker run --rm magento-frankenphp:php${{ matrix.php_version }}-dev-test test -f /etc/php/xdebug.ini.template
+          echo "✅ Xdebug template exists"
+
+          # Test custom xdebug configuration via environment variables
+          XDEBUG_OUTPUT=$(docker run --rm \
+            -e XDEBUG_MODE=coverage \
+            -e XDEBUG_CLIENT_HOST=192.168.1.100 \
+            -e XDEBUG_CLIENT_PORT=9999 \
+            --entrypoint /bin/bash \
+            magento-frankenphp:php${{ matrix.php_version }}-dev-test \
+            -c 'export XDEBUG_MODE="${XDEBUG_MODE:-debug}" && \
+                export XDEBUG_CLIENT_HOST="${XDEBUG_CLIENT_HOST:-host.docker.internal}" && \
+                export XDEBUG_CLIENT_PORT="${XDEBUG_CLIENT_PORT:-9003}" && \
+                export XDEBUG_START_WITH_REQUEST="${XDEBUG_START_WITH_REQUEST:-trigger}" && \
+                export XDEBUG_IDEKEY="${XDEBUG_IDEKEY:-PHPSTORM}" && \
+                envsubst '"'"'${XDEBUG_MODE} ${XDEBUG_CLIENT_HOST} ${XDEBUG_CLIENT_PORT} ${XDEBUG_START_WITH_REQUEST} ${XDEBUG_IDEKEY}'"'"' < /etc/php/xdebug.ini.template')
+
+          if echo "$XDEBUG_OUTPUT" | grep -q "xdebug.mode = coverage"; then
+            echo "✅ XDEBUG_MODE environment variable works"
+          else
+            echo "❌ XDEBUG_MODE not properly substituted"
+            exit 1
+          fi
+
+          if echo "$XDEBUG_OUTPUT" | grep -q "xdebug.client_host = 192.168.1.100"; then
+            echo "✅ XDEBUG_CLIENT_HOST environment variable works"
+          else
+            echo "❌ XDEBUG_CLIENT_HOST not properly substituted"
+            exit 1
+          fi
+
+          if echo "$XDEBUG_OUTPUT" | grep -q "xdebug.client_port = 9999"; then
+            echo "✅ XDEBUG_CLIENT_PORT environment variable works"
+          else
+            echo "❌ XDEBUG_CLIENT_PORT not properly substituted"
+            exit 1
+          fi
+
   shellcheck:
     name: ShellCheck
     runs-on: ubuntu-latest
@@ -103,9 +152,7 @@ jobs:
           additional_files: >
             images/php/common/entrypoint-base.sh
             images/php/common/entrypoint-dev.sh
-            images/php/8.2/entrypoint-prod.sh
-            images/php/8.3/entrypoint-prod.sh
-            images/php/8.4/entrypoint-prod.sh
+            images/php/common/entrypoint-prod.sh
           severity: warning
   hadolint:
     name: Hadolint Dockerfiles
@@ -119,7 +166,7 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           recursive: true
-          ignore: DL3008,DL3018,DL3002
+          ignore: DL3008,DL3018,DL3002,DL3006
   yamllint:
     name: YAML Lint
     runs-on: ubuntu-latest

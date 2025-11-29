@@ -2,7 +2,11 @@ services:
   app:
     build:
       context: .
-      dockerfile: ./images/php/8.4/prod/Dockerfile
+      dockerfile: ./images/php/Dockerfile
+      target: prod
+      args:
+        PHP_VERSION: "8.4"
+        BUILD_TYPE: prod
     container_name: ${PROJECT_NAME:-magento}-app
     restart: unless-stopped
     environment:

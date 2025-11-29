@@ -13,6 +13,24 @@ if [ -f "$TEMPLATE_SOURCE" ]; then
     echo "📝 Caddyfile template processed: $TEMPLATE_SOURCE -> $CADDYFILE_TARGET"
 fi
 
+# Process Xdebug configuration from environment variables
+XDEBUG_TEMPLATE="/etc/php/xdebug.ini.template"
+XDEBUG_TARGET="/usr/local/etc/php/conf.d/zz-xdebug.ini"
+
+if [ -f "$XDEBUG_TEMPLATE" ]; then
+    # Set defaults for Xdebug environment variables
+    export XDEBUG_MODE="${XDEBUG_MODE:-debug}"
+    export XDEBUG_CLIENT_HOST="${XDEBUG_CLIENT_HOST:-host.docker.internal}"
+    export XDEBUG_CLIENT_PORT="${XDEBUG_CLIENT_PORT:-9003}"
+    export XDEBUG_START_WITH_REQUEST="${XDEBUG_START_WITH_REQUEST:-trigger}"
+    export XDEBUG_IDEKEY="${XDEBUG_IDEKEY:-PHPSTORM}"
+
+    # Substitute only specific Xdebug environment variables in template
+    # shellcheck disable=SC2016
+    envsubst '${XDEBUG_MODE} ${XDEBUG_CLIENT_HOST} ${XDEBUG_CLIENT_PORT} ${XDEBUG_START_WITH_REQUEST} ${XDEBUG_IDEKEY}' < "$XDEBUG_TEMPLATE" > "$XDEBUG_TARGET"
+    echo "🐛 Xdebug configured: mode=${XDEBUG_MODE}, host=${XDEBUG_CLIENT_HOST}, port=${XDEBUG_CLIENT_PORT}"
+fi
+
 # Display SSL information
 SSL_DOMAIN="${SERVER_NAME:-localhost}"
 SSL_DOMAIN=$(echo "$SSL_DOMAIN" | sed -E 's|^https?://||' | sed -E 's|:[0-9]+$||')
