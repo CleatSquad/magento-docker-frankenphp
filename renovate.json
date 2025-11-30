@@ -4,10 +4,16 @@
     "config:recommended"
   ],
   "enabledManagers": [
-    "dockerfile",
     "docker-compose"
   ],
   "packageRules": [
+    {
+      "description": "Disable all dependencies",
+      "enabled": false,
+      "matchPackageNames": [
+        "*"
+      ]
+    },
     {
       "description": "Enable Traefik updates",
       "matchPackageNames": [
