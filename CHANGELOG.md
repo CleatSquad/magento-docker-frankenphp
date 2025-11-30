@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- fix: Update changelog-update.yml to create PR instead of direct push to protected branch
+
+_From PR #74: fix: Update changelog-update.yml to create PR instead of direct push to protected branch_
+
 ## [v1.0.0] - 2025-11-30
 
 ### Fixed
