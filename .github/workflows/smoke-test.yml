@@ -19,25 +19,19 @@ jobs:
       contains(github.event.comment.body, '@bot smoke-test')
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
-      pr_ref: ${{ steps.get-pr.outputs.ref }}
-      pr_repo: ${{ steps.get-pr.outputs.repo }}
+      pr_number: ${{ github.event.issue.number }}
       pr_sha: ${{ steps.get-pr.outputs.sha }}
     steps:
       - name: Check if command is valid
         id: check
         run: echo "should_run=true" >> "$GITHUB_OUTPUT"
 
-      - name: Get PR ref
+      - name: Get PR SHA
         id: get-pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }})
-          PR_REF=$(echo "$PR_DATA" | jq -r '.head.ref')
-          PR_REPO=$(echo "$PR_DATA" | jq -r '.head.repo.full_name')
-          PR_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
-          echo "ref=$PR_REF" >> "$GITHUB_OUTPUT"
-          echo "repo=$PR_REPO" >> "$GITHUB_OUTPUT"
+          PR_SHA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }} --jq '.head.sha')
           echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
 
       - name: React to comment
@@ -67,8 +61,7 @@ jobs:
       - name: Checkout PR
         uses: actions/checkout@v4
         with:
-          repository: ${{ needs.check-command.outputs.pr_repo }}
-          ref: ${{ needs.check-command.outputs.pr_ref }}
+          ref: refs/pull/${{ needs.check-command.outputs.pr_number }}/head
           persist-credentials: false
 
       - name: Setup environment files
