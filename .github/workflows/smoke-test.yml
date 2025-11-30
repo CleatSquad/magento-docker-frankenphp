@@ -127,49 +127,6 @@ jobs:
       - name: Show running containers
         run: docker compose ps
 
-      - name: Post results comment
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MARIADB_STATUS: ${{ steps.mariadb.outputs.status }}
-          VALKEY_STATUS: ${{ steps.valkey.outputs.status }}
-          RABBITMQ_STATUS: ${{ steps.rabbitmq.outputs.status }}
-          OPENSEARCH_STATUS: ${{ steps.opensearch.outputs.status }}
-        run: |
-          # Determine overall status
-          if [ "$MARIADB_STATUS" = "ok" ] && [ "$VALKEY_STATUS" = "ok" ] && \
-             [ "$RABBITMQ_STATUS" = "ok" ] && [ "$OPENSEARCH_STATUS" = "ok" ]; then
-            OVERALL="All services healthy"
-            EMOJI="white_check_mark"
-          else
-            OVERALL="Some services failed"
-            EMOJI="x"
-          fi
-
-          # Build status icons
-          get_icon() {
-            if [ "$1" = "ok" ]; then echo ":white_check_mark:"; else echo ":x:"; fi
-          }
-
-          MARIADB_ICON=$(get_icon "$MARIADB_STATUS")
-          VALKEY_ICON=$(get_icon "$VALKEY_STATUS")
-          RABBITMQ_ICON=$(get_icon "$RABBITMQ_STATUS")
-          OPENSEARCH_ICON=$(get_icon "$OPENSEARCH_STATUS")
-
-          COMMENT="## Smoke Test Results :$EMOJI:
-
-          | Service | Status |
-          |---------|--------|
-          | MariaDB | $MARIADB_ICON |
-          | Valkey | $VALKEY_ICON |
-          | RabbitMQ | $RABBITMQ_ICON |
-          | OpenSearch | $OPENSEARCH_ICON |
-
-          **Result:** $OVERALL
-
-          [View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-
-          gh pr comment ${{ github.event.issue.number }} --body "$COMMENT"
-
       - name: Set final status
         if: always()
         env:
