@@ -82,25 +82,6 @@ make down        # Stop containers
 make help        # Show all available commands
 ```
 
-## Docker Images
-
-```bash
-# Production
-docker pull mohelmrabet/magento-frankenphp:latest
-
-# Development (with Xdebug)
-docker pull mohelmrabet/magento-frankenphp:dev
-```
-
-| Tag                               | PHP | Franken | Use Case     |
-|-----------------------------------|-----|---------|--------------|
-| `php8.4-fp1.10.1-base` / `latest` | 8.4 | 1.10.1  | Production   |
-| `php8.4-fp1.10.1-dev` / `dev`     | 8.4 | 1.10.1  | Development  |
-| `php8.3-fp1.10.1-base` / `base`   | 8.3 | 1.10.1  | Production   |
-| `php8.3-fp1.10.1-dev`             | 8.3 | 1.10.1  | Development  |
-| `php8.2-fp1.10.1-base`            | 8.2 | 1.10.1  | Production   |
-| `php8.2-fp1.10.1-dev`             | 8.2 | 1.10.1  | Development  |
-
 ## Features
 
 - ✅ **PHP 8.2, 8.3, 8.4** — All Magento-required extensions included
