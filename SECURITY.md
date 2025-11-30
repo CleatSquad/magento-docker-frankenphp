@@ -3,8 +3,8 @@
 ## Supported Versions
 
 | Version | Supported          |
-| ------- | ------------------ |
-| 0.x.x   | :white_check_mark: |
+|---------| ------------------ |
+| 1.0.0   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
@@ -44,6 +44,10 @@ RABBITMQ_DEFAULT_PASS=<strong-password>
 
 - [Magento Security Best Practices](https://experienceleague.adobe.com/docs/commerce-operations/implementation-playbook/best-practices/launch/security-best-practices.html)
 - [Docker Security](https://docs.docker.com/develop/security-best-practices/)
+- [FrankenPHP Security](https://github.com/dunglas/frankenphp/security)
+- [PHP Security](https://www.php.net/security)
+- [MariaDB Security](https://mariadb.com/kb/en/security/)
+- [OpenSearch Security](https://opensearch.org/docs/latest/security/)
 - [Valkey Security](https://valkey.io/docs/topics/security/)
 
 ## Contact

@@ -41,8 +41,8 @@ Fixes #
 
 ```bash
 # List the commands you used to test
-docker build --target base -t test:base .
-docker run --rm test:base php -v
+make up
+bin/magento setup:upgrade
 ```
 
 ## Checklist
@@ -51,8 +51,6 @@ docker run --rm test:base php -v
 
 - [ ] I have read the [CONTRIBUTING.md](CONTRIBUTING.md) guide
 - [ ] My code follows the project's coding standards
-- [ ] I have run `hadolint Dockerfile` and fixed any issues
-- [ ] I have run `shellcheck` on any shell scripts I modified
 - [ ] I have updated the documentation if necessary
 - [ ] My changes don't introduce new warnings or errors
 - [ ] I have tested my changes locally
