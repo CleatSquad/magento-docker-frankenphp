@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.0.0] - 2025-11-30
+
 ### Fixed
 
 - Fix @bot generate-release-note command + workflow improvements
@@ -81,6 +83,7 @@ _From PR #5: Fix @bot generate-release-note command + workflow improvements_
 - Configuration guide with environment variables
 - MIT License
 
-[Unreleased]: https://github.com/CleatSquad/magento-frankenphp-template/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/CleatSquad/magento-frankenphp-template/compare/v1.0.0...HEAD
+[v1.0.0]: https://github.com/CleatSquad/magento-frankenphp-template/compare/v0.2.0...v1.0.0
 [v0.2.0]: https://github.com/CleatSquad/magento-frankenphp-template/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/CleatSquad/magento-frankenphp-template/releases/tag/v0.1.0
