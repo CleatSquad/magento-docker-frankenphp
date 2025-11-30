@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Clean changelog format and remove conventional commit prefixes from workflows
+
+_From PR #81: Clean changelog format and remove conventional commit prefixes from workflows_
+
+### Fixed
+
 - Handle existing PRs/branches in changelog and release workflows
 - Add community files and fix documentation path inconsistencies
 - Update changelog-update.yml to create PR instead of direct push to protected branch
