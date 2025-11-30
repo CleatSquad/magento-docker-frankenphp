@@ -14,7 +14,7 @@ on:
       - ".github/workflows/tests.yaml"
       - "Makefile"
       - "env/**"
-      - "conf/**"
+      - "docker/conf/**"
   push:
     branches:
       - main

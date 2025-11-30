@@ -163,7 +163,7 @@ bin/magento cache:flush
 ```
 magento-docker-frankenphp/
 ├── bin/                    # CLI tools
-├── conf/                   # Configuration files
+├── docker/conf/                   # Configuration files
 ├── docs/                   # Documentation
 ├── env/                    # Environment templates
 ├── examples/               # Deployment examples

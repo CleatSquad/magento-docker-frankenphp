@@ -121,7 +121,7 @@ Run the setup-ssl script to generate trusted certificates:
 This script:
 - Installs the mkcert CA on your system (trusted by browsers)
 - Generates SSL certificates for your domain
-- Places them in `conf/ssl/` directory
+- Places them in `docker/conf/ssl/` directory
 
 After running, update your docker-compose.yml:
 
@@ -131,7 +131,7 @@ app:
     SERVER_NAME: magento.localhost
     CADDY_TLS_CONFIG: "/etc/caddy/ssl/magento.localhost.pem /etc/caddy/ssl/magento.localhost-key.pem"
   volumes:
-    - ./conf/ssl:/etc/caddy/ssl:ro
+    - ./docker/conf/ssl:/etc/caddy/ssl:ro
     - ./src:/var/www/html
 ```
 

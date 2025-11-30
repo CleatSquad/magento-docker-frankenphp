@@ -9,8 +9,8 @@ auth.json
 credentials.json
 
 # SSL Certificates
-/conf/ssl/
-!/conf/ssl/.keep
+/docker/conf/ssl/
+!/docker/conf/ssl/.keep
 
 # IDE & Editor
 /.idea

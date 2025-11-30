@@ -398,7 +398,7 @@ Generate SSL certificates for development using mkcert.
 This script:
 - Installs the local mkcert CA (trusted by your browser)
 - Generates SSL certificate and key for the specified domain
-- Places certificates in `conf/ssl/` directory
+- Places certificates in `docker/conf/ssl/` directory
 - Shows instructions for configuring docker-compose.yml
 
 After running, update your docker-compose.yml:
@@ -407,7 +407,7 @@ app:
   environment:
     CADDY_TLS_CONFIG: "/etc/caddy/ssl/magento.localhost.pem /etc/caddy/ssl/magento.localhost-key.pem"
   volumes:
-    - ./conf/ssl:/etc/caddy/ssl:ro
+    - ./docker/conf/ssl:/etc/caddy/ssl:ro
 ```
 
 ### `bin/setup-magento`

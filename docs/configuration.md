@@ -115,7 +115,7 @@ app:
   environment:
     CADDY_TLS_CONFIG: "/etc/caddy/ssl/magento.localhost.pem /etc/caddy/ssl/magento.localhost-key.pem"
   volumes:
-    - ./conf/ssl:/etc/caddy/ssl:ro
+    - ./docker/conf/ssl:/etc/caddy/ssl:ro
 ```
 
 **Option 2: Accept browser warning**

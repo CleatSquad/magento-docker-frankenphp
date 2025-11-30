@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Bin scripts (`start`, `stop`, `status`, `logs`, `remove`, `removeall`) now use `--profile dev` by default
 - Improved `.gitignore` with proper patterns for Magento inside `src/` directory
-- Added `src/.keep` and `conf/ssl/.keep` for empty directory tracking
+- Added `src/.keep` and `docker/conf/ssl/.keep` for empty directory tracking
 - Bug report template enhanced with Magento Version field
 
 ### Fixed

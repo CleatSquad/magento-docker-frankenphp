@@ -94,24 +94,25 @@ make help        # Show all available commands
 
 ## Documentation
 
-| Guide | Description |
-|-------|-------------|
-| 📖 [Getting Started](docs/getting-started.md) | Installation and initial setup |
-| 🏗️ [Architecture](docs/architecture.md) | System architecture and service diagram |
-| 🛠️ [CLI Tools](docs/CLI.md) | All available commands |
-| ⚙️ [Configuration](docs/configuration.md) | Environment variables and settings |
-| 🎯 [Usage Scenarios](docs/usage-scenarios.md) | Dev, prod, CI/CD scenarios |
-| 🔧 [Customization](docs/customization.md) | How to customize the stack |
-| 🌐 [Caddyfile](docs/Caddyfile.md) | Web server configuration |
-| 🐛 [Xdebug](docs/xdebug.md) | Debugging with Xdebug |
-| 🚀 [Production](examples/production-dockerfile.md) | Production deployment |
-| 💻 [Local Dev](examples/local-development.md) | Development environment setup |
-| ☸️ [Kubernetes](examples/kubernetes-deployment.md) | K8s deployment guide |
+| Guide                                                   | Description |
+|---------------------------------------------------------|-------------|
+| 📖 [Getting Started](docs/getting-started.md)           | Installation and initial setup |
+| 🏗️ [Architecture](docs/architecture.md)                | System architecture and service diagram |
+| 🛠️ [CLI Tools](docs/CLI.md)                            | All available commands |
+| ⚙️ [Configuration](docs/configuration.md)               | Environment variables and settings |
+| 🎯 [Usage Scenarios](docs/usage-scenarios.md)           | Dev, prod, CI/CD scenarios |
+| 🔧 [Customization](docs/customization.md)               | How to customize the stack |
+| 🌐 [Caddyfile](docs/Caddyfile.md)                       | Web server configuration |
+| 🐛 [Xdebug](docs/xdebug.md)                             | Debugging with Xdebug |
+| 🚀 [Production](docs/examples/production-dockerfile.md) | Production deployment |
+| 💻 [Local Dev](docs/examples/local-development.md)      | Development environment setup |
+| ☸️ [Kubernetes](docs/examples/kubernetes-deployment.md) | K8s deployment guide |
 
 ## Common Commands
 
 ```bash
 ./bin/start              # Start containers
+make up                  # Start containers
 ./bin/stop               # Stop containers
 ./bin/magento cache:flush
 ./bin/bash               # Access app container shell
@@ -128,7 +129,6 @@ See [CLI Documentation](docs/CLI.md) for all commands.
 - Docker >= 24.0
 - Docker Compose >= 2.20
 - Git
-- 8GB RAM minimum (for Magento)
 
 ## Contributing
 
