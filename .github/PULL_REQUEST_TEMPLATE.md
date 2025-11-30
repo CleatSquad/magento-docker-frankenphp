@@ -2,12 +2,6 @@
 
 <!-- Provide a brief description of your changes -->
 
-## Bot Commands
-
-<!-- Available bot commands you can use in PR comments:
-- `@bot smoke-test` - Run Docker smoke test (on-demand, saves CI resources)
--->
-
 ## Type of Change
 
 <!-- Mark the appropriate option with an 'x' -->
@@ -22,15 +16,9 @@
 
 <!-- Link any related issues using "Fixes #123" or "Closes #123" -->
 
-Fixes #
-
 ## Changes Made
 
 <!-- List the main changes in this PR -->
-
-- 
-- 
-- 
 
 ## Testing
 
@@ -42,14 +30,7 @@ Fixes #
 - [ ] Tested with Magento 2 installation
 - [ ] Verified PHP extensions are working
 - [ ] Tested development features (Xdebug, etc.)
-
-### Test Commands Run
-
-```bash
-# List the commands you used to test
-make up
-bin/magento setup:upgrade
-```
+- [ ] Other (please specify): ___________________________
 
 ## Checklist
 
