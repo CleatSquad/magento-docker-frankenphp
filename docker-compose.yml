@@ -5,7 +5,6 @@ services:
     container_name: ${PROJECT_NAME:-magento}-traefik
     profiles:
       - dev
-      - prod
     security_opt:
       - no-new-privileges:true
     command:
@@ -95,7 +94,6 @@ services:
     container_name: ${PROJECT_NAME:-magento}-db
     profiles:
       - dev
-      - prod
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
       MYSQL_DATABASE: ${DB_NAME:-magento}
@@ -119,7 +117,6 @@ services:
     container_name: ${PROJECT_NAME:-magento}-opensearch
     profiles:
       - dev
-      - prod
     networks:
       - magento
       - proxy
@@ -142,7 +139,6 @@ services:
     container_name: ${PROJECT_NAME:-magento}-valkey
     profiles:
       - dev
-      - prod
     ports:
       - "6379:6379"
     healthcheck:
@@ -160,7 +156,6 @@ services:
     container_name: ${PROJECT_NAME:-magento}-rabbitmq
     profiles:
       - dev
-      - prod
     env_file: env/rabbitmq.env
     networks:
       - magento

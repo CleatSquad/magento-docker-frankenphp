@@ -20,8 +20,8 @@ A clear and concise description of what the bug is.
 
 ## Steps to Reproduce
 
-1. Pull the image: `docker pull mohelmrabet/magento-frankenphp:tag`
-2. Run command: `docker run ...`
+1. Run: `make up` or `./bin/start`
+2. Execute command: `...`
 3. See error
 
 ## Expected Behavior

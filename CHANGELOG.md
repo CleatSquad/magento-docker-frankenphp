@@ -21,7 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `.github/release-drafter.yml` for auto-generated release notes
 
 ### Changed
-- Updated all repository URLs to `CleatSquad/magento-frankenphp-template`
 - Bin scripts (`start`, `stop`, `status`, `logs`, `remove`, `removeall`) now use `--profile dev` by default
 - Improved `.gitignore` with proper patterns for Magento inside `src/` directory
 - Added `src/.keep` and `conf/ssl/.keep` for empty directory tracking

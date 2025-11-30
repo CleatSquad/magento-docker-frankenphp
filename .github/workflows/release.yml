@@ -78,6 +78,6 @@ jobs:
           context: ./images/opensearch
           push: true
           tags: |
-            mohelmrabet/magento-frankenphp-opensearch:${{ steps.version.outputs.version }}
-            mohelmrabet/magento-frankenphp-opensearch:latest
+            cleatsquad/magento-frankenphp-opensearch:${{ steps.version.outputs.version }}
+            cleatsquad/magento-frankenphp-opensearch:latest
           platforms: linux/amd64,linux/arm64
