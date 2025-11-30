@@ -13,8 +13,7 @@ The most common use case for setting up a Magento development environment.
 git clone https://github.com/mohaelmrabet/magento-frankenphp-template.git
 cd magento-frankenphp-template
 
-# 2. Configure environment
-cp .env.example .env
+# 2. Setup environment (copies env templates automatically)
 ./bin/setup
 
 # 3. Start services
@@ -78,16 +77,16 @@ Deploy Magento to a production server.
 git clone https://github.com/mohaelmrabet/magento-frankenphp-template.git
 cd magento-frankenphp-template
 
-# 2. Configure production environment
-cp .env.example .env
+# 2. Setup environment
+./bin/setup
 
-# Edit .env with production values:
+# 3. Edit .env with production values
 # - SERVER_NAME=yourdomain.com
 # - Strong database passwords
 # - MAGENTO_RUN_MODE=production
 nano .env
 
-# 3. Start production stack
+# 4. Start production stack
 docker compose -f docker-compose.prod.yml up -d
 ```
 
@@ -158,8 +157,7 @@ jobs:
       
       - name: Setup environment
         run: |
-          cp .env.example .env
-          cp env/magento.env.example env/magento.env
+          cp env/magento.env.example .env
           cp env/mariadb.env.example env/mariadb.env
           cp env/opensearch.env.example env/opensearch.env
           cp env/rabbitmq.env.example env/rabbitmq.env
@@ -199,7 +197,7 @@ variables:
 build:
   stage: build
   script:
-    - cp .env.example .env
+    - ./bin/setup
     - docker compose build
 
 test:

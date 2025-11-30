@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://hub.docker.com/r/mohelmrabet/magento-frankenphp"><img src="https://img.shields.io/docker/pulls/mohelmrabet/magento-frankenphp.svg?logo=docker" alt="Docker Pulls" /></a>
-  <img src="https://img.shields.io/badge/magento-2.4.7-orange.svg?logo=magento" alt="Magento 2.4.7" />
+  <img src="https://img.shields.io/badge/magento-2.4.x-orange.svg?logo=magento" alt="Magento 2.4.x" />
   <img src="https://img.shields.io/badge/php-8.2%20|%208.3%20|%208.4-blue.svg?logo=php" alt="PHP Versions" />
   <img src="https://img.shields.io/badge/frankenphp-1.10-purple.svg" alt="FrankenPHP 1.10" />
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License MIT" /></a>
@@ -65,8 +65,7 @@ cd your-magento-project
 git clone https://github.com/mohaelmrabet/magento-frankenphp-template.git
 cd magento-frankenphp-template
 
-# 2. Setup environment
-cp .env.example .env
+# 2. Setup environment (copies env templates automatically)
 ./bin/setup
 
 # 3. Start containers

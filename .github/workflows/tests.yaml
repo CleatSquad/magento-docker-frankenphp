@@ -28,9 +28,6 @@ permissions:
   contents: read
 
 jobs:
-  # ---------------------------------------------------------------------------
-  # Shell Script Linting
-  # ---------------------------------------------------------------------------
   shellcheck:
     name: ShellCheck
     runs-on: ubuntu-latest
@@ -45,9 +42,6 @@ jobs:
           scandir: './bin'
           severity: warning
 
-  # ---------------------------------------------------------------------------
-  # Dockerfile Linting
-  # ---------------------------------------------------------------------------
   hadolint:
     name: Hadolint Dockerfiles
     runs-on: ubuntu-latest
@@ -62,9 +56,6 @@ jobs:
           recursive: true
           ignore: DL3008,DL3018,DL3002,DL3006
 
-  # ---------------------------------------------------------------------------
-  # YAML Linting
-  # ---------------------------------------------------------------------------
   yamllint:
     name: YAML Lint
     runs-on: ubuntu-latest
@@ -79,9 +70,6 @@ jobs:
           file_or_dir: .
           config_file: .yamllint.yml
 
-  # ---------------------------------------------------------------------------
-  # Docker Compose Configuration Validation
-  # ---------------------------------------------------------------------------
   docker-compose-validate:
     name: Docker Compose Validation
     runs-on: ubuntu-latest
@@ -92,8 +80,7 @@ jobs:
 
       - name: Setup environment files
         run: |
-          cp .env.example .env
-          cp env/magento.env.example env/magento.env
+          cp env/magento.env.example .env
           cp env/mariadb.env.example env/mariadb.env
           cp env/opensearch.env.example env/opensearch.env
           cp env/rabbitmq.env.example env/rabbitmq.env
@@ -108,9 +95,6 @@ jobs:
       - name: Validate docker-compose.prod.yml (prod)
         run: docker compose -f docker-compose.prod.yml config --quiet
 
-  # ---------------------------------------------------------------------------
-  # Smoke Test - Container Startup
-  # ---------------------------------------------------------------------------
   smoke-test:
     name: Smoke Test
     runs-on: ubuntu-latest
@@ -122,8 +106,7 @@ jobs:
 
       - name: Setup environment files
         run: |
-          cp .env.example .env
-          cp env/magento.env.example env/magento.env
+          cp env/magento.env.example .env
           cp env/mariadb.env.example env/mariadb.env
           cp env/opensearch.env.example env/opensearch.env
           cp env/rabbitmq.env.example env/rabbitmq.env

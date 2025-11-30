@@ -42,7 +42,7 @@ When using this template in production, follow these security guidelines:
 
 ```bash
 # NEVER commit .env files
-# Use .env.example as a template only
+# Run ./bin/setup to copy env templates
 
 # Required environment variables for production:
 MYSQL_ROOT_PASSWORD=<strong-unique-password>

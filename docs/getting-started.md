@@ -23,20 +23,24 @@ git clone https://github.com/mohaelmrabet/magento-frankenphp-template.git
 cd magento-frankenphp-template
 ```
 
-### 2. Configure Environment
-
-```bash
-# Copy example environment file
-cp .env.example .env
-
-# Edit .env with your settings (optional)
-nano .env
-```
-
-### 3. Run the Setup Script
+### 2. Run the Setup Script
 
 ```bash
 ./bin/setup
+```
+
+This script will:
+- ✅ Create the `proxy` Docker network
+- ✅ Copy environment files from templates (env/*.example → env/*.env)
+- ✅ Create `.env` from `env/magento.env.example`
+- ✅ Set your user ID/GID for proper file permissions
+- ✅ Auto-generate SSL certificates (if `SERVER_NAME` is set)
+
+### 3. (Optional) Edit Environment Settings
+
+```bash
+# Edit .env with your settings
+nano .env
 ```
 
 This script will:

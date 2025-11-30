@@ -1,16 +1,4 @@
-# =============================================================================
-# Magento FrankenPHP Docker Compose - Production Configuration
-# =============================================================================
-# Usage:
-#   docker compose -f docker-compose.prod.yml up -d
-#
-# Note: Copy .env.example to .env and configure for production before use
-# =============================================================================
-
 services:
-  # ---------------------------------------------------------------------------
-  # PHP/FrankenPHP Application Server (Production)
-  # ---------------------------------------------------------------------------
   app:
     # Option 1: Use pre-built image (default)
     image: mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-base
@@ -48,9 +36,6 @@ services:
     networks:
       - magento
 
-  # ---------------------------------------------------------------------------
-  # MariaDB Database (Production)
-  # ---------------------------------------------------------------------------
   mariadb:
     image: mariadb:11.4
     container_name: ${PROJECT_NAME:-magento}-db
@@ -74,9 +59,6 @@ services:
     networks:
       - magento
 
-  # ---------------------------------------------------------------------------
-  # OpenSearch Search Engine (Production)
-  # ---------------------------------------------------------------------------
   opensearch:
     build:
       context: ./images/opensearch
@@ -101,9 +83,6 @@ services:
     networks:
       - magento
 
-  # ---------------------------------------------------------------------------
-  # Valkey Cache & Session Storage (Production)
-  # ---------------------------------------------------------------------------
   valkey:
     image: valkey/valkey:8.1.4
     container_name: ${PROJECT_NAME:-magento}-valkey
@@ -119,9 +98,6 @@ services:
     networks:
       - magento
 
-  # ---------------------------------------------------------------------------
-  # RabbitMQ Message Queue (Production)
-  # ---------------------------------------------------------------------------
   rabbitmq:
     image: rabbitmq:4.1-management-alpine
     container_name: ${PROJECT_NAME:-magento}-rabbitmq
@@ -141,15 +117,9 @@ services:
     networks:
       - magento
 
-# =============================================================================
-# Networks
-# =============================================================================
 networks:
   magento:
 
-# =============================================================================
-# Volumes
-# =============================================================================
 volumes:
   db-data:
   opensearch-data:
