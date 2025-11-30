@@ -17,7 +17,7 @@ APP := app
 # Default shell
 SHELL := /bin/bash
 
-.PHONY: help uninstall-magento setup-magento cache reindex compile upgrade-magento \
+.PHONY: help init uninstall-magento setup-magento cache reindex compile upgrade-magento \
         permissions composer-install composer-update composer-require version \
         up down restart build install-magento full-install \
         test-integration test-unit test-api \
@@ -25,6 +25,11 @@ SHELL := /bin/bash
 
 # Default target - display help
 .DEFAULT_GOAL := help
+
+# Initialize and start the project (setup + start containers)
+init:
+	./bin/setup
+	./bin/start
 
 # Uninstall Magento (removes all data)
 uninstall-magento:
@@ -153,6 +158,9 @@ deploy:
 # Display help
 help:
 	@echo "Available targets:"
+	@echo ""
+	@echo "Quick Start:"
+	@echo "  init                - Initialize and start project (setup + start)"
 	@echo ""
 	@echo "Container Management:"
 	@echo "  up                  - Start Docker containers"

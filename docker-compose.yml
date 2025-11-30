@@ -21,10 +21,10 @@ services:
       - ./docker/conf/dynamic:/etc/traefik/dynamic
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 5s
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
@@ -59,7 +59,7 @@ services:
       # - ./docker/conf/ssl:/etc/caddy/ssl:ro
       - ./src:/var/www/html
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:2019/config/", "-o", "/dev/null", "-s"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:2019/config/ -o /dev/null || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -84,6 +84,8 @@ services:
       valkey:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      traefik:
         condition: service_healthy
     networks:
       - magento
@@ -139,8 +141,6 @@ services:
     container_name: ${PROJECT_NAME:-magento}-valkey
     profiles:
       - dev
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "valkey-cli", "ping"]
       interval: 30s
@@ -177,7 +177,7 @@ services:
       - traefik.http.services.rabbit.loadbalancer.server.port=15672
 
   mailhog:
-    image: mailhog/mailhog
+    image: mailhog/mailhog:v1.0.1
     container_name: ${PROJECT_NAME:-magento}-mailhog
     profiles:
       - dev
@@ -186,11 +186,11 @@ services:
       - magento
       - proxy
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8025/ >/dev/null 2>&1 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
@@ -199,7 +199,7 @@ services:
       - traefik.http.services.mailhog.loadbalancer.server.port=8025
 
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
+    image: phpmyadmin/phpmyadmin:5.2
     container_name: ${PROJECT_NAME:-magento}-phpmyadmin
     profiles:
       - dev

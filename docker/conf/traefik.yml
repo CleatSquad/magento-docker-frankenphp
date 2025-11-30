@@ -8,6 +8,8 @@ api:
   dashboard: true
   insecure: false
 
+ping: {}
+
 # Logging configuration
 log:
   level: INFO

@@ -64,9 +64,55 @@ cd magento-frankenphp-template
 # 4. Access https://magento.localhost
 ```
 
+### 📁 Project Structure
+
+> **Important:** Place your Magento 2 source code in the `src/` directory.
+
+```
+magento-frankenphp-template/
+├── src/                    # 👈 Your Magento 2 code goes here
+├── bin/                    # CLI tools
+├── docker/                 # Docker configurations
+├── docs/                   # Documentation
+└── env/                    # Environment templates
+```
+
+#### Option A: Existing Magento Project
+
+If you already have a Magento project, copy or clone it into the `src/` directory:
+
+```bash
+# Copy existing project
+cp -r /path/to/your/magento/* src/
+
+# Or clone directly
+git clone https://github.com/your-org/your-magento-repo.git src/
+```
+
+#### Option B: New Magento Installation
+
+For a fresh Magento installation:
+
+```bash
+# 1. Start the containers
+./bin/start
+
+# 2. Enter the container and create Magento project
+./bin/bash
+composer create-project --repository-url=https://repo.magento.com/ \
+    magento/project-community-edition .
+exit
+
+# 3. Run the interactive setup
+./bin/setup-magento
+```
+
+The `setup-magento` script will guide you through the installation process, asking for admin credentials, language, currency, and timezone settings.
+
 ### Quick Commands
 
 ```bash
+make init        # Initialize and start (first time)
 make up          # Start containers
 make down        # Stop containers
 make help        # Show all available commands
