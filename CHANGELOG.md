@@ -9,29 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- fix: Handle existing PRs\/branches in changelog and release workflows
-
-#### Commits
-
-- fix: Handle existing PRs/branches in changelog and release workflows
-
-_From PR #78: fix: Handle existing PRs/branches in changelog and release workflows_
-
-### Fixed
-
-- fix: Add community files and fix documentation path inconsistencies
-
-#### Commits
-
-- fix: Add community files and fix documentation path inconsistencies
-
-_From PR #76: fix: Add community files and fix documentation path inconsistencies_
-
-### Fixed
-
-- fix: Update changelog-update.yml to create PR instead of direct push to protected branch
-
-_From PR #74: fix: Update changelog-update.yml to create PR instead of direct push to protected branch_
+- Handle existing PRs/branches in changelog and release workflows
+- Add community files and fix documentation path inconsistencies
+- Update changelog-update.yml to create PR instead of direct push to protected branch
 
 ## [v1.0.0] - 2025-11-30
 
