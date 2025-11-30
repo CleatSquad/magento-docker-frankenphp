@@ -5,6 +5,36 @@ All notable changes to the Magento 2 + FrankenPHP Docker Template will be docume
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- GitHub issue and PR templates (bug report, feature request, pull request)
+- `SECURITY.md` with security policy and production best practices
+- Comprehensive documentation:
+  - `docs/architecture.md` - System architecture diagram and service topology
+  - `docs/usage-scenarios.md` - Dev, prod, CI/CD, multi-site workflows
+  - `docs/customization.md` - PHP extensions, hostnames, services customization
+- Docker Compose healthchecks for all services (MariaDB, OpenSearch, Valkey, RabbitMQ, Traefik, app)
+- Docker Compose profiles (`dev`, `prod`, `debug`) for service separation
+- `depends_on` with `condition: service_healthy` for proper startup order
+- GitHub Actions workflow improvements:
+  - `docker-compose-validate` job for syntax validation
+  - `smoke-test` job for container health verification
+- Release automation:
+  - `.github/workflows/release.yml` for automated releases on tag push
+  - `.github/release-drafter.yml` for auto-generated release notes
+- Conventional Commits support with `commitlint` configuration
+
+### Changed
+- Updated all repository URLs to `CleatSquad/magento-frankenphp-template`
+- Bin scripts (`start`, `stop`, `status`, `logs`, `remove`, `removeall`) now use `--profile dev` by default
+- Improved `.gitignore` with proper patterns for Magento inside `src/` directory
+- Added `src/.keep` and `conf/ssl/.keep` for empty directory tracking
+- Bug report template enhanced with Magento Version field
+
+### Fixed
+- `bin/start` now works correctly with Docker Compose profiles
+
 ## [v0.2.0] - 2025-11-29
 
 ### Added
@@ -51,5 +81,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configuration guide with environment variables
 - MIT License
 
+[Unreleased]: https://github.com/CleatSquad/magento-frankenphp-template/compare/v0.2.0...HEAD
 [v0.2.0]: https://github.com/CleatSquad/magento-frankenphp-template/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/CleatSquad/magento-frankenphp-template/releases/tag/v0.1.0

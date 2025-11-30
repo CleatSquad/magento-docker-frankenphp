@@ -1,0 +1,107 @@
+---
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+categories:
+  - title: '🚀 Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'bug'
+      - 'fix'
+  - title: '📚 Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: '🔧 Maintenance'
+    labels:
+      - 'chore'
+      - 'maintenance'
+      - 'dependencies'
+  - title: '⚠️ Breaking Changes'
+    labels:
+      - 'breaking'
+      - 'breaking-change'
+  - title: '🔒 Security'
+    labels:
+      - 'security'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&'
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+      - 'breaking-change'
+  minor:
+    labels:
+      - 'minor'
+      - 'feature'
+      - 'enhancement'
+  patch:
+    labels:
+      - 'patch'
+      - 'bug'
+      - 'fix'
+      - 'documentation'
+      - 'maintenance'
+  default: patch
+
+autolabeler:
+  - label: 'documentation'
+    files:
+      - '*.md'
+      - 'docs/**/*'
+    branch:
+      - '/docs{0,1}\/.+/'
+  - label: 'bug'
+    branch:
+      - '/fix\/.+/'
+      - '/bugfix\/.+/'
+    title:
+      - '/fix/i'
+      - '/bug/i'
+  - label: 'feature'
+    branch:
+      - '/feature\/.+/'
+      - '/feat\/.+/'
+    title:
+      - '/feat/i'
+      - '/feature/i'
+  - label: 'chore'
+    branch:
+      - '/chore\/.+/'
+    title:
+      - '/chore/i'
+  - label: 'maintenance'
+    files:
+      - '.github/**/*'
+      - 'Makefile'
+      - 'docker-compose*.yml'
+    branch:
+      - '/maintenance\/.+/'
+      - '/refactor\/.+/'
+
+exclude-labels:
+  - 'skip-changelog'
+  - 'duplicate'
+  - 'invalid'
+  - 'wontfix'
+
+no-changes-template: 'No changes since last release.'
+
+replacers:
+  - search: '/\[skip ci\]/g'
+    replace: ''
+  - search: '/\[ci skip\]/g'
+    replace: ''
