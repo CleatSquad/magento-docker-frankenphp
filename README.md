@@ -36,16 +36,6 @@ This repository is a **GitHub template** providing a ready-to-use Docker develop
 - [Security Policy](SECURITY.md)
 
 ---
-
-## Why FrankenPHP for Magento?
-
-| Feature | FrankenPHP | PHP-FPM + Nginx |
-|---------|------------|-----------------|
-| **Performance** | ~2500 req/s | ~1800 req/s |
-| **Memory** | Lower | Higher |
-| **Setup** | Single binary | Multiple services |
-| **HTTPS** | Automatic (Caddy) | Manual config |
-
 ## Quick Start
 
 ### Use as Template (Recommended)
@@ -94,16 +84,16 @@ make help        # Show all available commands
 
 ## Documentation
 
-| Guide                                                   | Description |
-|---------------------------------------------------------|-------------|
-| [Getting Started](docs/getting-started.md)              | Installation and initial setup |
-| [CLI Tools](docs/cli.md)                                | All available commands |
-| [Configuration](docs/configuration.md)                  | Environment variables and settings |
-| [Caddyfile](docs/caddyfile.md)                          | Web server configuration |
-| [Xdebug](docs/xdebug.md)                                | Debugging with Xdebug |
-| [Production](docs/examples/production-dockerfile.md)    | Production deployment |
-| [Local Dev](docs/examples/local-development.md)         | Development environment setup |
-| [Kubernetes](docs/examples/kubernetes-deployment.md)    | K8s deployment guide |
+| Guide                                                  | Description |
+|--------------------------------------------------------|-------------|
+| [Getting Started](docs/getting-started.md)             | Installation and initial setup |
+| [CLI Tools](docs/cli.md)                               | All available commands |
+| [Configuration](docs/configuration.md)                 | Environment variables and settings |
+| [Caddyfile](docs/caddyfile.md)                         | Web server configuration |
+| [Xdebug](docs/xdebug.md)                               | Debugging with Xdebug |
+| [Production](docs/examples/production-dockerfile.md)   | Production deployment |
+| [Local Dev](docs/examples/local-development.md)        | Development environment setup |
+| [Kubernetes](docs/examples/kubernetes-deployment.md)   | K8s deployment guide |
 
 ## Common Commands
 
