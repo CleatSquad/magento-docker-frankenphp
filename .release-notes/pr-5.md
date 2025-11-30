@@ -1,3 +1,3 @@
 ### Fixed
 
-- [WIP] Fix silent failure in generate-release-note command
+- Fix @bot generate-release-note command + workflow improvements
