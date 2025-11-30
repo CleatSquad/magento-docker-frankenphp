@@ -4,11 +4,11 @@ This example shows how to create a production-ready Magento Docker image using t
 
 ## Quick Start
 
-A ready-to-use production Dockerfile is provided at `images/Dockerfile.prod`:
+A ready-to-use production Dockerfile is provided at `docker/images/app/Dockerfile`:
 
 ```bash
 # Build the production image
-docker build -f images/Dockerfile.prod -t my-magento-store:latest .
+docker build -f docker/images/app/Dockerfile -t my-magento-store:latest .
 
 # Run the container
 docker run -d \
@@ -29,16 +29,16 @@ services:
     # Option 2: Build production image with compiled DI and static content
     build:
       context: .
-      dockerfile: images/Dockerfile.prod
+      dockerfile: docker/images/app/Dockerfile
 ```
 
-## images/Dockerfile.prod
+## docker/images/app/Dockerfile
 
-A ready-to-use production Dockerfile is provided at `images/app/Dockerfile`:
+A ready-to-use production Dockerfile is provided at `docker/images/app/Dockerfile`:
 
 ```bash
 # Build the production image
-docker build -f images/app/Dockerfile -t my-magento-store:latest src/
+docker build -f docker/images/app/Dockerfile -t my-magento-store:latest src/
 
 # Run the container
 docker run -d \
@@ -59,7 +59,7 @@ services:
     # Option 2: Build production image with compiled DI and static content
     build:
       context: .
-      dockerfile: images/app/Dockerfile
+      dockerfile: docker/images/app/Dockerfile
 ```
 
 ## Build Pipeline (Recommended)
@@ -88,7 +88,7 @@ cp docker/conf/build.yaml.example build.yaml
 Options:
   -c, --config FILE     Path to build.yaml config file (default: build.yaml)
   -t, --tag TAG         Docker image tag (default: magento-prod:latest)
-  -f, --dockerfile FILE Path to Dockerfile (default: images/app/Dockerfile)
+  -f, --dockerfile FILE Path to Dockerfile (default: docker/images/app/Dockerfile)
   --context PATH        Docker build context (default: current directory)
   --push                Push image to registry after build
   --no-cache            Build without Docker cache
@@ -153,7 +153,7 @@ Configure themes and languages via build arguments:
 
 ```bash
 # Build the production image
-docker build -f images/Dockerfile.prod -t my-magento-store:latest .
+docker build -f docker/images/app/Dockerfile -t my-magento-store:latest .
 
 Available build arguments:
 - `STATIC_CONTENT_THEMES` - Space-separated list of frontend themes (default: "Magento/blank Magento/luma")
@@ -195,7 +195,7 @@ services:
 
 ## Multi-stage Build (Reference)
 
-The `images/app/Dockerfile` already uses a multi-stage build. Here's the pattern:
+The `docker/images/app/Dockerfile` already uses a multi-stage build. Here's the pattern:
 
 ```dockerfile
 # Stage 1: Build
