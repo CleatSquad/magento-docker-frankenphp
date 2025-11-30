@@ -325,7 +325,7 @@ jobs:
 
           NOTES_FILE=".release-notes/pr-${PR_NUMBER}.md"
 
-          BODY="### ❌ Release Notes Generation Failed
+          BODY="### Release Notes Generation Failed
 
           I encountered an error while generating release notes. Please create the file manually:
 

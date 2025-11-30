@@ -2,7 +2,7 @@
 name: Release Notes Check
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened, labeled, unlabeled]
     branches:
       - main
@@ -104,9 +104,9 @@ jobs:
           fi
 
           if [ "$STATUS" = "empty" ]; then
-            MSG="⚠️ **Release notes file exists but is empty.**"
+            MSG="**Release notes file exists but is empty.**"
           else
-            MSG="⚠️ **Release notes are required before merging.**"
+            MSG="**Release notes are required before merging.**"
           fi
 
           BODY="${MSG}
