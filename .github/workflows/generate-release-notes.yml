@@ -56,13 +56,14 @@ jobs:
 
       - name: Fetch base branch
         run: |
-          git fetch origin ${{ steps.pr.outputs.base_ref }}:${{ steps.pr.outputs.base_ref }} || true
+          # Fetch the base branch from origin
+          git fetch origin ${{ steps.pr.outputs.base_ref }} 2>/dev/null || echo "Base branch fetch completed"
 
       - name: Get changed files
         id: changes
         run: |
-          # Get list of changed files in PR
-          CHANGED_FILES=$(git diff --name-only ${{ steps.pr.outputs.base_ref }}...HEAD 2>/dev/null | head -50 || echo "")
+          # Get list of changed files in PR (use origin/ prefix for remote branch)
+          CHANGED_FILES=$(git diff --name-only origin/${{ steps.pr.outputs.base_ref }}...HEAD 2>/dev/null | head -50 || echo "")
           echo "files<<EOF" >> "$GITHUB_OUTPUT"
           echo "$CHANGED_FILES" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
@@ -70,8 +71,8 @@ jobs:
       - name: Get commit messages
         id: commits
         run: |
-          # Get commit messages from PR
-          COMMITS=$(git log --oneline ${{ steps.pr.outputs.base_ref }}...HEAD 2>/dev/null | head -20 || echo "")
+          # Get commit messages from PR (use origin/ prefix for remote branch)
+          COMMITS=$(git log --oneline origin/${{ steps.pr.outputs.base_ref }}...HEAD 2>/dev/null | head -20 || echo "")
           echo "messages<<EOF" >> "$GITHUB_OUTPUT"
           echo "$COMMITS" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
@@ -95,8 +96,9 @@ jobs:
       - name: Read PR body from file
         id: body
         run: |
+          # Truncate at a safe boundary (use slightly less than 2000 to avoid mid-character cut)
           echo "content<<EOF" >> "$GITHUB_OUTPUT"
-          head -c 2000 /tmp/pr_body.txt >> "$GITHUB_OUTPUT"
+          cat /tmp/pr_body.txt | head -c 1900 >> "$GITHUB_OUTPUT"
           echo "" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
@@ -125,10 +127,13 @@ jobs:
             CATEGORY="Removed"
           fi
 
+          # Escape special characters in title for safe use
+          SAFE_TITLE=$(printf '%s' "$PR_TITLE" | sed 's/[&/\]/\\&/g')
+
           # Generate release notes content
           NOTES="### ${CATEGORY}
 
-          - ${PR_TITLE}"
+          - ${SAFE_TITLE}"
 
           # Save to file for later use
           mkdir -p .release-notes
