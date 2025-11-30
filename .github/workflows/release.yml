@@ -31,12 +31,16 @@ jobs:
       - name: Extract release notes from CHANGELOG
         id: release_notes
         run: |
+          # Extract content between [Unreleased] and the next version header
           UNRELEASED_START=$(grep -n "## \[Unreleased\]" CHANGELOG.md | head -1 | cut -d: -f1)
           NEXT_VERSION_LINE=$(tail -n +$((UNRELEASED_START + 1)) CHANGELOG.md | grep -n "^## \[v" | head -1 | cut -d: -f1)
+
           if [ -n "$NEXT_VERSION_LINE" ]; then
+            # Extract lines between [Unreleased] and next version
             NEXT_VERSION_LINE=$((UNRELEASED_START + NEXT_VERSION_LINE - 1))
             sed -n "$((UNRELEASED_START + 1)),$((NEXT_VERSION_LINE - 1))p" CHANGELOG.md | sed '/^$/d' > release_notes.md
           else
+            # No previous version, extract until end of file (excluding links section)
             LINKS_START=$(grep -n "^\[Unreleased\]:" CHANGELOG.md | head -1 | cut -d: -f1)
             if [ -n "$LINKS_START" ]; then
               sed -n "$((UNRELEASED_START + 1)),$((LINKS_START - 1))p" CHANGELOG.md | sed '/^$/d' > release_notes.md
@@ -44,52 +48,90 @@ jobs:
               tail -n +$((UNRELEASED_START + 1)) CHANGELOG.md > release_notes.md
             fi
           fi
+
+          # Show what was extracted
           echo "Extracted release notes:"
           cat release_notes.md
 
       - name: Update CHANGELOG.md
+        id: update_changelog
         run: |
           VERSION=${{ steps.version.outputs.version }}
           DATE=${{ steps.version.outputs.date }}
+
+          # Check if version already exists in changelog
           if ! grep -q "## \[$VERSION\]" CHANGELOG.md; then
+            # Find the [Unreleased] line and replace it while keeping empty section
             UNRELEASED_LINE=$(grep -n "## \[Unreleased\]" CHANGELOG.md | head -1 | cut -d: -f1)
             NEXT_VERSION_LINE=$(tail -n +$((UNRELEASED_LINE + 1)) CHANGELOG.md | grep -n "^## \[v" | head -1 | cut -d: -f1)
+
             if [ -n "$NEXT_VERSION_LINE" ]; then
               NEXT_VERSION_LINE=$((UNRELEASED_LINE + NEXT_VERSION_LINE))
             fi
+
+            # Create updated changelog
             {
+              # Keep header until [Unreleased]
               head -n $UNRELEASED_LINE CHANGELOG.md
               echo ""
+              # Add new version header with the content that was under [Unreleased]
               echo "## [$VERSION] - $DATE"
+              # Keep everything from after [Unreleased] onwards
               tail -n +$((UNRELEASED_LINE + 1)) CHANGELOG.md
             } > CHANGELOG.tmp
             mv CHANGELOG.tmp CHANGELOG.md
+
+            # Update links at the bottom
             if grep -q "^\[Unreleased\]:" CHANGELOG.md; then
-              sed -i "s|\[Unreleased\]:.*|\[Unreleased\]: https://github.com/CleatSquad/magento-frankenphp-template/compare/$VERSION...HEAD|" CHANGELOG.md
+              # Update Unreleased link to compare with new version
+              sed -i "s|\[Unreleased\]:.*|\[Unreleased\]: https://github.com/${{ github.repository }}/compare/$VERSION...HEAD|" CHANGELOG.md
+              # Add new version link if not exists
               if ! grep -q "^\[$VERSION\]:" CHANGELOG.md; then
                 PREV_VERSION=$(grep -o "\[v[0-9.]*\]:" CHANGELOG.md | head -1 | tr -d '[]:'  )
                 if [ -n "$PREV_VERSION" ]; then
-                  sed -i "/^\[Unreleased\]:/a [$VERSION]: https://github.com/CleatSquad/magento-frankenphp-template/compare/$PREV_VERSION...$VERSION" CHANGELOG.md
+                  sed -i "/^\[Unreleased\]:/a [$VERSION]: https://github.com/${{ github.repository }}/compare/$PREV_VERSION...$VERSION" CHANGELOG.md
                 fi
               fi
             fi
+            echo "updated=true" >> $GITHUB_OUTPUT
+          else
+            echo "updated=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create Pull Request for changelog update
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: "docs: Update CHANGELOG for ${{ steps.version.outputs.version }}"
-          branch: "chore/changelog-update-${{ steps.version.outputs.version }}"
-          title: "docs: Update CHANGELOG for ${{ steps.version.outputs.version }}"
-          body: |
-            Cette PR met à jour le CHANGELOG suite à la release `${{ steps.version.outputs.version }}`.
-            _Merge cette PR pour intégrer la mise à jour dans main._
-          labels: |
-            release
-          base: main
-          delete-branch: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-          add-paths: CHANGELOG.md
+      - name: Create PR for CHANGELOG update
+        if: steps.update_changelog.outputs.updated == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          BRANCH_NAME="release/changelog-${VERSION}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create branch and commit
+          git checkout -b "$BRANCH_NAME"
+          git add CHANGELOG.md
+          git commit -m "docs: Update CHANGELOG for ${VERSION}"
+          git push origin "$BRANCH_NAME"
+
+          # Create PR body using here-document
+          PR_BODY=$(cat <<EOF
+          Automated CHANGELOG update for release ${VERSION}.
+
+          This PR updates the CHANGELOG.md to mark the release.
+
+          **Auto-merge:** This PR can be merged automatically.
+          EOF
+          )
+
+          # Create PR
+          gh pr create \
+            --title "docs: Update CHANGELOG for ${VERSION}" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --label "skip-release-notes"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
