@@ -4,6 +4,8 @@ name: Release Notes Check
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -14,6 +16,8 @@ jobs:
   check-release-notes:
     name: Check Release Notes
     runs-on: ubuntu-latest
+    # Only run for PRs targeting main branch
+    if: github.event.pull_request.base.ref == 'main'
     steps:
       - name: Checkout PR
         uses: actions/checkout@v4
