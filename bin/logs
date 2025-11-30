@@ -9,10 +9,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
+PROFILE="${PROFILE:-dev}"
+
 if [ -z "$1" ]; then
     # Follow logs for all containers
-    docker compose logs -f
+    docker compose --profile "${PROFILE}" logs -f
 else
     # Follow logs for specific container
-    docker compose logs -f "$@"
+    docker compose --profile "${PROFILE}" logs -f "$@"
 fi

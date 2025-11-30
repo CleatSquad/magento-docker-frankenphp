@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Remove Docker containers
-# Usage: bin/remove
+# Usage: bin/remove [profile]
+# Default profile: dev
 
 set -e
 
@@ -8,6 +9,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
-echo "🗑️  Removing Docker containers..."
-docker compose down "$@"
+PROFILE="${1:-dev}"
+
+echo "🗑️  Removing Docker containers (profile: ${PROFILE})..."
+docker compose --profile "${PROFILE}" down
 echo "✅ Containers removed successfully!"

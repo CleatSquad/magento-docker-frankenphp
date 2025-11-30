@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Stop Docker containers
-# Usage: bin/stop
+# Usage: bin/stop [profile]
+# Default profile: dev
 
 set -e
 
@@ -8,6 +9,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
-echo "🛑 Stopping Docker containers..."
-docker compose stop "$@"
+PROFILE="${1:-dev}"
+
+echo "🛑 Stopping Docker containers (profile: ${PROFILE})..."
+docker compose --profile "${PROFILE}" stop
 echo "✅ Containers stopped successfully!"
