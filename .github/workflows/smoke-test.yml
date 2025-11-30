@@ -19,6 +19,7 @@ jobs:
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
       pr_ref: ${{ steps.get-pr.outputs.ref }}
+      pr_repo: ${{ steps.get-pr.outputs.repo }}
     steps:
       - name: Check if command is valid
         id: check
@@ -29,8 +30,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_REF=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }} --jq '.head.ref')
+          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }})
+          PR_REF=$(echo "$PR_DATA" | jq -r '.head.ref')
+          PR_REPO=$(echo "$PR_DATA" | jq -r '.head.repo.full_name')
           echo "ref=$PR_REF" >> "$GITHUB_OUTPUT"
+          echo "repo=$PR_REPO" >> "$GITHUB_OUTPUT"
 
       - name: React to comment
         env:
@@ -48,6 +52,7 @@ jobs:
       - name: Checkout PR
         uses: actions/checkout@v4
         with:
+          repository: ${{ needs.check-command.outputs.pr_repo }}
           ref: ${{ needs.check-command.outputs.pr_ref }}
           persist-credentials: false
 
