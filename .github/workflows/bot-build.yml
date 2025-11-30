@@ -1,0 +1,242 @@
+---
+name: Build (On-demand)
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  check-command:
+    name: Check Command
+    runs-on: ubuntu-latest
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@bot build')
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      pr_number: ${{ github.event.issue.number }}
+      pr_sha: ${{ steps.get-pr.outputs.sha }}
+      comment_id: ${{ github.event.comment.id }}
+    steps:
+      - name: Check if command is valid
+        id: check
+        run: echo "should_run=true" >> "$GITHUB_OUTPUT"
+
+      - name: Get PR SHA
+        id: get-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_SHA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }} --jq '.head.sha')
+          echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: React to comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -X POST -f content='rocket'
+
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: check-command
+    if: needs.check-command.outputs.should_run == 'true'
+    steps:
+      - name: Set pending status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/statuses/${{ needs.check-command.outputs.pr_sha }} \
+            -X POST \
+            -f state='pending' \
+            -f context='Build (On-demand)' \
+            -f description='Building Docker images...' \
+            -f target_url='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ needs.check-command.outputs.pr_number }}/head
+          persist-credentials: false
+
+      - name: Setup environment files
+        run: |
+          cp env/magento.env.example .env
+          cp env/mariadb.env.example env/mariadb.env
+          cp env/opensearch.env.example env/opensearch.env
+          cp env/rabbitmq.env.example env/rabbitmq.env
+          cp env/valkey.env.example env/valkey.env
+
+      - name: Create proxy network
+        run: docker network create proxy || true
+
+      - name: Create src directory
+        run: mkdir -p src && touch src/.keep
+
+      - name: Validate docker-compose.yml (dev)
+        id: validate_dev
+        continue-on-error: true
+        run: docker compose config --quiet
+
+      - name: Set dev validation status
+        id: dev_status
+        run: |
+          if [ "${{ steps.validate_dev.outcome }}" = "success" ]; then
+            echo "status=Valid" >> "$GITHUB_OUTPUT"
+            echo "result=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=Invalid" >> "$GITHUB_OUTPUT"
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate docker-compose.prod.yml (prod)
+        id: validate_prod
+        continue-on-error: true
+        run: docker compose -f docker-compose.prod.yml config --quiet
+
+      - name: Set prod validation status
+        id: prod_status
+        run: |
+          if [ "${{ steps.validate_prod.outcome }}" = "success" ]; then
+            echo "status=Valid" >> "$GITHUB_OUTPUT"
+            echo "result=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=Invalid" >> "$GITHUB_OUTPUT"
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build OpenSearch image
+        id: build_opensearch
+        continue-on-error: true
+        run: |
+          docker build -t magento-opensearch:test ./docker/images/opensearch
+
+      - name: Set OpenSearch build status
+        id: opensearch_status
+        run: |
+          if [ "${{ steps.build_opensearch.outcome }}" = "success" ]; then
+            echo "status=Built" >> "$GITHUB_OUTPUT"
+            echo "result=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=Failed" >> "$GITHUB_OUTPUT"
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pull dev app image
+        id: pull_dev
+        continue-on-error: true
+        run: |
+          docker pull mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-dev
+
+      - name: Set dev pull status
+        id: dev_pull_status
+        run: |
+          if [ "${{ steps.pull_dev.outcome }}" = "success" ]; then
+            echo "status=Pulled" >> "$GITHUB_OUTPUT"
+            echo "result=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=Failed" >> "$GITHUB_OUTPUT"
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pull prod app image
+        id: pull_prod
+        continue-on-error: true
+        run: |
+          docker pull mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-base
+
+      - name: Set prod pull status
+        id: prod_pull_status
+        run: |
+          if [ "${{ steps.pull_prod.outcome }}" = "success" ]; then
+            echo "status=Pulled" >> "$GITHUB_OUTPUT"
+            echo "result=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=Failed" >> "$GITHUB_OUTPUT"
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post results comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEV_STATUS: ${{ steps.dev_status.outputs.status }}
+          PROD_STATUS: ${{ steps.prod_status.outputs.status }}
+          OPENSEARCH_STATUS: ${{ steps.opensearch_status.outputs.status }}
+          DEV_PULL_STATUS: ${{ steps.dev_pull_status.outputs.status }}
+          PROD_PULL_STATUS: ${{ steps.prod_pull_status.outputs.status }}
+        run: |
+          BODY="## Build Results
+
+          ### Docker Compose Validation
+          | Configuration | Status |
+          |--------------|--------|
+          | docker-compose.yml (dev) | ${DEV_STATUS} |
+          | docker-compose.prod.yml (prod) | ${PROD_STATUS} |
+
+          ### Image Build/Pull
+          | Image | Status |
+          |-------|--------|
+          | OpenSearch (custom build) | ${OPENSEARCH_STATUS} |
+          | App Dev (pull) | ${DEV_PULL_STATUS} |
+          | App Prod (pull) | ${PROD_PULL_STATUS} |
+
+          [View full logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+          gh api repos/${{ github.repository }}/issues/${{ needs.check-command.outputs.pr_number }}/comments \
+            -X POST -f body="$BODY"
+
+      - name: Set final status
+        id: final_status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEV_RESULT: ${{ steps.dev_status.outputs.result }}
+          PROD_RESULT: ${{ steps.prod_status.outputs.result }}
+          OPENSEARCH_RESULT: ${{ steps.opensearch_status.outputs.result }}
+          DEV_PULL_RESULT: ${{ steps.dev_pull_status.outputs.result }}
+          PROD_PULL_RESULT: ${{ steps.prod_pull_status.outputs.result }}
+        run: |
+          if [ "$DEV_RESULT" = "ok" ] && [ "$PROD_RESULT" = "ok" ] && \
+             [ "$OPENSEARCH_RESULT" = "ok" ] && [ "$DEV_PULL_RESULT" = "ok" ] && \
+             [ "$PROD_PULL_RESULT" = "ok" ]; then
+            STATE="success"
+            DESC="All builds passed"
+          else
+            STATE="failure"
+            DESC="Some builds failed"
+          fi
+          echo "state=$STATE" >> "$GITHUB_OUTPUT"
+          gh api repos/${{ github.repository }}/statuses/${{ needs.check-command.outputs.pr_sha }} \
+            -X POST \
+            -f state="$STATE" \
+            -f context='Build (On-demand)' \
+            -f description="$DESC" \
+            -f target_url='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+      - name: Add success reaction
+        if: always() && steps.final_status.outputs.state == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ needs.check-command.outputs.comment_id }}/reactions \
+            -X POST -f content='+1'
+
+      - name: Add failure reaction
+        if: always() && steps.final_status.outputs.state != 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ needs.check-command.outputs.comment_id }}/reactions \
+            -X POST -f content='-1'
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker compose down -v --remove-orphans || true
+          docker rmi magento-opensearch:test || true

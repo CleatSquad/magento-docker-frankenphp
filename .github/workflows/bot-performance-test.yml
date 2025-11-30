@@ -1,0 +1,203 @@
+---
+name: Performance Test (On-demand)
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  check-command:
+    name: Check Command
+    runs-on: ubuntu-latest
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@bot performance-test')
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      pr_number: ${{ github.event.issue.number }}
+      pr_sha: ${{ steps.get-pr.outputs.sha }}
+      comment_id: ${{ github.event.comment.id }}
+    steps:
+      - name: Check if command is valid
+        id: check
+        run: echo "should_run=true" >> "$GITHUB_OUTPUT"
+
+      - name: Get PR SHA
+        id: get-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_SHA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }} --jq '.head.sha')
+          echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: React to comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -X POST -f content='rocket'
+
+  performance-test:
+    name: Performance Test
+    runs-on: ubuntu-latest
+    needs: check-command
+    if: needs.check-command.outputs.should_run == 'true'
+    steps:
+      - name: Set pending status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/statuses/${{ needs.check-command.outputs.pr_sha }} \
+            -X POST \
+            -f state='pending' \
+            -f context='Performance Test (On-demand)' \
+            -f description='Running performance tests...' \
+            -f target_url='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ needs.check-command.outputs.pr_number }}/head
+          persist-credentials: false
+
+      - name: Setup environment files
+        run: |
+          cp env/magento.env.example .env
+          cp env/mariadb.env.example env/mariadb.env
+          cp env/opensearch.env.example env/opensearch.env
+          cp env/rabbitmq.env.example env/rabbitmq.env
+          cp env/valkey.env.example env/valkey.env
+
+      - name: Create proxy network
+        run: docker network create proxy || true
+
+      - name: Create src directory
+        run: mkdir -p src && touch src/.keep
+
+      - name: Measure MariaDB startup time
+        id: mariadb_time
+        run: |
+          START=$(date +%s.%N)
+          docker compose up -d mariadb
+          # Wait for healthy status
+          timeout 120 bash -c 'until docker compose exec -T mariadb healthcheck.sh --connect --innodb_initialized 2>/dev/null; do sleep 2; done'
+          END=$(date +%s.%N)
+          DURATION=$(awk "BEGIN{printf \"%.3f\", $END - $START}")
+          echo "duration=${DURATION}s" >> "$GITHUB_OUTPUT"
+          echo "MariaDB startup time: ${DURATION}s"
+
+      - name: Measure Valkey startup time
+        id: valkey_time
+        run: |
+          START=$(date +%s.%N)
+          docker compose up -d valkey
+          # Wait for healthy status
+          timeout 60 bash -c 'until docker compose exec -T valkey valkey-cli ping 2>/dev/null | grep -q PONG; do sleep 1; done'
+          END=$(date +%s.%N)
+          DURATION=$(awk "BEGIN{printf \"%.3f\", $END - $START}")
+          echo "duration=${DURATION}s" >> "$GITHUB_OUTPUT"
+          echo "Valkey startup time: ${DURATION}s"
+
+      - name: Measure RabbitMQ startup time
+        id: rabbitmq_time
+        run: |
+          START=$(date +%s.%N)
+          docker compose up -d rabbitmq
+          # Wait for healthy status
+          timeout 120 bash -c 'until docker compose exec -T rabbitmq rabbitmq-diagnostics -q ping 2>/dev/null; do sleep 2; done'
+          END=$(date +%s.%N)
+          DURATION=$(awk "BEGIN{printf \"%.3f\", $END - $START}")
+          echo "duration=${DURATION}s" >> "$GITHUB_OUTPUT"
+          echo "RabbitMQ startup time: ${DURATION}s"
+
+      - name: Measure OpenSearch startup time
+        id: opensearch_time
+        run: |
+          START=$(date +%s.%N)
+          docker compose up -d opensearch
+          # Wait for healthy status
+          timeout 180 bash -c 'until docker compose exec -T opensearch curl -sf http://localhost:9200/_cluster/health 2>/dev/null | grep -q status; do sleep 3; done'
+          END=$(date +%s.%N)
+          DURATION=$(awk "BEGIN{printf \"%.3f\", $END - $START}")
+          echo "duration=${DURATION}s" >> "$GITHUB_OUTPUT"
+          echo "OpenSearch startup time: ${DURATION}s"
+
+      - name: Get container resource usage
+        id: resources
+        run: |
+          sleep 10
+          docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" > /tmp/stats.txt
+          cat /tmp/stats.txt
+
+      - name: Post results comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MARIADB_TIME: ${{ steps.mariadb_time.outputs.duration }}
+          VALKEY_TIME: ${{ steps.valkey_time.outputs.duration }}
+          RABBITMQ_TIME: ${{ steps.rabbitmq_time.outputs.duration }}
+          OPENSEARCH_TIME: ${{ steps.opensearch_time.outputs.duration }}
+        run: |
+          STATS=$(cat /tmp/stats.txt | sed 's/$/\\n/' | tr -d '\n')
+
+          BODY="## Performance Test Results
+
+          ### Container Startup Times
+          | Service | Startup Time |
+          |---------|--------------|
+          | MariaDB | ${MARIADB_TIME} |
+          | Valkey | ${VALKEY_TIME} |
+          | RabbitMQ | ${RABBITMQ_TIME} |
+          | OpenSearch | ${OPENSEARCH_TIME} |
+
+          ### Resource Usage (after startup)
+          \`\`\`
+          $(cat /tmp/stats.txt)
+          \`\`\`
+
+          > Note: Times include image pull if not cached. CI environment may differ from local.
+
+          [View full logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+          gh api repos/${{ github.repository }}/issues/${{ needs.check-command.outputs.pr_number }}/comments \
+            -X POST -f body="$BODY"
+
+      - name: Set final status
+        id: final_status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          STATE="success"
+          DESC="Performance test complete"
+          echo "state=$STATE" >> "$GITHUB_OUTPUT"
+          gh api repos/${{ github.repository }}/statuses/${{ needs.check-command.outputs.pr_sha }} \
+            -X POST \
+            -f state="$STATE" \
+            -f context='Performance Test (On-demand)' \
+            -f description="$DESC" \
+            -f target_url='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+      - name: Add success reaction
+        if: always() && steps.final_status.outputs.state == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ needs.check-command.outputs.comment_id }}/reactions \
+            -X POST -f content='+1'
+
+      - name: Add failure reaction
+        if: always() && steps.final_status.outputs.state != 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ needs.check-command.outputs.comment_id }}/reactions \
+            -X POST -f content='-1'
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v --remove-orphans

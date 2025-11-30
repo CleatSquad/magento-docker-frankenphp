@@ -1,0 +1,199 @@
+---
+name: Security Scan (On-demand)
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  check-command:
+    name: Check Command
+    runs-on: ubuntu-latest
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@bot security-scan')
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      pr_number: ${{ github.event.issue.number }}
+      pr_sha: ${{ steps.get-pr.outputs.sha }}
+      comment_id: ${{ github.event.comment.id }}
+    steps:
+      - name: Check if command is valid
+        id: check
+        run: echo "should_run=true" >> "$GITHUB_OUTPUT"
+
+      - name: Get PR SHA
+        id: get-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_SHA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }} --jq '.head.sha')
+          echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: React to comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -X POST -f content='rocket'
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: check-command
+    if: needs.check-command.outputs.should_run == 'true'
+    steps:
+      - name: Set pending status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/statuses/${{ needs.check-command.outputs.pr_sha }} \
+            -X POST \
+            -f state='pending' \
+            -f context='Security Scan (On-demand)' \
+            -f description='Running security scan with Trivy...' \
+            -f target_url='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ needs.check-command.outputs.pr_number }}/head
+          persist-credentials: false
+
+      - name: Setup environment files
+        run: |
+          cp env/magento.env.example .env
+          cp env/mariadb.env.example env/mariadb.env
+          cp env/opensearch.env.example env/opensearch.env
+          cp env/rabbitmq.env.example env/rabbitmq.env
+          cp env/valkey.env.example env/valkey.env
+
+      - name: Build OpenSearch image
+        run: |
+          docker build -t magento-opensearch:scan ./docker/images/opensearch
+
+      - name: Pull app image for scanning
+        run: |
+          docker pull mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-dev
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+
+      - name: Scan App Image
+        id: scan_app
+        continue-on-error: true
+        run: |
+          trivy image --severity HIGH,CRITICAL --exit-code 0 \
+            --format table mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-dev > /tmp/app_scan.txt 2>&1
+          CRITICAL=$(grep -c "CRITICAL" /tmp/app_scan.txt || echo "0")
+          HIGH=$(grep -c "HIGH" /tmp/app_scan.txt || echo "0")
+          echo "critical=$CRITICAL" >> "$GITHUB_OUTPUT"
+          echo "high=$HIGH" >> "$GITHUB_OUTPUT"
+
+      - name: Scan OpenSearch Image
+        id: scan_opensearch
+        continue-on-error: true
+        run: |
+          trivy image --severity HIGH,CRITICAL --exit-code 0 \
+            --format table magento-opensearch:scan > /tmp/opensearch_scan.txt 2>&1
+          CRITICAL=$(grep -c "CRITICAL" /tmp/opensearch_scan.txt || echo "0")
+          HIGH=$(grep -c "HIGH" /tmp/opensearch_scan.txt || echo "0")
+          echo "critical=$CRITICAL" >> "$GITHUB_OUTPUT"
+          echo "high=$HIGH" >> "$GITHUB_OUTPUT"
+
+      - name: Scan Dockerfiles for misconfigurations
+        id: scan_dockerfile
+        continue-on-error: true
+        run: |
+          trivy config --severity HIGH,CRITICAL ./docker/images/ > /tmp/config_scan.txt 2>&1 || true
+          cat /tmp/config_scan.txt
+          ISSUES=$(grep -c "HIGH\|CRITICAL" /tmp/config_scan.txt || echo "0")
+          echo "issues=$ISSUES" >> "$GITHUB_OUTPUT"
+
+      - name: Determine overall status
+        id: overall
+        run: |
+          APP_CRITICAL="${{ steps.scan_app.outputs.critical }}"
+          OPENSEARCH_CRITICAL="${{ steps.scan_opensearch.outputs.critical }}"
+
+          if [ "$APP_CRITICAL" -gt 0 ] || [ "$OPENSEARCH_CRITICAL" -gt 0 ]; then
+            echo "status=warning" >> "$GITHUB_OUTPUT"
+            echo "emoji=" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+            echo "emoji=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post results comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APP_CRITICAL: ${{ steps.scan_app.outputs.critical }}
+          APP_HIGH: ${{ steps.scan_app.outputs.high }}
+          OPENSEARCH_CRITICAL: ${{ steps.scan_opensearch.outputs.critical }}
+          OPENSEARCH_HIGH: ${{ steps.scan_opensearch.outputs.high }}
+          CONFIG_ISSUES: ${{ steps.scan_dockerfile.outputs.issues }}
+          STATUS_EMOJI: ${{ steps.overall.outputs.emoji }}
+        run: |
+          BODY="## Security Scan Results ${STATUS_EMOJI}
+
+          ### Image Vulnerability Scan (Trivy)
+          | Image | Critical | High |
+          |-------|----------|------|
+          | magento-frankenphp:php8.4-fp1.10.1-dev | ${APP_CRITICAL} | ${APP_HIGH} |
+          | magento-opensearch (custom) | ${OPENSEARCH_CRITICAL} | ${OPENSEARCH_HIGH} |
+
+          ### Dockerfile Misconfigurations
+          Issues found: ${CONFIG_ISSUES}
+
+          > Note: Some vulnerabilities may come from base images and require upstream fixes.
+
+          [View full logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+          gh api repos/${{ github.repository }}/issues/${{ needs.check-command.outputs.pr_number }}/comments \
+            -X POST -f body="$BODY"
+
+      - name: Set final status
+        id: final_status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OVERALL_STATUS: ${{ steps.overall.outputs.status }}
+        run: |
+          if [ "$OVERALL_STATUS" = "ok" ]; then
+            STATE="success"
+            DESC="No critical vulnerabilities found"
+          else
+            STATE="success"
+            DESC="Scan complete - review results"
+          fi
+          echo "state=$STATE" >> "$GITHUB_OUTPUT"
+          gh api repos/${{ github.repository }}/statuses/${{ needs.check-command.outputs.pr_sha }} \
+            -X POST \
+            -f state="$STATE" \
+            -f context='Security Scan (On-demand)' \
+            -f description="$DESC" \
+            -f target_url='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+      - name: Add success reaction
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ needs.check-command.outputs.comment_id }}/reactions \
+            -X POST -f content='+1'
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker rmi magento-opensearch:scan || true

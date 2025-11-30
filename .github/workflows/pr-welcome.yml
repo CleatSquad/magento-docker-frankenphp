@@ -29,11 +29,18 @@ jobs:
 
           | Command | Description |
           |---------|-------------|
+          | \`@bot lint\` | Run ShellCheck + Hadolint + YAMLlint manually |
+          | \`@bot build\` | Build and test Docker images (dev + prod) |
+          | \`@bot security-scan\` | Scan Docker images for vulnerabilities (Trivy) |
+          | \`@bot performance-test\` | Basic performance test (container startup times) |
+          | \`@bot cleanup\` | Clean CI resources (images, volumes, networks) |
           | \`@bot smoke-test\` | Run Docker infrastructure smoke test |
+          | \`@bot help\` | Show all available @bot commands |
 
           ## Before Merging
 
           - [ ] All CI checks pass
+          - [ ] Documentation updated (if applicable)
 
           "
 
