@@ -2,6 +2,25 @@
 
 <!-- Provide a brief description of your changes -->
 
+## Release Notes
+
+<!--
+If this PR should be included in the CHANGELOG, create a file:
+.release-notes/pr-[PR_NUMBER].md
+
+Use the template from .github/RELEASE_NOTES_TEMPLATE.md
+
+Example content:
+### Added
+- New feature description
+
+### Fixed
+- Bug fix description
+-->
+
+- [ ] I have created `.release-notes/pr-XXX.md` (replace XXX with your PR number after creation)
+- [ ] This PR does not need release notes (documentation only, refactoring, etc.)
+
 ## Type of Change
 
 <!-- Mark the appropriate option with an 'x' -->

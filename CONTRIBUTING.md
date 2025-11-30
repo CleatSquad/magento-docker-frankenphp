@@ -199,11 +199,30 @@ The project uses GitHub Actions for CI/CD. When you submit a pull request, the f
 ### Pull Request Process
 
 1. Update documentation if your changes affect usage
-2. Update the CHANGELOG.md with your changes under `[Unreleased]`
+2. **Create a release notes file** (see below)
 3. Ensure all CI checks pass
 4. Request a review from maintainers
 5. Address any feedback from reviewers
 6. Once approved, your PR will be merged
+
+### Release Notes
+
+For changes that should appear in the CHANGELOG, create a file `.release-notes/pr-XXX.md` (where XXX is your PR number) with content like:
+
+```markdown
+### Added
+- Description of new feature
+
+### Fixed
+- Description of bug fix
+
+### Changed
+- Description of change
+```
+
+When your PR is merged, the content will be automatically added to CHANGELOG.md under `[Unreleased]`.
+
+**Note**: Skip this step for documentation-only changes, refactoring, or other changes that don't need to be in the changelog.
 
 ### Pull Request Guidelines
 
