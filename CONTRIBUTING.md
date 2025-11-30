@@ -223,7 +223,20 @@ For changes that should appear in the CHANGELOG, you have two options:
 Comment `@bot generate-release-note` on your PR. The bot will:
 - Analyze your PR title, description, and changed files
 - Generate a `.release-notes/pr-XXX.md` file automatically
+- Include all commit messages from your PR in the generated release notes
 - Commit it to your branch
+
+The bot automatically detects the category based on your PR title and changed files (case-insensitive):
+
+| Category | Detection Keywords |
+|----------|-------------------|
+| **Fixed** | Title contains `fix` or `bug` |
+| **Added** | Title contains `feat` or `add` |
+| **Documentation** | Title contains `doc` OR files include `.md` or `readme` |
+| **Security** | Title contains `security` or `vuln` |
+| **Deprecated** | Title contains `deprecat` |
+| **Removed** | Title contains `remov` or `delet` |
+| **Changed** | Default category if no other match |
 
 **Option 2: Create manually**
 

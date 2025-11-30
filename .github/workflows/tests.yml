@@ -11,7 +11,7 @@ on:
       - "bin/**"
       - "images/**"
       - "docker-compose*.yml"
-      - ".github/workflows/*.yaml"
+      - ".github/workflows/*.yml"
       - "Makefile"
       - "env/**"
       - "docker/conf/**"
@@ -22,7 +22,7 @@ on:
       - "bin/**"
       - "images/**"
       - "docker-compose*.yml"
-      - ".github/workflows/tests.yaml"
+      - ".github/workflows/tests.yml"
 
 permissions:
   contents: read

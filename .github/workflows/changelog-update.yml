@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   update-changelog:
@@ -104,11 +104,41 @@ jobs:
             rmdir .release-notes
           fi
 
-      - name: Commit and push changes
+      - name: Create PR for CHANGELOG update
         if: steps.check_notes.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if there are changes to commit
           git add -A
-          git diff --staged --quiet || git commit -m "docs: Update CHANGELOG from PR #${{ github.event.pull_request.number }}"
-          git push origin main
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          BRANCH_NAME="changelog/pr-${PR_NUMBER}"
+
+          # Create branch and commit
+          git checkout -b "$BRANCH_NAME"
+          git commit -m "docs: Update CHANGELOG from PR #${PR_NUMBER}"
+          git push origin "$BRANCH_NAME"
+
+          # Create PR body using here-document
+          PR_BODY=$(cat <<EOF
+          Automated CHANGELOG update from merged PR #${PR_NUMBER}.
+
+          This PR was automatically created when PR #${PR_NUMBER} was merged.
+          EOF
+          )
+
+          # Create PR
+          gh pr create \
+            --title "docs: Update CHANGELOG from PR #${PR_NUMBER}" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --label "skip-release-notes"
