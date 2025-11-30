@@ -44,13 +44,29 @@ jobs:
           PR_TITLE="${{ github.event.pull_request.title }}"
           PR_URL="${{ github.event.pull_request.html_url }}"
 
-          # Read release notes content (skip comment lines)
-          RELEASE_CONTENT=$(grep -v "^<!--" "$NOTES_FILE" | grep -v "^-->" | grep -v "^Example:" | sed '/^$/N;/^\n$/d')
+          # Regex pattern for conventional commit prefixes (fix:, feat:, docs:, etc.)
+          COMMIT_PREFIX_PATTERN='(fix|feat|docs|chore|refactor|style|test|perf|ci|build|revert)(\([^)]*\))?: '
+
+          # Read release notes content (skip comment lines and Commits section)
+          # Also remove conventional commit prefixes
+          RELEASE_CONTENT=$(grep -v "^<!--" "$NOTES_FILE" | \
+            grep -v "^-->" | \
+            grep -v "^Example:" | \
+            grep -v "^#### Commits" | \
+            sed '/^$/N;/^\n$/d' | \
+            sed -E "s/^(- )${COMMIT_PREFIX_PATTERN}/\1/gi" | \
+            sed -E 's/^(### )(Fixed|Added|Changed|Deprecated|Removed|Security|Documentation)$/\1\2/')
 
           if [ -z "$RELEASE_CONTENT" ]; then
             echo "Release notes file is empty or contains only comments"
             exit 0
           fi
+
+          # Remove duplicate entries - only keep unique bullet points (preserves first occurrence order)
+          RELEASE_CONTENT=$(echo "$RELEASE_CONTENT" | awk '!seen[$0]++')
+
+          # Clean PR title by removing conventional commit prefix
+          CLEAN_PR_TITLE=$(echo "$PR_TITLE" | sed -E "s/^${COMMIT_PREFIX_PATTERN}//gi")
 
           # Check if [Unreleased] section exists
           if ! grep -q "## \[Unreleased\]" CHANGELOG.md; then
@@ -86,7 +102,7 @@ jobs:
             echo ""
             echo "$RELEASE_CONTENT"
             echo ""
-            echo "_From PR #${PR_NUMBER}: ${PR_TITLE}_"
+            echo "_From PR #${PR_NUMBER}: ${CLEAN_PR_TITLE}_"
             tail -n +$((UNRELEASED_LINE + 1)) CHANGELOG.md
           } > CHANGELOG.tmp
           mv CHANGELOG.tmp CHANGELOG.md

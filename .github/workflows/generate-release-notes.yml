@@ -172,31 +172,19 @@ jobs:
             CATEGORY="Removed"
           fi
 
-          # Escape special characters in title for safe use
-          SAFE_TITLE=$(printf '%s' "$PR_TITLE" | sed 's/[&/\]/\\&/g')
+          # Regex pattern for conventional commit prefixes (fix:, feat:, docs:, etc.)
+          COMMIT_PREFIX_PATTERN='(fix|feat|docs|chore|refactor|style|test|perf|ci|build|revert)(\([^)]*\))?: '
 
-          # Generate release notes content with all commits
-          # Always overwrite the file with fresh content from all commits
+          # Clean PR title by removing conventional commit prefix
+          CLEAN_TITLE=$(printf '%s' "$PR_TITLE" | sed -E "s/^${COMMIT_PREFIX_PATTERN}//gi")
+          # Escape special characters for safe use
+          SAFE_TITLE=$(printf '%s' "$CLEAN_TITLE" | sed 's/[&/\]/\\&/g')
+
+          # Generate release notes content - simplified without Commits section
+          # The changelog-update workflow will handle duplicates
           NOTES="### ${CATEGORY}
 
           - ${SAFE_TITLE}"
-
-          # Add commit details if available
-          if [ -n "$COMMIT_MESSAGES" ]; then
-            NOTES="${NOTES}
-
-          #### Commits
-          "
-            # Process each commit message and add as a list item
-            while IFS= read -r line; do
-              if [ -n "$line" ]; then
-                # Extract commit message (remove the short hash prefix)
-                MSG=$(echo "$line" | sed 's/^[a-f0-9]\+ //')
-                NOTES="${NOTES}
-          - ${MSG}"
-              fi
-            done <<< "$COMMIT_MESSAGES"
-          fi
 
           # Save to file for later use (always overwrite)
           mkdir -p .release-notes
