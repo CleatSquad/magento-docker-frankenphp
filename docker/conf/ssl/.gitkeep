@@ -1,5 +1,0 @@
-# Release Notes for this PR
-
-This file is an example. Contributors should create `.release-notes/pr-XXX.md` where XXX is their PR number.
-
-When the PR is merged, the contents will be automatically added to CHANGELOG.md under [Unreleased].
