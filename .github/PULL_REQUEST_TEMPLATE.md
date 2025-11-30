@@ -21,6 +21,13 @@ Example content:
 - [ ] I have created `.release-notes/pr-XXX.md` (or used `@bot generate-release-note`)
 - [ ] This PR does not need release notes (documentation only, refactoring, etc.)
 
+## Bot Commands
+
+<!-- Available bot commands you can use in PR comments:
+- `@bot generate-release-note` - Auto-generate release notes file
+- `@bot smoke-test` - Run Docker smoke test (on-demand, saves CI resources)
+-->
+
 ## Type of Change
 
 <!-- Mark the appropriate option with an 'x' -->

@@ -185,14 +185,23 @@ Before submitting a pull request, manually test your changes:
 
 4. Test the specific functionality you modified
 
-### Automated Tests
+## Automated Tests
 
 The project uses GitHub Actions for CI/CD. When you submit a pull request, the following checks run automatically:
 
 - Dockerfile linting with hadolint
 - Shell script linting with shellcheck
 - YAML validation
-- Docker image build verification
+- Docker Compose configuration validation
+
+### On-demand Smoke Test
+
+The Docker smoke test (which starts containers and verifies health) is resource-intensive. Instead of running on every PR, you can trigger it on-demand:
+
+Comment `@bot smoke-test` on your PR to run the smoke test. The bot will:
+- Start MariaDB, OpenSearch, Valkey, and RabbitMQ containers
+- Verify each service is healthy
+- Post results as a PR comment with a status table
 
 ## Submitting Changes
 
@@ -292,6 +301,15 @@ When requesting a feature, include:
 - Detailed description of the proposed feature
 - Use case or problem it solves
 - Any alternative solutions you've considered
+
+## Bot Commands
+
+The following bot commands are available in PR comments:
+
+| Command | Description |
+|---------|-------------|
+| `@bot generate-release-note` | Auto-generate release notes file |
+| `@bot smoke-test` | Run Docker smoke test on-demand |
 
 ## Questions?
 
