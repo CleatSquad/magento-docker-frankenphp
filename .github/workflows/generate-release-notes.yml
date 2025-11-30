@@ -275,9 +275,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.issue.number }}
         run: |
-          # Add failure reaction
+          # Add failure reaction (ignore errors if comment was deleted)
           gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
-            -X POST -f content='-1' || true
+            -X POST -f content='-1' 2>/dev/null || echo "Could not add reaction (comment may have been deleted)"
 
           NOTES_FILE=".release-notes/pr-${PR_NUMBER}.md"
 

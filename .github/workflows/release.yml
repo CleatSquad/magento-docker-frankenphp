@@ -115,14 +115,20 @@ jobs:
           git commit -m "docs: Update CHANGELOG for ${VERSION}"
           git push origin "$BRANCH_NAME"
 
-          # Create PR
-          gh pr create \
-            --title "docs: Update CHANGELOG for ${VERSION}" \
-            --body "Automated CHANGELOG update for release ${VERSION}.
+          # Create PR body using here-document
+          PR_BODY=$(cat <<EOF
+          Automated CHANGELOG update for release ${VERSION}.
 
           This PR updates the CHANGELOG.md to mark the release.
 
-          **Auto-merge:** This PR can be merged automatically." \
+          **Auto-merge:** This PR can be merged automatically.
+          EOF
+          )
+
+          # Create PR
+          gh pr create \
+            --title "docs: Update CHANGELOG for ${VERSION}" \
+            --body "$PR_BODY" \
             --base main \
             --head "$BRANCH_NAME" \
             --label "skip-release-notes"
