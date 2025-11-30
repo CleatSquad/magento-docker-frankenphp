@@ -2,7 +2,7 @@
 name: PR Welcome Comment
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened]
     branches:
       - main
@@ -21,7 +21,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
-          BODY="👋 Hi @${PR_AUTHOR}! Thanks for your contribution!
+          BODY="Hi @${PR_AUTHOR}! Thanks for your contribution!
 
           ## Available Bot Commands
 

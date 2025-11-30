@@ -48,7 +48,7 @@ jobs:
             -X POST -f content='confused'
 
           gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
-            -X POST -f body="⚠️ Release notes generation skipped: ${REASON}
+            -X POST -f body="Release notes generation skipped: ${REASON}
 
           This command only works for PRs targeting the \`main\` branch of this repository."
           exit 0
@@ -252,7 +252,7 @@ jobs:
           **File:** \`${NOTES_FILE}\`
 
           <details>
-          <summary>📋 Content (click to expand and copy)</summary>
+          <summary>Content (click to expand and copy)</summary>
 
           \`\`\`markdown
           ${NOTES}
@@ -277,7 +277,7 @@ jobs:
           NOTES_FILE=".release-notes/pr-${PR_NUMBER}.md"
 
           if [ "$PUSHED" = "true" ]; then
-            BODY="### Release Notes Generated ✅
+            BODY="### Release Notes Generated
 
             I've created/updated the release notes file: \`${NOTES_FILE}\`
 
@@ -325,7 +325,7 @@ jobs:
 
           NOTES_FILE=".release-notes/pr-${PR_NUMBER}.md"
 
-          BODY="### ❌ Release Notes Generation Failed
+          BODY="### Release Notes Generation Failed
 
           I encountered an error while generating release notes. Please create the file manually:
 
