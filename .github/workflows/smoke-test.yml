@@ -39,6 +39,9 @@ jobs:
           gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
             -X POST -f content='rocket'
 
+      - name: Print should_run
+        run: echo "should_run=${{ steps.check.outputs.should_run }}"
+
   smoke-test:
     name: Run Smoke Test
     runs-on: ubuntu-latest
