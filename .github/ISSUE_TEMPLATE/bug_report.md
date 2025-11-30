@@ -13,6 +13,7 @@ A clear and concise description of what the bug is.
 ## Environment
 
 - **Docker Image Tag**: (e.g., `php8.4-fp1.10.1-base`, `dev`)
+- **Magento Version**: (e.g., 2.4.6, 2.4.7, 2.4.8)
 - **Host OS**: (e.g., macOS 14.0, Ubuntu 22.04, Windows 11)
 - **Docker Version**: (output of `docker --version`)
 - **Docker Compose Version**: (output of `docker compose version`)
