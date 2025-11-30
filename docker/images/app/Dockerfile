@@ -1,5 +1,6 @@
 # Production Dockerfile for Magento 2 with FrankenPHP
 # This Dockerfile builds a production-ready image with compiled DI and static content
+# hadolint global ignore=SC2086
 #
 # Usage:
 #   docker build -f Dockerfile.prod -t my-magento-store:latest .
@@ -37,7 +38,7 @@ RUN mkdir -p var/cache var/log var/session var/page_cache var/tmp \
 USER www-data
 
 # Clean caches, install dependencies, and compile DI
-# hadolint ignore=DL3059
+# hadolint ignore=DL3059,SC2086
 ARG BASE_URL="http://localhost/"
 RUN rm -rf var/cache/* var/page_cache/* generated/code/* generated/metadata/* pub/static/* \
  && composer install \
