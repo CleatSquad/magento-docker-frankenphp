@@ -25,7 +25,7 @@ credentials.json
 *.sublime-*
 
 # Magento Source (User's project inside src/)
-/src/
+/src/*
 !/src/.keep
 
 # Database Dumps & Backups
