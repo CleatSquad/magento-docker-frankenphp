@@ -5,7 +5,7 @@ services:
     # Option 2: Build production image with compiled DI and static content
     # build:
     #   context: .
-    #   dockerfile: images/Dockerfile.prod
+    #   dockerfile: docker/images/Dockerfile.prod
     container_name: ${PROJECT_NAME:-magento}-app
     restart: unless-stopped
     profiles:
@@ -61,7 +61,7 @@ services:
 
   opensearch:
     build:
-      context: ./images/opensearch
+      context: ./docker/images/opensearch
       dockerfile: Dockerfile
     container_name: ${PROJECT_NAME:-magento}-opensearch
     restart: unless-stopped
@@ -107,7 +107,7 @@ services:
     env_file: env/rabbitmq.env
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
-      - ./images/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./docker/images/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 30s

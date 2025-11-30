@@ -112,7 +112,7 @@ services:
 
   opensearch:
     build:
-      context: ./images/opensearch
+      context: ./docker/images/opensearch
       dockerfile: Dockerfile
     container_name: ${PROJECT_NAME:-magento}-opensearch
     profiles:
@@ -162,7 +162,7 @@ services:
       - proxy
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
-      - ./images/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./docker/images/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 30s
