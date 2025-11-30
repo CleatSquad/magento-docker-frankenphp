@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix: Handle existing PRs\/branches in changelog and release workflows
+
+#### Commits
+
+- fix: Handle existing PRs/branches in changelog and release workflows
+
+_From PR #78: fix: Handle existing PRs/branches in changelog and release workflows_
+
+### Fixed
+
 - fix: Add community files and fix documentation path inconsistencies
 
 #### Commits
