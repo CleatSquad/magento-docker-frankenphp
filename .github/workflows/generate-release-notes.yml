@@ -18,7 +18,43 @@ jobs:
       github.event.issue.pull_request &&
       contains(github.event.comment.body, '@bot generate-release-note')
     steps:
+      - name: Check if PR targets main branch
+        id: check_target
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }})
+          BASE_REF=$(echo "$PR_DATA" | jq -r '.base.ref')
+          BASE_REPO=$(echo "$PR_DATA" | jq -r '.base.repo.full_name')
+
+          # Check if PR targets main branch of the current repository
+          if [ "$BASE_REF" != "main" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "reason=PR does not target main branch (targets: $BASE_REF)" >> "$GITHUB_OUTPUT"
+          elif [ "$BASE_REPO" != "${{ github.repository }}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "reason=PR does not target this repository" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip if not targeting main
+        if: steps.check_target.outputs.skip == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REASON: ${{ steps.check_target.outputs.reason }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -X POST -f content='confused'
+
+          gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
+            -X POST -f body="⚠️ Release notes generation skipped: ${REASON}
+
+          This command only works for PRs targeting the \`main\` branch of this repository."
+          exit 0
+
       - name: Add reaction to comment
+        if: steps.check_target.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -26,6 +62,7 @@ jobs:
             -X POST -f content='eyes'
 
       - name: Get PR details
+        if: steps.check_target.outputs.skip != 'true'
         id: pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -49,17 +86,20 @@ jobs:
           echo "$PR_DATA" | jq -r '.body // ""' > /tmp/pr_body.txt
 
       - name: Checkout PR branch
+        if: steps.check_target.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           ref: refs/pull/${{ github.event.issue.number }}/head
           fetch-depth: 0
 
       - name: Fetch base branch
+        if: steps.check_target.outputs.skip != 'true'
         run: |
           # Fetch the base branch from origin
           git fetch origin ${{ steps.pr.outputs.base_ref }} 2>/dev/null || echo "Base branch fetch completed"
 
       - name: Get changed files
+        if: steps.check_target.outputs.skip != 'true'
         id: changes
         run: |
           # Get list of changed files in PR (use origin/ prefix for remote branch)
@@ -69,6 +109,7 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Get commit messages
+        if: steps.check_target.outputs.skip != 'true'
         id: commits
         run: |
           # Get commit messages from PR (use origin/ prefix for remote branch)
@@ -78,6 +119,7 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Check existing release notes
+        if: steps.check_target.outputs.skip != 'true'
         id: existing
         run: |
           PR_NUMBER=${{ steps.pr.outputs.number }}
@@ -94,6 +136,7 @@ jobs:
           fi
 
       - name: Read PR body from file
+        if: steps.check_target.outputs.skip != 'true'
         id: body
         run: |
           # Truncate at a safe boundary (use slightly less than 2000 to avoid mid-character cut)
@@ -103,6 +146,7 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes
+        if: steps.check_target.outputs.skip != 'true'
         id: generate
         run: |
           PR_TITLE="${{ steps.pr.outputs.title }}"
@@ -148,7 +192,7 @@ jobs:
 
       - name: Commit and push (same-repo PRs only)
         id: push
-        if: steps.pr.outputs.is_fork == 'false'
+        if: steps.check_target.outputs.skip != 'true' && steps.pr.outputs.is_fork == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -174,20 +218,23 @@ jobs:
             echo "pushed=false" >> "$GITHUB_OUTPUT"
             echo "No changes to commit"
           else
-            git commit -m "docs: Generate release notes for PR #${PR_NUMBER}"
+            git commit -m "Generate release notes for PR #${PR_NUMBER}"
             git push origin "$HEAD_REF"
             echo "pushed=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Add success reaction
+        if: success() && steps.check_target.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
             -X POST -f content='rocket'
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -X POST -f content='+1'
 
       - name: Comment on PR (fork PRs - manual instructions)
-        if: steps.pr.outputs.is_fork == 'true'
+        if: steps.check_target.outputs.skip != 'true' && steps.pr.outputs.is_fork == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
@@ -219,7 +266,7 @@ jobs:
             -X POST -f body="$BODY"
 
       - name: Comment on PR (same-repo PRs - file committed)
-        if: steps.pr.outputs.is_fork == 'false'
+        if: steps.check_target.outputs.skip != 'true' && steps.pr.outputs.is_fork == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
@@ -262,6 +309,44 @@ jobs:
 
             </details>"
           fi
+
+          gh api repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
+            -X POST -f body="$BODY"
+
+      - name: Handle failure
+        if: failure() && steps.check_target.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          # Add failure reaction (ignore errors if comment was deleted)
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -X POST -f content='-1' 2>/dev/null || echo "Could not add reaction (comment may have been deleted)"
+
+          NOTES_FILE=".release-notes/pr-${PR_NUMBER}.md"
+
+          BODY="### ❌ Release Notes Generation Failed
+
+          I encountered an error while generating release notes. Please create the file manually:
+
+          **File:** \`${NOTES_FILE}\`
+
+          **Template:**
+          \`\`\`markdown
+          ### Changed
+
+          - Description of your changes here
+          \`\`\`
+
+          **Categories you can use:**
+          - \`### Added\` - New features
+          - \`### Changed\` - Changes in existing functionality
+          - \`### Deprecated\` - Soon-to-be removed features
+          - \`### Removed\` - Now removed features
+          - \`### Fixed\` - Bug fixes
+          - \`### Security\` - Security fixes
+
+          The content will be automatically added to CHANGELOG.md when this PR is merged."
 
           gh api repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
             -X POST -f body="$BODY"
