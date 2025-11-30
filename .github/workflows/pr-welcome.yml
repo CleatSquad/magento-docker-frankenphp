@@ -14,8 +14,6 @@ jobs:
   welcome:
     name: Welcome Comment
     runs-on: ubuntu-latest
-    # Only run for PRs targeting main branch
-    if: github.event.pull_request.base.ref == 'main'
     steps:
       - name: Post welcome comment
         env:
