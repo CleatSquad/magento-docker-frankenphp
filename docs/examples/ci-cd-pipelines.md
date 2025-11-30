@@ -39,7 +39,7 @@ chmod +x /path/to/your/magento/bin/build-prod
 |--------|-------------|---------|
 | `-c, --config FILE` | Path to build.yaml config file | `build.yaml` |
 | `-t, --tag TAG` | Docker image tag | `magento-prod:latest` |
-| `-f, --dockerfile FILE` | Path to Dockerfile | `images/app/Dockerfile` |
+| `-f, --dockerfile FILE` | Path to Dockerfile | `docker/images/app/Dockerfile` |
 | `--context PATH` | Docker build context | `.` (current directory) |
 | `--push` | Push image to registry after build | - |
 | `--no-cache` | Build without Docker cache | - |
@@ -126,7 +126,7 @@ variables:
   # Container Registry
   containerRegistry: 'your-acr-name.azurecr.io'
   imageRepository: 'magento'
-  dockerfilePath: 'images/app/Dockerfile'
+  dockerfilePath: 'docker/images/app/Dockerfile'
   
   # Build Configuration
   STATIC_CONTENT_THEMES: 'Magento/blank Magento/luma'
@@ -231,7 +231,7 @@ stages:
                 --build-arg SCD_THREADS=$(SCD_THREADS) \
                 --build-arg SCD_STRATEGY=$(SCD_STRATEGY) \
                 --build-arg BASE_URL="$(BASE_URL)" \
-                -f images/app/Dockerfile \
+                -f docker/images/app/Dockerfile \
                 -t $(containerRegistry)/magento:$(Build.BuildId) \
                 .
             displayName: 'Build Docker Image'
@@ -299,7 +299,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: images/app/Dockerfile
+          file: docker/images/app/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -349,7 +349,7 @@ build:
         --build-arg SCD_THREADS=${SCD_THREADS} \
         --build-arg SCD_STRATEGY=${SCD_STRATEGY} \
         --build-arg BASE_URL="${BASE_URL}" \
-        -f images/app/Dockerfile \
+        -f docker/images/app/Dockerfile \
         -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} \
         -t ${CI_REGISTRY_IMAGE}:latest \
         .
@@ -404,7 +404,7 @@ pipeline {
                                --build-arg SCD_THREADS=${SCD_THREADS} \
                                --build-arg SCD_STRATEGY=${SCD_STRATEGY} \
                                --build-arg BASE_URL="${BASE_URL}" \
-                               -f images/app/Dockerfile ."""
+                               -f docker/images/app/Dockerfile ."""
                         )
                         customImage.push()
                         customImage.push('latest')
@@ -523,7 +523,7 @@ All CI/CD systems can use these build arguments:
 Increase Docker memory limit or add `--memory` flag:
 
 ```bash
-docker build --memory=4g -f images/app/Dockerfile .
+docker build --memory=4g -f docker/images/app/Dockerfile .
 ```
 
 ### Static content deployment fails

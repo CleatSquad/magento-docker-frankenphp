@@ -15,7 +15,7 @@
 # Options:
 #   -c, --config FILE     Path to build.yaml config file (default: build.yaml)
 #   -t, --tag TAG         Docker image tag (default: magento-prod:latest)
-#   -f, --dockerfile FILE Path to Dockerfile (default: images/app/Dockerfile)
+#   -f, --dockerfile FILE Path to Dockerfile (default: docker/images/app/Dockerfile)
 #   --context PATH        Docker build context (default: current directory)
 #   --push                Push image to registry after build
 #   --no-cache            Build without Docker cache
@@ -33,7 +33,7 @@ set -e
 # Default values
 CONFIG_FILE="build.yaml"
 IMAGE_TAG="magento-prod:latest"
-DOCKERFILE="images/app/Dockerfile"
+DOCKERFILE="docker/images/app/Dockerfile"
 BUILD_CONTEXT="."
 PUSH_IMAGE=false
 NO_CACHE=""
@@ -78,7 +78,7 @@ Usage:
 Options:
   -c, --config FILE     Path to build.yaml config file (default: build.yaml)
   -t, --tag TAG         Docker image tag (default: magento-prod:latest)
-  -f, --dockerfile FILE Path to Dockerfile (default: images/app/Dockerfile)
+  -f, --dockerfile FILE Path to Dockerfile (default: docker/images/app/Dockerfile)
   --context PATH        Docker build context (default: current directory)
   --push                Push image to registry after build
   --no-cache            Build without Docker cache

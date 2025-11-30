@@ -43,13 +43,7 @@ This script will:
 nano .env
 ```
 
-This script will:
-- Create the `proxy` Docker network
-- Copy environment files from templates
-- Set your user ID/GID for proper file permissions
-- Auto-generate SSL certificates (if `SERVER_NAME` is set)
-
-### 3. Start Containers
+### 4. Start Containers
 
 ```bash
 # Development
@@ -161,15 +155,17 @@ bin/magento cache:flush
 ## Project Structure
 
 ```
-magento-docker-frankenphp/
+magento-frankenphp-template/
 ├── bin/                    # CLI tools
-├── docker/conf/                   # Configuration files
+├── docker/
+│   ├── conf/               # Configuration files (Caddyfile, traefik)
+│   └── images/             # Docker images
+│       ├── app/            # Production Dockerfile
+│       ├── opensearch/     # OpenSearch configuration
+│       └── rabbitmq/       # RabbitMQ configuration
 ├── docs/                   # Documentation
+│   └── examples/           # Deployment examples
 ├── env/                    # Environment templates
-├── examples/               # Deployment examples
-├── images/                 # Docker images
-│   ├── opensearch/         # OpenSearch configuration
-│   └── rabbitmq/           # RabbitMQ configuration
 ├── src/                    # Magento source (gitignored)
 ├── docker-compose.yml      # Development
 ├── docker-compose.prod.yml # Production
@@ -181,4 +177,4 @@ magento-docker-frankenphp/
 - [Configure environment variables](configuration.md)
 - [Learn the CLI tools](cli.md)
 - [Setup Xdebug](xdebug.md)
-- [Deploy to production](../examples/production-dockerfile.md)
+- [Deploy to production](examples/production-dockerfile.md)
