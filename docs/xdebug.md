@@ -83,7 +83,7 @@ services:
      - **Host**: `magento.localhost`
      - **Port**: `443`
      - **Debugger**: `Xdebug`
-     - **Use path mappings**: ✅ Yes
+     - **Use path mappings**: Yes
      - Map `/var/www/html` → your local `src/` directory
 
 3. **Start Listening**

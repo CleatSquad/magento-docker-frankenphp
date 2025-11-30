@@ -142,12 +142,12 @@ environment:
 
 The Caddyfile includes these security features:
 
-- ✅ Blocked: `.git`, `.env`, `.htaccess`, `.htpasswd`
-- ✅ Directory traversal protection
-- ✅ XML files in `/errors/` blocked
-- ✅ Customer/downloadable media protected
-- ✅ X-Frame-Options headers
-- ✅ Automatic HTTPS
+- Blocked: `.git`, `.env`, `.htaccess`, `.htpasswd`
+- Directory traversal protection
+- XML files in `/errors/` blocked
+- Customer/downloadable media protected
+- X-Frame-Options headers
+- Automatic HTTPS
 
 ## Performance Tuning
 
@@ -211,7 +211,7 @@ docker compose exec app caddy validate --config /etc/caddy/Caddyfile
 
 ## See Also
 
-- [CLI Tools](CLI.md)
+- [CLI Tools](cli.md)
 - [Xdebug Configuration](xdebug.md)
-- [Caddyfile Configuration](Caddyfile.md)
+- [Caddyfile Configuration](caddyfile.md)
 - [Local Development Guide](../examples/local-development.md)

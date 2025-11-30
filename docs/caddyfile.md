@@ -337,27 +337,27 @@ Here's a complete example of a custom Caddyfile template:
 
 ### Caddy Documentation
 
-- 📚 [Caddyfile Concepts](https://caddyserver.com/docs/caddyfile/concepts)
-- 📚 [Caddyfile Directives](https://caddyserver.com/docs/caddyfile/directives)
-- 📚 [Caddy Placeholders](https://caddyserver.com/docs/caddyfile/concepts#placeholders)
-- 📚 [TLS Configuration](https://caddyserver.com/docs/caddyfile/directives/tls)
-- 📚 [Automatic HTTPS](https://caddyserver.com/docs/automatic-https)
+- [Caddyfile Concepts](https://caddyserver.com/docs/caddyfile/concepts)
+- [Caddyfile Directives](https://caddyserver.com/docs/caddyfile/directives)
+- [Caddy Placeholders](https://caddyserver.com/docs/caddyfile/concepts#placeholders)
+- [TLS Configuration](https://caddyserver.com/docs/caddyfile/directives/tls)
+- [Automatic HTTPS](https://caddyserver.com/docs/automatic-https)
 
 ### FrankenPHP Documentation
 
-- 📚 [FrankenPHP Documentation](https://frankenphp.dev/docs/)
-- 📚 [FrankenPHP Configuration](https://frankenphp.dev/docs/config/)
-- 📚 [Worker Mode](https://frankenphp.dev/docs/worker/)
+- [FrankenPHP Documentation](https://frankenphp.dev/docs/)
+- [FrankenPHP Configuration](https://frankenphp.dev/docs/config/)
+- [Worker Mode](https://frankenphp.dev/docs/worker/)
 
 ### mkcert Documentation
 
-- 📚 [mkcert GitHub](https://github.com/FiloSottile/mkcert)
-- 📚 [mkcert Installation](https://github.com/FiloSottile/mkcert#installation)
+- [mkcert GitHub](https://github.com/FiloSottile/mkcert)
+- [mkcert Installation](https://github.com/FiloSottile/mkcert#installation)
 
 ### Magento 2 Resources
 
-- 📚 [Magento 2 DevDocs](https://developer.adobe.com/commerce/docs/)
-- 📚 [Magento Security Best Practices](https://experienceleague.adobe.com/docs/commerce-operations/implementation-playbook/best-practices/launch/security-best-practices.html)
+- [Magento 2 DevDocs](https://developer.adobe.com/commerce/docs/)
+- [Magento Security Best Practices](https://experienceleague.adobe.com/docs/commerce-operations/implementation-playbook/best-practices/launch/security-best-practices.html)
 
 ---
 

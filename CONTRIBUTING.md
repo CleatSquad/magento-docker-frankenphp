@@ -271,4 +271,4 @@ If you have questions about contributing, feel free to:
 - Create an issue with the `question` label
 - Contact the maintainer at contact@cleatsquad.dev
 
-Thank you for contributing! 🎉
+Thank you for contributing!

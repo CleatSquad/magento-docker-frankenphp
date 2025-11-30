@@ -30,11 +30,11 @@ cd magento-frankenphp-template
 ```
 
 This script will:
-- ✅ Create the `proxy` Docker network
-- ✅ Copy environment files from templates (env/*.example → env/*.env)
-- ✅ Create `.env` from `env/magento.env.example`
-- ✅ Set your user ID/GID for proper file permissions
-- ✅ Auto-generate SSL certificates (if `SERVER_NAME` is set)
+- Create the `proxy` Docker network
+- Copy environment files from templates (env/*.example → env/*.env)
+- Create `.env` from `env/magento.env.example`
+- Set your user ID/GID for proper file permissions
+- Auto-generate SSL certificates (if `SERVER_NAME` is set)
 
 ### 3. (Optional) Edit Environment Settings
 
@@ -44,10 +44,10 @@ nano .env
 ```
 
 This script will:
-- ✅ Create the `proxy` Docker network
-- ✅ Copy environment files from templates
-- ✅ Set your user ID/GID for proper file permissions
-- ✅ Auto-generate SSL certificates (if `SERVER_NAME` is set)
+- Create the `proxy` Docker network
+- Copy environment files from templates
+- Set your user ID/GID for proper file permissions
+- Auto-generate SSL certificates (if `SERVER_NAME` is set)
 
 ### 3. Start Containers
 
@@ -179,6 +179,6 @@ magento-docker-frankenphp/
 ## Next Steps
 
 - [Configure environment variables](configuration.md)
-- [Learn the CLI tools](CLI.md)
+- [Learn the CLI tools](cli.md)
 - [Setup Xdebug](xdebug.md)
 - [Deploy to production](../examples/production-dockerfile.md)
