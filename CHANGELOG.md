@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix @bot generate-release-note command + workflow improvements
+
+_From PR #5: Fix @bot generate-release-note command + workflow improvements_
+
 ### Added
 - GitHub issue and PR templates (bug report, feature request, pull request)
 - `SECURITY.md` with security policy and production best practices
