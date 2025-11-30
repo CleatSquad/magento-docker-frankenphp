@@ -10,10 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - GitHub issue and PR templates (bug report, feature request, pull request)
 - `SECURITY.md` with security policy and production best practices
-- Comprehensive documentation:
-  - `docs/architecture.md` - System architecture diagram and service topology
-  - `docs/usage-scenarios.md` - Dev, prod, CI/CD, multi-site workflows
-  - `docs/customization.md` - PHP extensions, hostnames, services customization
 - Docker Compose healthchecks for all services (MariaDB, OpenSearch, Valkey, RabbitMQ, Traefik, app)
 - Docker Compose profiles (`dev`, `prod`, `debug`) for service separation
 - `depends_on` with `condition: service_healthy` for proper startup order
@@ -23,7 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Release automation:
   - `.github/workflows/release.yml` for automated releases on tag push
   - `.github/release-drafter.yml` for auto-generated release notes
-- Conventional Commits support with `commitlint` configuration
 
 ### Changed
 - Updated all repository URLs to `CleatSquad/magento-frankenphp-template`
