@@ -36,58 +36,46 @@ RUN mkdir -p var/cache var/log var/session var/page_cache var/tmp \
 
 USER www-data
 
-RUN rm -rf var/cache/* var/page_cache/* generated/code/* generated/metadata/* pub/static/*
-
-# Install Composer dependencies (production only)
-RUN composer install \
-    --no-interaction \
-    --no-progress \
-    --prefer-dist \
-    --no-dev \
-    --optimize-autoloader
-
-RUN composer dump-autoload --no-dev --optimize --apcu
-
-# Compile DI (Dependency Injection) - temporarily move env.php to avoid database issues
-RUN if [ -f app/etc/env.php ]; then \
-        mv app/etc/env.php app/etc/env.php.bak; \
-    fi
-
-RUN php -d memory_limit=4G bin/magento setup:di:compile
-
-# Create minimal env.php for static content deployment (no external services needed)
-# This provides file-based cache and default scope so Magento can bootstrap without Redis/database
+# Clean caches, install dependencies, and compile DI
+# hadolint ignore=DL3059
 ARG BASE_URL="http://localhost/"
-RUN printf '%s\n' \
-    '<?php' \
-    'return [' \
-    "    'backend' => ['frontName' => 'admin']," \
-    "    'cache_types' => []," \
-    "    'cache' => ['frontend' => ['default' => ['backend' => 'Magento\\Framework\\Cache\\Backend\\File']]]," \
-    "    'MAGE_MODE' => 'production'," \
-    "    'scopes' => [" \
-    "        'websites' => ['base' => ['website_id' => '1', 'code' => 'base', 'name' => 'Main Website', 'sort_order' => '0', 'default_group_id' => '1', 'is_default' => '1']]," \
-    "        'groups' => ['1' => ['group_id' => '1', 'website_id' => '1', 'code' => 'main_website_store', 'name' => 'Main Website Store', 'root_category_id' => '2', 'default_store_id' => '1']]," \
-    "        'stores' => ['default' => ['store_id' => '1', 'code' => 'default', 'website_id' => '1', 'group_id' => '1', 'name' => 'Default Store View', 'sort_order' => '0', 'is_active' => '1']]," \
-    "    ]," \
-    "    'system' => ['default' => ['web' => ['unsecure' => ['base_url' => '${BASE_URL}'], 'secure' => ['base_url' => '${BASE_URL}']]]]," \
-    '];' > app/etc/env.php
-
-# Deploy static content using direct theme/area specification
-# Uses build args: STATIC_CONTENT_THEMES, STATIC_CONTENT_ADMINHTML_THEME, STATIC_CONTENT_LANGUAGES
-RUN THEME_ARGS=""; \
+RUN rm -rf var/cache/* var/page_cache/* generated/code/* generated/metadata/* pub/static/* \
+ && composer install \
+        --no-interaction \
+        --no-progress \
+        --prefer-dist \
+        --no-dev \
+        --optimize-autoloader \
+ && composer dump-autoload --no-dev --optimize --apcu \
+ # Backup env.php to avoid database issues during DI compile
+ && if [ -f app/etc/env.php ]; then mv app/etc/env.php app/etc/env.php.bak; fi \
+ && php -d memory_limit=4G bin/magento setup:di:compile \
+ # Create minimal env.php for static content deployment (no external services needed)
+ && printf '%s\n' \
+        '<?php' \
+        'return [' \
+        "    'backend' => ['frontName' => 'admin']," \
+        "    'cache_types' => []," \
+        "    'cache' => ['frontend' => ['default' => ['backend' => 'Magento\\Framework\\Cache\\Backend\\File']]]," \
+        "    'MAGE_MODE' => 'production'," \
+        "    'scopes' => [" \
+        "        'websites' => ['base' => ['website_id' => '1', 'code' => 'base', 'name' => 'Main Website', 'sort_order' => '0', 'default_group_id' => '1', 'is_default' => '1']]," \
+        "        'groups' => ['1' => ['group_id' => '1', 'website_id' => '1', 'code' => 'main_website_store', 'name' => 'Main Website Store', 'root_category_id' => '2', 'default_store_id' => '1']]," \
+        "        'stores' => ['default' => ['store_id' => '1', 'code' => 'default', 'website_id' => '1', 'group_id' => '1', 'name' => 'Default Store View', 'sort_order' => '0', 'is_active' => '1']]," \
+        "    ]," \
+        "    'system' => ['default' => ['web' => ['unsecure' => ['base_url' => '${BASE_URL}'], 'secure' => ['base_url' => '${BASE_URL}']]]]," \
+        '];' > app/etc/env.php \
+ # Deploy static content using direct theme/area specification
+ && THEME_ARGS=""; \
     for theme in ${STATIC_CONTENT_THEMES}; do THEME_ARGS="$THEME_ARGS --theme=$theme"; done; \
     php -d memory_limit=4G bin/magento setup:static-content:deploy -f \
-        --jobs=${SCD_THREADS} \
-        --strategy=${SCD_STRATEGY} \
-        --area=frontend $THEME_ARGS \
-        --area=adminhtml --theme=${STATIC_CONTENT_ADMINHTML_THEME} \
-        --language=${STATIC_CONTENT_LANGUAGES}
-
-# Restore env.php after static content deployment for runtime
-RUN if [ -f app/etc/env.php.bak ]; then \
-        mv app/etc/env.php.bak app/etc/env.php; \
-    fi
+        --jobs="${SCD_THREADS}" \
+        --strategy="${SCD_STRATEGY}" \
+        --area=frontend ${THEME_ARGS} \
+        --area=adminhtml --theme="${STATIC_CONTENT_ADMINHTML_THEME}" \
+        --language="${STATIC_CONTENT_LANGUAGES}" \
+ # Restore env.php after static content deployment for runtime
+ && if [ -f app/etc/env.php.bak ]; then mv app/etc/env.php.bak app/etc/env.php; fi
 
 # Stage 2: Production image
 FROM mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-base
