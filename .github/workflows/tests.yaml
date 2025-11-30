@@ -12,11 +12,25 @@ on:
       - "images/**"
       - "docker-compose*.yml"
       - ".github/workflows/tests.yaml"
+      - "Makefile"
+      - "env/**"
+      - "conf/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "bin/**"
+      - "images/**"
+      - "docker-compose*.yml"
+      - ".github/workflows/tests.yaml"
 
 permissions:
   contents: read
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # Shell Script Linting
+  # ---------------------------------------------------------------------------
   shellcheck:
     name: ShellCheck
     runs-on: ubuntu-latest
@@ -30,6 +44,10 @@ jobs:
         with:
           scandir: './bin'
           severity: warning
+
+  # ---------------------------------------------------------------------------
+  # Dockerfile Linting
+  # ---------------------------------------------------------------------------
   hadolint:
     name: Hadolint Dockerfiles
     runs-on: ubuntu-latest
@@ -43,6 +61,10 @@ jobs:
         with:
           recursive: true
           ignore: DL3008,DL3018,DL3002,DL3006
+
+  # ---------------------------------------------------------------------------
+  # YAML Linting
+  # ---------------------------------------------------------------------------
   yamllint:
     name: YAML Lint
     runs-on: ubuntu-latest
@@ -56,3 +78,87 @@ jobs:
         with:
           file_or_dir: .
           config_file: .yamllint.yml
+
+  # ---------------------------------------------------------------------------
+  # Docker Compose Configuration Validation
+  # ---------------------------------------------------------------------------
+  docker-compose-validate:
+    name: Docker Compose Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup environment files
+        run: |
+          cp .env.example .env
+          cp env/magento.env.example env/magento.env
+          cp env/mariadb.env.example env/mariadb.env
+          cp env/opensearch.env.example env/opensearch.env
+          cp env/rabbitmq.env.example env/rabbitmq.env
+          cp env/valkey.env.example env/valkey.env
+
+      - name: Create proxy network
+        run: docker network create proxy || true
+
+      - name: Validate docker-compose.yml (dev)
+        run: docker compose config --quiet
+
+      - name: Validate docker-compose.prod.yml (prod)
+        run: docker compose -f docker-compose.prod.yml config --quiet
+
+  # ---------------------------------------------------------------------------
+  # Smoke Test - Container Startup
+  # ---------------------------------------------------------------------------
+  smoke-test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    needs: [docker-compose-validate]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup environment files
+        run: |
+          cp .env.example .env
+          cp env/magento.env.example env/magento.env
+          cp env/mariadb.env.example env/mariadb.env
+          cp env/opensearch.env.example env/opensearch.env
+          cp env/rabbitmq.env.example env/rabbitmq.env
+          cp env/valkey.env.example env/valkey.env
+
+      - name: Create proxy network
+        run: docker network create proxy || true
+
+      - name: Create src directory
+        run: mkdir -p src && touch src/.keep
+
+      - name: Start infrastructure services
+        run: |
+          docker compose up -d mariadb opensearch valkey rabbitmq
+          echo "Waiting for services to be healthy..."
+          sleep 30
+
+      - name: Check MariaDB health
+        run: |
+          docker compose exec -T mariadb healthcheck.sh --connect --innodb_initialized || \
+          (docker compose logs mariadb && exit 1)
+
+      - name: Check Valkey health
+        run: |
+          docker compose exec -T valkey valkey-cli ping || \
+          (docker compose logs valkey && exit 1)
+
+      - name: Check RabbitMQ health
+        run: |
+          docker compose exec -T rabbitmq rabbitmq-diagnostics -q ping || \
+          (docker compose logs rabbitmq && exit 1)
+
+      - name: Show running containers
+        run: docker compose ps
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v --remove-orphans

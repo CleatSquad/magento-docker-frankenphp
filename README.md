@@ -8,11 +8,24 @@
 
 <p align="center">
   <a href="https://hub.docker.com/r/mohelmrabet/magento-frankenphp"><img src="https://img.shields.io/docker/pulls/mohelmrabet/magento-frankenphp.svg?logo=docker" alt="Docker Pulls" /></a>
-  <img src="https://img.shields.io/badge/magento-2.4.x-orange.svg?logo=magento" alt="Magento 2.4.x" />
+  <img src="https://img.shields.io/badge/magento-2.4.7-orange.svg?logo=magento" alt="Magento 2.4.7" />
   <img src="https://img.shields.io/badge/php-8.2%20|%208.3%20|%208.4-blue.svg?logo=php" alt="PHP Versions" />
   <img src="https://img.shields.io/badge/frankenphp-1.10-purple.svg" alt="FrankenPHP 1.10" />
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License MIT" /></a>
+  <img src="https://img.shields.io/badge/version-v1.0.0-brightgreen.svg" alt="Version 1.0.0" />
 </p>
+
+## 📋 About This Template
+
+This repository is a **GitHub template** providing a ready-to-use Docker development and production environment for Magento 2 with FrankenPHP. Use it to bootstrap new Magento projects quickly with best practices for containerization.
+
+### Key Features
+
+- 🚀 **FrankenPHP** — Modern PHP application server with Caddy
+- 🔒 **Automatic HTTPS** — Built-in SSL via Caddy
+- 🐳 **Full Docker Stack** — MariaDB, OpenSearch, Valkey, RabbitMQ, Mailhog
+- ⚡ **High Performance** — OPcache optimized, ~2500 req/s
+- 🛠️ **Dev Tools** — Xdebug, CLI scripts, hot-reload ready
 
 ## Links
 
@@ -20,6 +33,7 @@
 - 🐳 [Docker Images Repository](https://github.com/CleatSquad/magento-frankenphp-images)
 - 🚀 [FrankenPHP](https://frankenphp.dev/)
 - 🛒 [Magento 2](https://business.adobe.com/products/magento/magento-commerce.html)
+- 🔐 [Security Policy](SECURITY.md)
 
 ---
 
@@ -34,18 +48,39 @@
 
 ## Quick Start
 
+### Use as Template (Recommended)
+
+1. Click **"Use this template"** on GitHub to create your own repository
+2. Clone your new repository:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/your-magento-project.git
+cd your-magento-project
+```
+
+### Clone Directly
+
 ```bash
 # 1. Clone
-git clone https://github.com/CleatSquad/magento-docker-frankenphp.git
-cd magento-docker-frankenphp
+git clone https://github.com/mohaelmrabet/magento-frankenphp-template.git
+cd magento-frankenphp-template
 
-# 2. Setup
+# 2. Setup environment
+cp .env.example .env
 ./bin/setup
 
-# 3. Start
+# 3. Start containers
 ./bin/start
 
 # 4. Access https://magento.localhost
+```
+
+### Quick Commands
+
+```bash
+make up          # Start containers
+make down        # Stop containers
+make help        # Show all available commands
 ```
 
 ## Docker Images
@@ -82,8 +117,11 @@ docker pull mohelmrabet/magento-frankenphp:dev
 | Guide | Description |
 |-------|-------------|
 | 📖 [Getting Started](docs/getting-started.md) | Installation and initial setup |
+| 🏗️ [Architecture](docs/architecture.md) | System architecture and service diagram |
 | 🛠️ [CLI Tools](docs/CLI.md) | All available commands |
 | ⚙️ [Configuration](docs/configuration.md) | Environment variables and settings |
+| 🎯 [Usage Scenarios](docs/usage-scenarios.md) | Dev, prod, CI/CD scenarios |
+| 🔧 [Customization](docs/customization.md) | How to customize the stack |
 | 🌐 [Caddyfile](docs/Caddyfile.md) | Web server configuration |
 | 🐛 [Xdebug](docs/xdebug.md) | Debugging with Xdebug |
 | 🚀 [Production](examples/production-dockerfile.md) | Production deployment |
@@ -100,6 +138,7 @@ docker pull mohelmrabet/magento-frankenphp:dev
 ./bin/setup              # Initial setup
 ./bin/composer install
 ./bin/mysql              # Database CLI
+make help                # Show all Makefile targets
 ```
 
 See [CLI Documentation](docs/CLI.md) for all commands.
@@ -109,10 +148,19 @@ See [CLI Documentation](docs/CLI.md) for all commands.
 - Docker >= 24.0
 - Docker Compose >= 2.20
 - Git
+- 8GB RAM minimum (for Magento)
 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for security policy and best practices.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## License
 

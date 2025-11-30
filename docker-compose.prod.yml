@@ -1,4 +1,16 @@
+# =============================================================================
+# Magento FrankenPHP Docker Compose - Production Configuration
+# =============================================================================
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Note: Copy .env.example to .env and configure for production before use
+# =============================================================================
+
 services:
+  # ---------------------------------------------------------------------------
+  # PHP/FrankenPHP Application Server (Production)
+  # ---------------------------------------------------------------------------
   app:
     # Option 1: Use pre-built image (default)
     image: mohelmrabet/magento-frankenphp:php8.4-fp1.10.1-base
@@ -8,6 +20,8 @@ services:
     #   dockerfile: images/Dockerfile.prod
     container_name: ${PROJECT_NAME:-magento}-app
     restart: unless-stopped
+    profiles:
+      - prod
     environment:
       SERVER_NAME: ${SERVER_NAME:-magento.com}
       MAGENTO_RUN_MODE: production
@@ -16,30 +30,61 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2019/config/", "-o", "/dev/null", "-s"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     depends_on:
-      - mariadb
-      - opensearch
-      - valkey
-      - rabbitmq
+      mariadb:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - magento
 
+  # ---------------------------------------------------------------------------
+  # MariaDB Database (Production)
+  # ---------------------------------------------------------------------------
   mariadb:
     image: mariadb:11.4
     container_name: ${PROJECT_NAME:-magento}-db
     restart: unless-stopped
+    profiles:
+      - prod
     env_file: env/mariadb.env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-magento}
+      MYSQL_USER: ${DB_USER:-magento}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-magento}
     volumes:
       - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     networks:
       - magento
 
+  # ---------------------------------------------------------------------------
+  # OpenSearch Search Engine (Production)
+  # ---------------------------------------------------------------------------
   opensearch:
     build:
       context: ./images/opensearch
       dockerfile: Dockerfile
     container_name: ${PROJECT_NAME:-magento}-opensearch
     restart: unless-stopped
+    profiles:
+      - prod
     env_file: env/opensearch.env
     environment:
       - "discovery.type=single-node"
@@ -47,30 +92,64 @@ services:
       - "index.blocks.read_only_allow_delete"
     volumes:
       - opensearch-data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     networks:
       - magento
 
+  # ---------------------------------------------------------------------------
+  # Valkey Cache & Session Storage (Production)
+  # ---------------------------------------------------------------------------
   valkey:
     image: valkey/valkey:8.1.4
     container_name: ${PROJECT_NAME:-magento}-valkey
     restart: unless-stopped
+    profiles:
+      - prod
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     networks:
       - magento
 
+  # ---------------------------------------------------------------------------
+  # RabbitMQ Message Queue (Production)
+  # ---------------------------------------------------------------------------
   rabbitmq:
     image: rabbitmq:4.1-management-alpine
     container_name: ${PROJECT_NAME:-magento}-rabbitmq
     restart: unless-stopped
+    profiles:
+      - prod
     env_file: env/rabbitmq.env
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
       - ./images/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - magento
 
+# =============================================================================
+# Networks
+# =============================================================================
 networks:
   magento:
 
+# =============================================================================
+# Volumes
+# =============================================================================
 volumes:
   db-data:
   opensearch-data:

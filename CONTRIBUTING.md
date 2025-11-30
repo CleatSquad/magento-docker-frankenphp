@@ -36,14 +36,14 @@ Before contributing, ensure you have the following installed:
 2. Clone your fork locally:
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/magento-docker-frankenphp.git
-   cd magento-docker-frankenphp
+   git clone https://github.com/YOUR_USERNAME/magento-frankenphp-template.git
+   cd magento-frankenphp-template
    ```
 
 3. Add the upstream remote:
 
    ```bash
-   git remote add upstream https://github.com/CleatSquad/magento-docker-frankenphp.git
+   git remote add upstream https://github.com/mohaelmrabet/magento-frankenphp-template.git
    ```
 
 4. Run the setup script:
@@ -66,7 +66,7 @@ We welcome various types of contributions:
 
 ### Contribution Process
 
-1. Check the [issue tracker](https://github.com/CleatSquad/magento-docker-frankenphp/issues) for existing issues
+1. Check the [issue tracker](https://github.com/mohaelmrabet/magento-frankenphp-template/issues) for existing issues
 2. If you want to work on something new, create an issue first to discuss it
 3. Assign yourself to the issue you want to work on
 4. Create a feature branch from `main`

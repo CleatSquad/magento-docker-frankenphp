@@ -15,11 +15,25 @@ This guide walks you through setting up a Magento 2 development environment usin
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/CleatSquad/magento-docker-frankenphp.git
-cd magento-docker-frankenphp
+# Option 1: Use as template (recommended)
+# Click "Use this template" on GitHub, then clone your repo
+
+# Option 2: Clone directly
+git clone https://github.com/mohaelmrabet/magento-frankenphp-template.git
+cd magento-frankenphp-template
 ```
 
-### 2. Run the Setup Script
+### 2. Configure Environment
+
+```bash
+# Copy example environment file
+cp .env.example .env
+
+# Edit .env with your settings (optional)
+nano .env
+```
+
+### 3. Run the Setup Script
 
 ```bash
 ./bin/setup
