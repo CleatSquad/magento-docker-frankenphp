@@ -19,25 +19,19 @@ jobs:
       contains(github.event.comment.body, '@bot smoke-test')
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
-      pr_ref: ${{ steps.get-pr.outputs.ref }}
-      pr_repo: ${{ steps.get-pr.outputs.repo }}
+      pr_number: ${{ github.event.issue.number }}
       pr_sha: ${{ steps.get-pr.outputs.sha }}
     steps:
       - name: Check if command is valid
         id: check
         run: echo "should_run=true" >> "$GITHUB_OUTPUT"
 
-      - name: Get PR ref
+      - name: Get PR SHA
         id: get-pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }})
-          PR_REF=$(echo "$PR_DATA" | jq -r '.head.ref')
-          PR_REPO=$(echo "$PR_DATA" | jq -r '.head.repo.full_name')
-          PR_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
-          echo "ref=$PR_REF" >> "$GITHUB_OUTPUT"
-          echo "repo=$PR_REPO" >> "$GITHUB_OUTPUT"
+          PR_SHA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }} --jq '.head.sha')
           echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
 
       - name: React to comment
@@ -67,8 +61,7 @@ jobs:
       - name: Checkout PR
         uses: actions/checkout@v4
         with:
-          repository: ${{ needs.check-command.outputs.pr_repo }}
-          ref: ${{ needs.check-command.outputs.pr_ref }}
+          ref: refs/pull/${{ needs.check-command.outputs.pr_number }}/head
           persist-credentials: false
 
       - name: Setup environment files
@@ -133,49 +126,6 @@ jobs:
 
       - name: Show running containers
         run: docker compose ps
-
-      - name: Post results comment
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MARIADB_STATUS: ${{ steps.mariadb.outputs.status }}
-          VALKEY_STATUS: ${{ steps.valkey.outputs.status }}
-          RABBITMQ_STATUS: ${{ steps.rabbitmq.outputs.status }}
-          OPENSEARCH_STATUS: ${{ steps.opensearch.outputs.status }}
-        run: |
-          # Determine overall status
-          if [ "$MARIADB_STATUS" = "ok" ] && [ "$VALKEY_STATUS" = "ok" ] && \
-             [ "$RABBITMQ_STATUS" = "ok" ] && [ "$OPENSEARCH_STATUS" = "ok" ]; then
-            OVERALL="All services healthy"
-            EMOJI="white_check_mark"
-          else
-            OVERALL="Some services failed"
-            EMOJI="x"
-          fi
-
-          # Build status icons
-          get_icon() {
-            if [ "$1" = "ok" ]; then echo ":white_check_mark:"; else echo ":x:"; fi
-          }
-
-          MARIADB_ICON=$(get_icon "$MARIADB_STATUS")
-          VALKEY_ICON=$(get_icon "$VALKEY_STATUS")
-          RABBITMQ_ICON=$(get_icon "$RABBITMQ_STATUS")
-          OPENSEARCH_ICON=$(get_icon "$OPENSEARCH_STATUS")
-
-          COMMENT="## Smoke Test Results :$EMOJI:
-
-          | Service | Status |
-          |---------|--------|
-          | MariaDB | $MARIADB_ICON |
-          | Valkey | $VALKEY_ICON |
-          | RabbitMQ | $RABBITMQ_ICON |
-          | OpenSearch | $OPENSEARCH_ICON |
-
-          **Result:** $OVERALL
-
-          [View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-
-          gh pr comment ${{ github.event.issue.number }} --body "$COMMENT"
 
       - name: Set final status
         if: always()
