@@ -62,7 +62,7 @@ cd your-magento-project
 
 ```bash
 # 1. Clone
-git clone https://github.com/mohaelmrabet/magento-frankenphp-template.git
+git clone https://github.com/CleatSquad/magento-frankenphp-template.git
 cd magento-frankenphp-template
 
 # 2. Setup environment (copies env templates automatically)

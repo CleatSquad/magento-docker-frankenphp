@@ -19,7 +19,7 @@ This guide walks you through setting up a Magento 2 development environment usin
 # Click "Use this template" on GitHub, then clone your repo
 
 # Option 2: Clone directly
-git clone https://github.com/mohaelmrabet/magento-frankenphp-template.git
+git clone https://github.com/CleatSquad/magento-frankenphp-template.git
 cd magento-frankenphp-template
 ```
 

@@ -10,7 +10,7 @@ The most common use case for setting up a Magento development environment.
 
 ```bash
 # 1. Clone or use template
-git clone https://github.com/mohaelmrabet/magento-frankenphp-template.git
+git clone https://github.com/CleatSquad/magento-frankenphp-template.git
 cd magento-frankenphp-template
 
 # 2. Setup environment (copies env templates automatically)
@@ -74,7 +74,7 @@ Deploy Magento to a production server.
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/mohaelmrabet/magento-frankenphp-template.git
+git clone https://github.com/CleatSquad/magento-frankenphp-template.git
 cd magento-frankenphp-template
 
 # 2. Setup environment
