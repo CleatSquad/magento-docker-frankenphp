@@ -208,54 +208,10 @@ Comment `@bot smoke-test` on your PR to run the smoke test. The bot will:
 ### Pull Request Process
 
 1. Update documentation if your changes affect usage
-2. **Create a release notes file** (see below)
 3. Ensure all CI checks pass
 4. Request a review from maintainers
 5. Address any feedback from reviewers
 6. Once approved, your PR will be merged
-
-### Release Notes
-
-For changes that should appear in the CHANGELOG, you have two options:
-
-**Option 1: Auto-generate with bot command**
-
-Comment `@bot generate-release-note` on your PR. The bot will:
-- Analyze your PR title, description, and changed files
-- Generate a `.release-notes/pr-XXX.md` file automatically
-- Include all commit messages from your PR in the generated release notes
-- Commit it to your branch
-
-The bot automatically detects the category based on your PR title and changed files (case-insensitive):
-
-| Category | Detection Keywords |
-|----------|-------------------|
-| **Fixed** | Title contains `fix` or `bug` |
-| **Added** | Title contains `feat` or `add` |
-| **Documentation** | Title contains `doc` OR files include `.md` or `readme` |
-| **Security** | Title contains `security` or `vuln` |
-| **Deprecated** | Title contains `deprecat` |
-| **Removed** | Title contains `remov` or `delet` |
-| **Changed** | Default category if no other match |
-
-**Option 2: Create manually**
-
-Create a file `.release-notes/pr-XXX.md` (where XXX is your PR number) with content like:
-
-```markdown
-### Added
-- Description of new feature
-
-### Fixed
-- Description of bug fix
-
-### Changed
-- Description of change
-```
-
-When your PR is merged, the content will be automatically added to CHANGELOG.md under `[Unreleased]`, and the release notes file will be deleted.
-
-**Note**: Skip this step for documentation-only changes, refactoring, or other changes that don't need to be in the changelog.
 
 ### Pull Request Guidelines
 
@@ -321,7 +277,6 @@ The following bot commands are available in PR comments:
 
 | Command | Description |
 |---------|-------------|
-| `@bot generate-release-note` | Auto-generate release notes file |
 | `@bot smoke-test` | Run Docker smoke test on-demand |
 
 ## Questions?

@@ -2,29 +2,9 @@
 
 <!-- Provide a brief description of your changes -->
 
-## Release Notes
-
-<!--
-If this PR should be included in the CHANGELOG, you have two options:
-
-Option 1: Comment "@bot generate-release-note" on this PR to auto-generate the file
-Option 2: Manually create .release-notes/pr-[PR_NUMBER].md using .github/RELEASE_NOTES_TEMPLATE.md
-
-Example content:
-### Added
-- New feature description
-
-### Fixed
-- Bug fix description
--->
-
-- [ ] I have created `.release-notes/pr-XXX.md` (or used `@bot generate-release-note`)
-- [ ] This PR does not need release notes (documentation only, refactoring, etc.)
-
 ## Bot Commands
 
 <!-- Available bot commands you can use in PR comments:
-- `@bot generate-release-note` - Auto-generate release notes file
 - `@bot smoke-test` - Run Docker smoke test (on-demand, saves CI resources)
 -->
 

@@ -125,10 +125,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and [CODE_OF_CONDUCT.md](C
 
 See [SECURITY.md](SECURITY.md) for security policy and best practices.
 
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for release history.
-
 ## License
 
 MIT — see [LICENSE](LICENSE.txt)
