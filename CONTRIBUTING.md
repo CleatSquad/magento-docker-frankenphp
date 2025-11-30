@@ -277,7 +277,22 @@ The following bot commands are available in PR comments:
 
 | Command | Description |
 |---------|-------------|
-| `@bot smoke-test` | Run Docker smoke test on-demand |
+| `@bot lint` | Run ShellCheck + Hadolint + YAMLlint manually |
+| `@bot build` | Build and test Docker images (dev + prod) |
+| `@bot security-scan` | Scan Docker images for vulnerabilities (Trivy) |
+| `@bot performance-test` | Basic performance test (container startup times) |
+| `@bot cleanup` | Clean CI resources (images, volumes, networks) |
+| `@bot smoke-test` | Run Docker infrastructure smoke test |
+| `@bot help` | Show all available @bot commands |
+
+### How Bot Commands Work
+
+1. Comment on a PR with one of the commands above
+2. The bot will react with 🚀 to acknowledge the command
+3. The requested action will run in GitHub Actions
+4. Results will be posted as a PR comment
+5. A commit status check will be created
+6. The bot will react with 👍 (success) or 👎 (failure)
 
 ## Questions?
 

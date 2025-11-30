@@ -1,0 +1,79 @@
+---
+name: Help (On-demand)
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-command:
+    name: Check Command
+    runs-on: ubuntu-latest
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@bot help')
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      pr_number: ${{ github.event.issue.number }}
+      comment_id: ${{ github.event.comment.id }}
+    steps:
+      - name: Check if command is valid
+        id: check
+        run: echo "should_run=true" >> "$GITHUB_OUTPUT"
+
+      - name: React to comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -X POST -f content='rocket'
+
+  help:
+    name: Show Help
+    runs-on: ubuntu-latest
+    needs: check-command
+    if: needs.check-command.outputs.should_run == 'true'
+    steps:
+      - name: Post help comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY="## Available Bot Commands
+
+          You can use the following commands in PR comments:
+
+          | Command | Description |
+          |---------|-------------|
+          | \`@bot lint\` | Run ShellCheck + Hadolint + YAMLlint manually |
+          | \`@bot build\` | Build and test Docker images (dev + prod) |
+          | \`@bot security-scan\` | Scan Docker images for vulnerabilities (Trivy) |
+          | \`@bot performance-test\` | Basic performance test (container startup times) |
+          | \`@bot cleanup\` | Clean CI resources (images, volumes, networks) |
+          | \`@bot smoke-test\` | Run Docker infrastructure smoke test |
+          | \`@bot help\` | Show this help message |
+
+          ### Usage
+          Simply comment with one of the commands above. The bot will:
+          1. React to acknowledge the command
+          2. Run the requested action
+          3. Post results as a comment
+          4. React with success or failure
+
+          ### Notes
+          - Commands are triggered by PR comments only
+          - Each command creates a commit status check
+          - View the Actions tab for detailed logs"
+
+          gh api repos/${{ github.repository }}/issues/${{ needs.check-command.outputs.pr_number }}/comments \
+            -X POST -f body="$BODY"
+
+      - name: Add success reaction
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ needs.check-command.outputs.comment_id }}/reactions \
+            -X POST -f content='+1'

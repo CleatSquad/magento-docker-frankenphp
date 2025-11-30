@@ -1,0 +1,183 @@
+---
+name: Lint (On-demand)
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  check-command:
+    name: Check Command
+    runs-on: ubuntu-latest
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@bot lint')
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      pr_number: ${{ github.event.issue.number }}
+      pr_sha: ${{ steps.get-pr.outputs.sha }}
+      comment_id: ${{ github.event.comment.id }}
+    steps:
+      - name: Check if command is valid
+        id: check
+        run: echo "should_run=true" >> "$GITHUB_OUTPUT"
+
+      - name: Get PR SHA
+        id: get-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_SHA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }} --jq '.head.sha')
+          echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: React to comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -X POST -f content='rocket'
+
+  lint:
+    name: Run Linters
+    runs-on: ubuntu-latest
+    needs: check-command
+    if: needs.check-command.outputs.should_run == 'true'
+    steps:
+      - name: Set pending status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/statuses/${{ needs.check-command.outputs.pr_sha }} \
+            -X POST \
+            -f state='pending' \
+            -f context='Lint (On-demand)' \
+            -f description='Running linters...' \
+            -f target_url='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ needs.check-command.outputs.pr_number }}/head
+          persist-credentials: false
+
+      - name: Run ShellCheck
+        id: shellcheck
+        continue-on-error: true
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: './bin'
+          severity: warning
+
+      - name: Set ShellCheck status
+        id: shellcheck_status
+        run: |
+          if [ "${{ steps.shellcheck.outcome }}" = "success" ]; then
+            echo "status=Pass" >> "$GITHUB_OUTPUT"
+            echo "result=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=Fail" >> "$GITHUB_OUTPUT"
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run Hadolint
+        id: hadolint
+        continue-on-error: true
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          recursive: true
+          ignore: DL3008,DL3018,DL3002,DL3006,DL3059
+
+      - name: Set Hadolint status
+        id: hadolint_status
+        run: |
+          if [ "${{ steps.hadolint.outcome }}" = "success" ]; then
+            echo "status=Pass" >> "$GITHUB_OUTPUT"
+            echo "result=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=Fail" >> "$GITHUB_OUTPUT"
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run YAMLlint
+        id: yamllint
+        continue-on-error: true
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: .
+          config_file: .yamllint.yml
+
+      - name: Set YAMLlint status
+        id: yamllint_status
+        run: |
+          if [ "${{ steps.yamllint.outcome }}" = "success" ]; then
+            echo "status=Pass" >> "$GITHUB_OUTPUT"
+            echo "result=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=Fail" >> "$GITHUB_OUTPUT"
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post results comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHELLCHECK_STATUS: ${{ steps.shellcheck_status.outputs.status }}
+          HADOLINT_STATUS: ${{ steps.hadolint_status.outputs.status }}
+          YAMLLINT_STATUS: ${{ steps.yamllint_status.outputs.status }}
+        run: |
+          BODY="## Lint Results
+
+          | Linter | Status |
+          |--------|--------|
+          | ShellCheck | ${SHELLCHECK_STATUS} |
+          | Hadolint | ${HADOLINT_STATUS} |
+          | YAMLlint | ${YAMLLINT_STATUS} |
+
+          [View full logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+          gh api repos/${{ github.repository }}/issues/${{ needs.check-command.outputs.pr_number }}/comments \
+            -X POST -f body="$BODY"
+
+      - name: Set final status
+        id: final_status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHELLCHECK_RESULT: ${{ steps.shellcheck_status.outputs.result }}
+          HADOLINT_RESULT: ${{ steps.hadolint_status.outputs.result }}
+          YAMLLINT_RESULT: ${{ steps.yamllint_status.outputs.result }}
+        run: |
+          if [ "$SHELLCHECK_RESULT" = "ok" ] && [ "$HADOLINT_RESULT" = "ok" ] && [ "$YAMLLINT_RESULT" = "ok" ]; then
+            STATE="success"
+            DESC="All linters passed"
+          else
+            STATE="failure"
+            DESC="Some linters failed"
+          fi
+          echo "state=$STATE" >> "$GITHUB_OUTPUT"
+          gh api repos/${{ github.repository }}/statuses/${{ needs.check-command.outputs.pr_sha }} \
+            -X POST \
+            -f state="$STATE" \
+            -f context='Lint (On-demand)' \
+            -f description="$DESC" \
+            -f target_url='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+      - name: Add success reaction
+        if: always() && steps.final_status.outputs.state == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ needs.check-command.outputs.comment_id }}/reactions \
+            -X POST -f content='+1'
+
+      - name: Add failure reaction
+        if: always() && steps.final_status.outputs.state != 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ needs.check-command.outputs.comment_id }}/reactions \
+            -X POST -f content='-1'
