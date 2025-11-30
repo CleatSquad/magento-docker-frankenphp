@@ -21,6 +21,7 @@ jobs:
       should_run: ${{ steps.check.outputs.should_run }}
       pr_number: ${{ github.event.issue.number }}
       pr_sha: ${{ steps.get-pr.outputs.sha }}
+      comment_id: ${{ github.event.comment.id }}
     steps:
       - name: Check if command is valid
         id: check
@@ -128,6 +129,7 @@ jobs:
         run: docker compose ps
 
       - name: Set final status
+        id: final_status
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -149,12 +151,29 @@ jobs:
             STATE="failure"
             DESC="Some services failed"
           fi
+          echo "state=$STATE" >> "$GITHUB_OUTPUT"
           gh api repos/${{ github.repository }}/statuses/${{ needs.check-command.outputs.pr_sha }} \
             -X POST \
             -f state="$STATE" \
             -f context='Smoke Test (On-demand)' \
             -f description="$DESC" \
             -f target_url='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+      - name: Add success reaction
+        if: always() && steps.final_status.outputs.state == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ needs.check-command.outputs.comment_id }}/reactions \
+            -X POST -f content='+1'
+
+      - name: Add failure reaction
+        if: always() && steps.final_status.outputs.state != 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ needs.check-command.outputs.comment_id }}/reactions \
+            -X POST -f content='-1'
 
       - name: Cleanup
         if: always()

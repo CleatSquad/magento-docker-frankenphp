@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   release:
@@ -53,6 +54,7 @@ jobs:
           cat release_notes.md
 
       - name: Update CHANGELOG.md
+        id: update_changelog
         run: |
           VERSION=${{ steps.version.outputs.version }}
           DATE=${{ steps.version.outputs.date }}
@@ -82,24 +84,48 @@ jobs:
             # Update links at the bottom
             if grep -q "^\[Unreleased\]:" CHANGELOG.md; then
               # Update Unreleased link to compare with new version
-              sed -i "s|\[Unreleased\]:.*|\[Unreleased\]: https://github.com/CleatSquad/magento-frankenphp-template/compare/$VERSION...HEAD|" CHANGELOG.md
+              sed -i "s|\[Unreleased\]:.*|\[Unreleased\]: https://github.com/${{ github.repository }}/compare/$VERSION...HEAD|" CHANGELOG.md
               # Add new version link if not exists
               if ! grep -q "^\[$VERSION\]:" CHANGELOG.md; then
                 PREV_VERSION=$(grep -o "\[v[0-9.]*\]:" CHANGELOG.md | head -1 | tr -d '[]:'  )
                 if [ -n "$PREV_VERSION" ]; then
-                  sed -i "/^\[Unreleased\]:/a [$VERSION]: https://github.com/CleatSquad/magento-frankenphp-template/compare/$PREV_VERSION...$VERSION" CHANGELOG.md
+                  sed -i "/^\[Unreleased\]:/a [$VERSION]: https://github.com/${{ github.repository }}/compare/$PREV_VERSION...$VERSION" CHANGELOG.md
                 fi
               fi
             fi
+            echo "updated=true" >> $GITHUB_OUTPUT
+          else
+            echo "updated=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit CHANGELOG update
+      - name: Create PR for CHANGELOG update
+        if: steps.update_changelog.outputs.updated == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
+          BRANCH_NAME="release/changelog-${VERSION}"
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create branch and commit
+          git checkout -b "$BRANCH_NAME"
           git add CHANGELOG.md
-          git diff --staged --quiet || git commit -m "docs: Update CHANGELOG for ${{ steps.version.outputs.version }}"
-          git push origin main
+          git commit -m "docs: Update CHANGELOG for ${VERSION}"
+          git push origin "$BRANCH_NAME"
+
+          # Create PR
+          gh pr create \
+            --title "docs: Update CHANGELOG for ${VERSION}" \
+            --body "Automated CHANGELOG update for release ${VERSION}.
+
+          This PR updates the CHANGELOG.md to mark the release.
+
+          **Auto-merge:** This PR can be merged automatically." \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --label "skip-release-notes"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1

@@ -1,0 +1,41 @@
+---
+name: PR Welcome Comment
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  welcome:
+    name: Welcome Comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post welcome comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          BODY="👋 Hi @${PR_AUTHOR}! Thanks for your contribution!
+
+          ## Available Bot Commands
+
+          You can use the following commands in PR comments:
+
+          | Command | Description |
+          |---------|-------------|
+          | \`@bot generate-release-note\` | Auto-generate release notes file for this PR |
+          | \`@bot smoke-test\` | Run Docker infrastructure smoke test |
+
+          ## Before Merging
+
+          - [ ] Ensure release notes are created (use \`@bot generate-release-note\` or create \`.release-notes/pr-${PR_NUMBER}.md\` manually)
+          - [ ] All CI checks pass
+
+          The release notes will be automatically added to CHANGELOG.md when this PR is merged."
+
+          gh api repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
+            -X POST -f body="$BODY"
