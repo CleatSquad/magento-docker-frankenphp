@@ -2,7 +2,7 @@
 name: PR Welcome Comment
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened]
     branches:
       - main
