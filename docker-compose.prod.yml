@@ -19,7 +19,7 @@ services:
       - "80:80"
       - "443:443"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:2019/config/", "-o", "/dev/null", "-s"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:2019/config/ -o /dev/null || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

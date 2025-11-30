@@ -48,10 +48,8 @@ RUN rm -rf var/cache/* var/page_cache/* generated/code/* generated/metadata/* pu
         --no-dev \
         --optimize-autoloader \
  && composer dump-autoload --no-dev --optimize --apcu \
- # Backup env.php to avoid database issues during DI compile
  && if [ -f app/etc/env.php ]; then mv app/etc/env.php app/etc/env.php.bak; fi \
  && php -d memory_limit=4G bin/magento setup:di:compile \
- # Create minimal env.php for static content deployment (no external services needed)
  && printf '%s\n' \
         '<?php' \
         'return [' \
@@ -66,7 +64,6 @@ RUN rm -rf var/cache/* var/page_cache/* generated/code/* generated/metadata/* pu
         "    ]," \
         "    'system' => ['default' => ['web' => ['unsecure' => ['base_url' => '${BASE_URL}'], 'secure' => ['base_url' => '${BASE_URL}']]]]," \
         '];' > app/etc/env.php \
- # Deploy static content using direct theme/area specification
  && THEME_ARGS=""; \
     for theme in ${STATIC_CONTENT_THEMES}; do THEME_ARGS="$THEME_ARGS --theme=$theme"; done; \
     php -d memory_limit=4G bin/magento setup:static-content:deploy -f \
