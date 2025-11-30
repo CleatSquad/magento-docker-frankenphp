@@ -174,7 +174,7 @@ jobs:
             echo "pushed=false" >> "$GITHUB_OUTPUT"
             echo "No changes to commit"
           else
-            git commit -m "docs: Generate release notes for PR #${PR_NUMBER}"
+            git commit -m "Generate release notes for PR #${PR_NUMBER}"
             git push origin "$HEAD_REF"
             echo "pushed=true" >> "$GITHUB_OUTPUT"
           fi
