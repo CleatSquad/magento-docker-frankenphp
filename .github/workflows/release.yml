@@ -27,20 +27,30 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
-      - name: Generate release notes from commits
+      - name: Extract release notes from CHANGELOG
         id: release_notes
         run: |
-          VERSION=${{ steps.version.outputs.version }}
+          # Extract content between [Unreleased] and the next version header
+          UNRELEASED_START=$(grep -n "## \[Unreleased\]" CHANGELOG.md | head -1 | cut -d: -f1)
+          NEXT_VERSION_LINE=$(tail -n +$((UNRELEASED_START + 1)) CHANGELOG.md | grep -n "^## \[v" | head -1 | cut -d: -f1)
 
-          # Get the previous tag
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-
-          # Generate release notes from commits
-          if [ -n "$PREV_TAG" ]; then
-            git log --pretty=format:"- %s" $PREV_TAG..HEAD --no-merges > release_notes.md
+          if [ -n "$NEXT_VERSION_LINE" ]; then
+            # Extract lines between [Unreleased] and next version
+            NEXT_VERSION_LINE=$((UNRELEASED_START + NEXT_VERSION_LINE - 1))
+            sed -n "$((UNRELEASED_START + 1)),$((NEXT_VERSION_LINE - 1))p" CHANGELOG.md | sed '/^$/d' > release_notes.md
           else
-            git log --pretty=format:"- %s" --no-merges | head -20 > release_notes.md
+            # No previous version, extract until end of file (excluding links section)
+            LINKS_START=$(grep -n "^\[Unreleased\]:" CHANGELOG.md | head -1 | cut -d: -f1)
+            if [ -n "$LINKS_START" ]; then
+              sed -n "$((UNRELEASED_START + 1)),$((LINKS_START - 1))p" CHANGELOG.md | sed '/^$/d' > release_notes.md
+            else
+              tail -n +$((UNRELEASED_START + 1)) CHANGELOG.md > release_notes.md
+            fi
           fi
+
+          # Show what was extracted
+          echo "Extracted release notes:"
+          cat release_notes.md
 
       - name: Update CHANGELOG.md
         run: |
@@ -49,16 +59,38 @@ jobs:
 
           # Check if version already exists in changelog
           if ! grep -q "## \[$VERSION\]" CHANGELOG.md; then
-            # Create temp file with new entry
+            # Find the [Unreleased] line and replace it while keeping empty section
+            UNRELEASED_LINE=$(grep -n "## \[Unreleased\]" CHANGELOG.md | head -1 | cut -d: -f1)
+            NEXT_VERSION_LINE=$(tail -n +$((UNRELEASED_LINE + 1)) CHANGELOG.md | grep -n "^## \[v" | head -1 | cut -d: -f1)
+
+            if [ -n "$NEXT_VERSION_LINE" ]; then
+              NEXT_VERSION_LINE=$((UNRELEASED_LINE + NEXT_VERSION_LINE))
+            fi
+
+            # Create updated changelog
             {
-              head -n $(grep -n "## \[Unreleased\]" CHANGELOG.md | cut -d: -f1) CHANGELOG.md
+              # Keep header until [Unreleased]
+              head -n $UNRELEASED_LINE CHANGELOG.md
               echo ""
+              # Add new version header with the content that was under [Unreleased]
               echo "## [$VERSION] - $DATE"
-              echo ""
-              cat release_notes.md
-              tail -n +$(($(grep -n "## \[Unreleased\]" CHANGELOG.md | cut -d: -f1) + 1)) CHANGELOG.md
+              # Keep everything from after [Unreleased] onwards
+              tail -n +$((UNRELEASED_LINE + 1)) CHANGELOG.md
             } > CHANGELOG.tmp
             mv CHANGELOG.tmp CHANGELOG.md
+
+            # Update links at the bottom
+            if grep -q "^\[Unreleased\]:" CHANGELOG.md; then
+              # Update Unreleased link to compare with new version
+              sed -i "s|\[Unreleased\]:.*|\[Unreleased\]: https://github.com/CleatSquad/magento-frankenphp-template/compare/$VERSION...HEAD|" CHANGELOG.md
+              # Add new version link if not exists
+              if ! grep -q "^\[$VERSION\]:" CHANGELOG.md; then
+                PREV_VERSION=$(grep -o "\[v[0-9.]*\]:" CHANGELOG.md | head -1 | tr -d '[]:'  )
+                if [ -n "$PREV_VERSION" ]; then
+                  sed -i "/^\[Unreleased\]:/a [$VERSION]: https://github.com/CleatSquad/magento-frankenphp-template/compare/$PREV_VERSION...$VERSION" CHANGELOG.md
+                fi
+              fi
+            fi
           fi
 
       - name: Commit CHANGELOG update
