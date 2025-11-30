@@ -11,6 +11,7 @@ credentials.json
 
 # SSL Certificates
 /conf/ssl/
+!/conf/ssl/.keep
 
 # IDE & Editor
 /.idea
