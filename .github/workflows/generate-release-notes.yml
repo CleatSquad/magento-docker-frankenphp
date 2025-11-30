@@ -151,6 +151,7 @@ jobs:
         run: |
           PR_TITLE="${{ steps.pr.outputs.title }}"
           CHANGED_FILES="${{ steps.changes.outputs.files }}"
+          COMMIT_MESSAGES="${{ steps.commits.outputs.messages }}"
 
           # Determine category based on title and files
           LOWER_TITLE=$(echo "$PR_TITLE" | tr '[:upper:]' '[:lower:]')
@@ -174,12 +175,30 @@ jobs:
           # Escape special characters in title for safe use
           SAFE_TITLE=$(printf '%s' "$PR_TITLE" | sed 's/[&/\]/\\&/g')
 
-          # Generate release notes content
+          # Generate release notes content with all commits
+          # Always overwrite the file with fresh content from all commits
           NOTES="### ${CATEGORY}
 
           - ${SAFE_TITLE}"
 
-          # Save to file for later use
+          # Add commit details if available
+          if [ -n "$COMMIT_MESSAGES" ]; then
+            NOTES="${NOTES}
+
+          #### Commits
+          "
+            # Process each commit message and add as a list item
+            while IFS= read -r line; do
+              if [ -n "$line" ]; then
+                # Extract commit message (remove the short hash prefix)
+                MSG=$(echo "$line" | sed 's/^[a-f0-9]\+ //')
+                NOTES="${NOTES}
+          - ${MSG}"
+              fi
+            done <<< "$COMMIT_MESSAGES"
+          fi
+
+          # Save to file for later use (always overwrite)
           mkdir -p .release-notes
           PR_NUMBER=${{ steps.pr.outputs.number }}
           echo "$NOTES" > ".release-notes/pr-${PR_NUMBER}.md"
