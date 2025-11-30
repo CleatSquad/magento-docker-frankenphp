@@ -5,10 +5,10 @@
 ## Release Notes
 
 <!--
-If this PR should be included in the CHANGELOG, create a file:
-.release-notes/pr-[PR_NUMBER].md
+If this PR should be included in the CHANGELOG, you have two options:
 
-Use the template from .github/RELEASE_NOTES_TEMPLATE.md
+Option 1: Comment "@bot generate-release-note" on this PR to auto-generate the file
+Option 2: Manually create .release-notes/pr-[PR_NUMBER].md using .github/RELEASE_NOTES_TEMPLATE.md
 
 Example content:
 ### Added
@@ -18,7 +18,7 @@ Example content:
 - Bug fix description
 -->
 
-- [ ] I have created `.release-notes/pr-XXX.md` (replace XXX with your PR number after creation)
+- [ ] I have created `.release-notes/pr-XXX.md` (or used `@bot generate-release-note`)
 - [ ] This PR does not need release notes (documentation only, refactoring, etc.)
 
 ## Type of Change

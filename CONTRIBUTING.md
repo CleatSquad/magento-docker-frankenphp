@@ -207,7 +207,18 @@ The project uses GitHub Actions for CI/CD. When you submit a pull request, the f
 
 ### Release Notes
 
-For changes that should appear in the CHANGELOG, create a file `.release-notes/pr-XXX.md` (where XXX is your PR number) with content like:
+For changes that should appear in the CHANGELOG, you have two options:
+
+**Option 1: Auto-generate with bot command**
+
+Comment `@bot generate-release-note` on your PR. The bot will:
+- Analyze your PR title, description, and changed files
+- Generate a `.release-notes/pr-XXX.md` file automatically
+- Commit it to your branch
+
+**Option 2: Create manually**
+
+Create a file `.release-notes/pr-XXX.md` (where XXX is your PR number) with content like:
 
 ```markdown
 ### Added
@@ -220,7 +231,7 @@ For changes that should appear in the CHANGELOG, create a file `.release-notes/p
 - Description of change
 ```
 
-When your PR is merged, the content will be automatically added to CHANGELOG.md under `[Unreleased]`.
+When your PR is merged, the content will be automatically added to CHANGELOG.md under `[Unreleased]`, and the release notes file will be deleted.
 
 **Note**: Skip this step for documentation-only changes, refactoring, or other changes that don't need to be in the changelog.
 
