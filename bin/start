@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # Start Docker containers
-# Usage: bin/start
+# Usage: bin/start [profile]
+# Default profile: dev
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
+
+# Default profile
+PROFILE="${1:-dev}"
 
 # If .env is missing, run bin/setup
 if [ ! -f ".env" ]; then
@@ -29,11 +33,11 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
-echo "🚀 Starting Docker containers..."
-docker compose up -d --remove-orphans "$@"
+echo "🚀 Starting Docker containers (profile: ${PROFILE})..."
+docker compose --profile "${PROFILE}" up -d --remove-orphans
 echo "✅ Containers started successfully!"
 
 # Show status
 echo ""
 echo "📊 Container status:"
-docker compose ps
+docker compose --profile "${PROFILE}" ps

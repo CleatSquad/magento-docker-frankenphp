@@ -36,14 +36,14 @@ Before contributing, ensure you have the following installed:
 2. Clone your fork locally:
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/magento-docker-frankenphp.git
-   cd magento-docker-frankenphp
+   git clone https://github.com/YOUR_USERNAME/magento-frankenphp-template.git
+   cd magento-frankenphp-template
    ```
 
 3. Add the upstream remote:
 
    ```bash
-   git remote add upstream https://github.com/CleatSquad/magento-docker-frankenphp.git
+   git remote add upstream https://github.com/CleatSquad/magento-frankenphp-template.git
    ```
 
 4. Run the setup script:
@@ -66,7 +66,7 @@ We welcome various types of contributions:
 
 ### Contribution Process
 
-1. Check the [issue tracker](https://github.com/CleatSquad/magento-docker-frankenphp/issues) for existing issues
+1. Check the [issue tracker](https://github.com/CleatSquad/magento-frankenphp-template/issues) for existing issues
 2. If you want to work on something new, create an issue first to discuss it
 3. Assign yourself to the issue you want to work on
 4. Create a feature branch from `main`
@@ -185,25 +185,64 @@ Before submitting a pull request, manually test your changes:
 
 4. Test the specific functionality you modified
 
-### Automated Tests
+## Automated Tests
 
 The project uses GitHub Actions for CI/CD. When you submit a pull request, the following checks run automatically:
 
 - Dockerfile linting with hadolint
 - Shell script linting with shellcheck
 - YAML validation
-- Docker image build verification
+- Docker Compose configuration validation
+
+### On-demand Smoke Test
+
+The Docker smoke test (which starts containers and verifies health) is resource-intensive. Instead of running on every PR, you can trigger it on-demand:
+
+Comment `@bot smoke-test` on your PR to run the smoke test. The bot will:
+- Start MariaDB, OpenSearch, Valkey, and RabbitMQ containers
+- Verify each service is healthy
+- Post results as a PR comment with a status table
 
 ## Submitting Changes
 
 ### Pull Request Process
 
 1. Update documentation if your changes affect usage
-2. Update the CHANGELOG.md with your changes under `[Unreleased]`
+2. **Create a release notes file** (see below)
 3. Ensure all CI checks pass
 4. Request a review from maintainers
 5. Address any feedback from reviewers
 6. Once approved, your PR will be merged
+
+### Release Notes
+
+For changes that should appear in the CHANGELOG, you have two options:
+
+**Option 1: Auto-generate with bot command**
+
+Comment `@bot generate-release-note` on your PR. The bot will:
+- Analyze your PR title, description, and changed files
+- Generate a `.release-notes/pr-XXX.md` file automatically
+- Commit it to your branch
+
+**Option 2: Create manually**
+
+Create a file `.release-notes/pr-XXX.md` (where XXX is your PR number) with content like:
+
+```markdown
+### Added
+- Description of new feature
+
+### Fixed
+- Description of bug fix
+
+### Changed
+- Description of change
+```
+
+When your PR is merged, the content will be automatically added to CHANGELOG.md under `[Unreleased]`, and the release notes file will be deleted.
+
+**Note**: Skip this step for documentation-only changes, refactoring, or other changes that don't need to be in the changelog.
 
 ### Pull Request Guidelines
 
@@ -263,6 +302,15 @@ When requesting a feature, include:
 - Use case or problem it solves
 - Any alternative solutions you've considered
 
+## Bot Commands
+
+The following bot commands are available in PR comments:
+
+| Command | Description |
+|---------|-------------|
+| `@bot generate-release-note` | Auto-generate release notes file |
+| `@bot smoke-test` | Run Docker smoke test on-demand |
+
 ## Questions?
 
 If you have questions about contributing, feel free to:
@@ -271,4 +319,4 @@ If you have questions about contributing, feel free to:
 - Create an issue with the `question` label
 - Contact the maintainer at contact@cleatsquad.dev
 
-Thank you for contributing! 🎉
+Thank you for contributing!

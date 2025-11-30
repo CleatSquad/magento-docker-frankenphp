@@ -121,7 +121,7 @@ Run the setup-ssl script to generate trusted certificates:
 This script:
 - Installs the mkcert CA on your system (trusted by browsers)
 - Generates SSL certificates for your domain
-- Places them in `conf/ssl/` directory
+- Places them in `docker/conf/ssl/` directory
 
 After running, update your docker-compose.yml:
 
@@ -131,7 +131,7 @@ app:
     SERVER_NAME: magento.localhost
     CADDY_TLS_CONFIG: "/etc/caddy/ssl/magento.localhost.pem /etc/caddy/ssl/magento.localhost-key.pem"
   volumes:
-    - ./conf/ssl:/etc/caddy/ssl:ro
+    - ./docker/conf/ssl:/etc/caddy/ssl:ro
     - ./src:/var/www/html
 ```
 
@@ -337,27 +337,27 @@ Here's a complete example of a custom Caddyfile template:
 
 ### Caddy Documentation
 
-- 📚 [Caddyfile Concepts](https://caddyserver.com/docs/caddyfile/concepts)
-- 📚 [Caddyfile Directives](https://caddyserver.com/docs/caddyfile/directives)
-- 📚 [Caddy Placeholders](https://caddyserver.com/docs/caddyfile/concepts#placeholders)
-- 📚 [TLS Configuration](https://caddyserver.com/docs/caddyfile/directives/tls)
-- 📚 [Automatic HTTPS](https://caddyserver.com/docs/automatic-https)
+- [Caddyfile Concepts](https://caddyserver.com/docs/caddyfile/concepts)
+- [Caddyfile Directives](https://caddyserver.com/docs/caddyfile/directives)
+- [Caddy Placeholders](https://caddyserver.com/docs/caddyfile/concepts#placeholders)
+- [TLS Configuration](https://caddyserver.com/docs/caddyfile/directives/tls)
+- [Automatic HTTPS](https://caddyserver.com/docs/automatic-https)
 
 ### FrankenPHP Documentation
 
-- 📚 [FrankenPHP Documentation](https://frankenphp.dev/docs/)
-- 📚 [FrankenPHP Configuration](https://frankenphp.dev/docs/config/)
-- 📚 [Worker Mode](https://frankenphp.dev/docs/worker/)
+- [FrankenPHP Documentation](https://frankenphp.dev/docs/)
+- [FrankenPHP Configuration](https://frankenphp.dev/docs/config/)
+- [Worker Mode](https://frankenphp.dev/docs/worker/)
 
 ### mkcert Documentation
 
-- 📚 [mkcert GitHub](https://github.com/FiloSottile/mkcert)
-- 📚 [mkcert Installation](https://github.com/FiloSottile/mkcert#installation)
+- [mkcert GitHub](https://github.com/FiloSottile/mkcert)
+- [mkcert Installation](https://github.com/FiloSottile/mkcert#installation)
 
 ### Magento 2 Resources
 
-- 📚 [Magento 2 DevDocs](https://developer.adobe.com/commerce/docs/)
-- 📚 [Magento Security Best Practices](https://experienceleague.adobe.com/docs/commerce-operations/implementation-playbook/best-practices/launch/security-best-practices.html)
+- [Magento 2 DevDocs](https://developer.adobe.com/commerce/docs/)
+- [Magento Security Best Practices](https://experienceleague.adobe.com/docs/commerce-operations/implementation-playbook/best-practices/launch/security-best-practices.html)
 
 ---
 

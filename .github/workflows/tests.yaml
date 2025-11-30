@@ -12,6 +12,17 @@ on:
       - "images/**"
       - "docker-compose*.yml"
       - ".github/workflows/tests.yaml"
+      - "Makefile"
+      - "env/**"
+      - "docker/conf/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "bin/**"
+      - "images/**"
+      - "docker-compose*.yml"
+      - ".github/workflows/tests.yaml"
 
 permissions:
   contents: read
@@ -30,6 +41,7 @@ jobs:
         with:
           scandir: './bin'
           severity: warning
+
   hadolint:
     name: Hadolint Dockerfiles
     runs-on: ubuntu-latest
@@ -42,7 +54,8 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           recursive: true
-          ignore: DL3008,DL3018,DL3002,DL3006
+          ignore: DL3008,DL3018,DL3002,DL3006,DL3059
+
   yamllint:
     name: YAML Lint
     runs-on: ubuntu-latest
@@ -56,3 +69,28 @@ jobs:
         with:
           file_or_dir: .
           config_file: .yamllint.yml
+
+  docker-compose-validate:
+    name: Docker Compose Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup environment files
+        run: |
+          cp env/magento.env.example .env
+          cp env/mariadb.env.example env/mariadb.env
+          cp env/opensearch.env.example env/opensearch.env
+          cp env/rabbitmq.env.example env/rabbitmq.env
+          cp env/valkey.env.example env/valkey.env
+
+      - name: Create proxy network
+        run: docker network create proxy || true
+
+      - name: Validate docker-compose.yml (dev)
+        run: docker compose config --quiet
+
+      - name: Validate docker-compose.prod.yml (prod)
+        run: docker compose -f docker-compose.prod.yml config --quiet

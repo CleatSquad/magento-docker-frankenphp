@@ -1,0 +1,162 @@
+---
+name: Smoke Test (On-demand)
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-command:
+    name: Check Command
+    runs-on: ubuntu-latest
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@bot smoke-test')
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      pr_ref: ${{ steps.get-pr.outputs.ref }}
+    steps:
+      - name: Check if command is valid
+        id: check
+        run: echo "should_run=true" >> "$GITHUB_OUTPUT"
+
+      - name: Get PR ref
+        id: get-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_REF=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }} --jq '.head.ref')
+          echo "ref=$PR_REF" >> "$GITHUB_OUTPUT"
+
+      - name: React to comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -X POST -f content='rocket'
+
+  smoke-test:
+    name: Run Smoke Test
+    runs-on: ubuntu-latest
+    needs: check-command
+    if: needs.check-command.outputs.should_run == 'true'
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.check-command.outputs.pr_ref }}
+          persist-credentials: false
+
+      - name: Setup environment files
+        run: |
+          cp env/magento.env.example .env
+          cp env/mariadb.env.example env/mariadb.env
+          cp env/opensearch.env.example env/opensearch.env
+          cp env/rabbitmq.env.example env/rabbitmq.env
+          cp env/valkey.env.example env/valkey.env
+
+      - name: Create proxy network
+        run: docker network create proxy || true
+
+      - name: Create src directory
+        run: mkdir -p src && touch src/.keep
+
+      - name: Start infrastructure services
+        run: |
+          docker compose up -d mariadb opensearch valkey rabbitmq
+          echo "Waiting for services to be healthy..."
+          sleep 30
+
+      - name: Check MariaDB health
+        id: mariadb
+        run: |
+          if docker compose exec -T mariadb healthcheck.sh --connect --innodb_initialized; then
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          else
+            docker compose logs mariadb
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check Valkey health
+        id: valkey
+        run: |
+          if docker compose exec -T valkey valkey-cli ping; then
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          else
+            docker compose logs valkey
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check RabbitMQ health
+        id: rabbitmq
+        run: |
+          if docker compose exec -T rabbitmq rabbitmq-diagnostics -q ping; then
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          else
+            docker compose logs rabbitmq
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check OpenSearch health
+        id: opensearch
+        run: |
+          if docker compose exec -T opensearch curl -s http://localhost:9200/_cluster/health | grep -q '"status"'; then
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          else
+            docker compose logs opensearch
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Show running containers
+        run: docker compose ps
+
+      - name: Post results comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MARIADB_STATUS: ${{ steps.mariadb.outputs.status }}
+          VALKEY_STATUS: ${{ steps.valkey.outputs.status }}
+          RABBITMQ_STATUS: ${{ steps.rabbitmq.outputs.status }}
+          OPENSEARCH_STATUS: ${{ steps.opensearch.outputs.status }}
+        run: |
+          # Determine overall status
+          if [ "$MARIADB_STATUS" = "ok" ] && [ "$VALKEY_STATUS" = "ok" ] && \
+             [ "$RABBITMQ_STATUS" = "ok" ] && [ "$OPENSEARCH_STATUS" = "ok" ]; then
+            OVERALL="All services healthy"
+            EMOJI="white_check_mark"
+          else
+            OVERALL="Some services failed"
+            EMOJI="x"
+          fi
+
+          # Build status icons
+          get_icon() {
+            if [ "$1" = "ok" ]; then echo ":white_check_mark:"; else echo ":x:"; fi
+          }
+
+          MARIADB_ICON=$(get_icon "$MARIADB_STATUS")
+          VALKEY_ICON=$(get_icon "$VALKEY_STATUS")
+          RABBITMQ_ICON=$(get_icon "$RABBITMQ_STATUS")
+          OPENSEARCH_ICON=$(get_icon "$OPENSEARCH_STATUS")
+
+          COMMENT="## Smoke Test Results :$EMOJI:
+
+          | Service | Status |
+          |---------|--------|
+          | MariaDB | $MARIADB_ICON |
+          | Valkey | $VALKEY_ICON |
+          | RabbitMQ | $RABBITMQ_ICON |
+          | OpenSearch | $OPENSEARCH_ICON |
+
+          **Result:** $OVERALL
+
+          [View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+          gh pr comment ${{ github.event.issue.number }} --body "$COMMENT"
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v --remove-orphans

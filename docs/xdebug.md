@@ -83,7 +83,7 @@ services:
      - **Host**: `magento.localhost`
      - **Port**: `443`
      - **Debugger**: `Xdebug`
-     - **Use path mappings**: ✅ Yes
+     - **Use path mappings**: Yes
      - Map `/var/www/html` → your local `src/` directory
 
 3. **Start Listening**
@@ -198,10 +198,10 @@ For advanced settings not covered by environment variables, mount a custom `xdeb
 services:
   app:
     volumes:
-      - ./conf/xdebug.ini:/usr/local/etc/php/conf.d/zz-xdebug.ini:ro
+      - ./docker/conf/xdebug.ini:/usr/local/etc/php/conf.d/zz-xdebug.ini:ro
 ```
 
-Create `conf/xdebug.ini`:
+Create `docker/conf/xdebug.ini`:
 
 ```ini
 xdebug.mode = debug

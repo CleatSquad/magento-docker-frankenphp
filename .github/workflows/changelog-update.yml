@@ -1,0 +1,114 @@
+---
+name: Update CHANGELOG on PR merge
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  update-changelog:
+    name: Update CHANGELOG
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Check for release notes file
+        id: check_notes
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          NOTES_FILE=".release-notes/pr-${PR_NUMBER}.md"
+
+          if [ -f "$NOTES_FILE" ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "file=$NOTES_FILE" >> $GITHUB_OUTPUT
+            echo "Release notes found: $NOTES_FILE"
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "No release notes file found for PR #${PR_NUMBER}"
+          fi
+
+      - name: Update CHANGELOG.md
+        if: steps.check_notes.outputs.found == 'true'
+        run: |
+          NOTES_FILE="${{ steps.check_notes.outputs.file }}"
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+
+          # Read release notes content (skip comment lines)
+          RELEASE_CONTENT=$(grep -v "^<!--" "$NOTES_FILE" | grep -v "^-->" | grep -v "^Example:" | sed '/^$/N;/^\n$/d')
+
+          if [ -z "$RELEASE_CONTENT" ]; then
+            echo "Release notes file is empty or contains only comments"
+            exit 0
+          fi
+
+          # Check if [Unreleased] section exists
+          if ! grep -q "## \[Unreleased\]" CHANGELOG.md; then
+            # Add [Unreleased] section after the header
+            HEADER_END=$(grep -n "^##" CHANGELOG.md | head -1 | cut -d: -f1)
+            if [ -z "$HEADER_END" ]; then
+              # No sections yet, add after line 7 (after header comments)
+              {
+                head -n 7 CHANGELOG.md
+                echo ""
+                echo "## [Unreleased]"
+                echo ""
+                tail -n +8 CHANGELOG.md
+              } > CHANGELOG.tmp
+            else
+              # Add before first section
+              {
+                head -n $((HEADER_END - 1)) CHANGELOG.md
+                echo "## [Unreleased]"
+                echo ""
+                tail -n +$HEADER_END CHANGELOG.md
+              } > CHANGELOG.tmp
+            fi
+            mv CHANGELOG.tmp CHANGELOG.md
+          fi
+
+          # Find [Unreleased] line
+          UNRELEASED_LINE=$(grep -n "## \[Unreleased\]" CHANGELOG.md | head -1 | cut -d: -f1)
+
+          # Insert release notes after [Unreleased]
+          {
+            head -n $UNRELEASED_LINE CHANGELOG.md
+            echo ""
+            echo "$RELEASE_CONTENT"
+            echo ""
+            echo "_From PR #${PR_NUMBER}: ${PR_TITLE}_"
+            tail -n +$((UNRELEASED_LINE + 1)) CHANGELOG.md
+          } > CHANGELOG.tmp
+          mv CHANGELOG.tmp CHANGELOG.md
+
+          echo "CHANGELOG.md updated with release notes from PR #${PR_NUMBER}"
+
+      - name: Remove release notes file
+        if: steps.check_notes.outputs.found == 'true'
+        run: |
+          NOTES_FILE="${{ steps.check_notes.outputs.file }}"
+          rm -f "$NOTES_FILE"
+
+          # Remove .release-notes directory if empty
+          if [ -d ".release-notes" ] && [ -z "$(ls -A .release-notes)" ]; then
+            rmdir .release-notes
+          fi
+
+      - name: Commit and push changes
+        if: steps.check_notes.outputs.found == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --staged --quiet || git commit -m "docs: Update CHANGELOG from PR #${{ github.event.pull_request.number }}"
+          git push origin main

@@ -15,8 +15,12 @@ This guide walks you through setting up a Magento 2 development environment usin
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/CleatSquad/magento-docker-frankenphp.git
-cd magento-docker-frankenphp
+# Option 1: Use as template (recommended)
+# Click "Use this template" on GitHub, then clone your repo
+
+# Option 2: Clone directly
+git clone https://github.com/CleatSquad/magento-frankenphp-template.git
+cd magento-frankenphp-template
 ```
 
 ### 2. Run the Setup Script
@@ -26,10 +30,24 @@ cd magento-docker-frankenphp
 ```
 
 This script will:
-- ✅ Create the `proxy` Docker network
-- ✅ Copy environment files from templates
-- ✅ Set your user ID/GID for proper file permissions
-- ✅ Auto-generate SSL certificates (if `SERVER_NAME` is set)
+- Create the `proxy` Docker network
+- Copy environment files from templates (env/*.example → env/*.env)
+- Create `.env` from `env/magento.env.example`
+- Set your user ID/GID for proper file permissions
+- Auto-generate SSL certificates (if `SERVER_NAME` is set)
+
+### 3. (Optional) Edit Environment Settings
+
+```bash
+# Edit .env with your settings
+nano .env
+```
+
+This script will:
+- Create the `proxy` Docker network
+- Copy environment files from templates
+- Set your user ID/GID for proper file permissions
+- Auto-generate SSL certificates (if `SERVER_NAME` is set)
 
 ### 3. Start Containers
 
@@ -145,7 +163,7 @@ bin/magento cache:flush
 ```
 magento-docker-frankenphp/
 ├── bin/                    # CLI tools
-├── conf/                   # Configuration files
+├── docker/conf/                   # Configuration files
 ├── docs/                   # Documentation
 ├── env/                    # Environment templates
 ├── examples/               # Deployment examples
@@ -161,6 +179,6 @@ magento-docker-frankenphp/
 ## Next Steps
 
 - [Configure environment variables](configuration.md)
-- [Learn the CLI tools](CLI.md)
+- [Learn the CLI tools](cli.md)
 - [Setup Xdebug](xdebug.md)
 - [Deploy to production](../examples/production-dockerfile.md)

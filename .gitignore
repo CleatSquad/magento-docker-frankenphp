@@ -1,6 +1,63 @@
+# Environment & Secrets
 /.env
-/.idea
-/src/
-!/src/.keep
+/.env.*
 /env/*.env
-/conf/ssl/
+/env/*.local
+*.secret
+*.secrets
+auth.json
+credentials.json
+
+# SSL Certificates
+/docker/conf/ssl/
+!/docker/conf/ssl/.keep
+
+# IDE & Editor
+/.idea
+/.vscode
+*.swp
+*.swo
+*~
+.project
+.settings/
+.classpath
+*.sublime-*
+
+# Magento Source (User's project inside src/)
+/src/*
+!/src/.keep
+
+# Database Dumps & Backups
+dumps/
+*.sql
+*.sql.gz
+*.dump
+*.bak
+backups/
+
+# Logs
+*.log
+logs/
+
+# OS Generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Cache
+.cache/
+.tmp/
+tmp/

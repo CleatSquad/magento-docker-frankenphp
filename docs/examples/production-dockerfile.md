@@ -68,7 +68,7 @@ Use the build script for automated production builds (inspired by ECE-Tools):
 
 ```bash
 # 1. Create your build configuration (copy from template)
-cp env/build.yaml.example build.yaml
+cp docker/conf/build.yaml.example build.yaml
 
 # PHP configuration is already optimized in the base image
 # You can override by mounting custom config files if needed
@@ -162,7 +162,7 @@ Available build arguments:
 - `SCD_THREADS` - Number of parallel threads (default: 5)
 - `SCD_STRATEGY` - Deployment strategy: compact, quick, standard (default: "compact")
 
-For a reference configuration file inspired by Adobe ECE-Tools, see `env/build.yaml.example`.
+For a reference configuration file inspired by Adobe ECE-Tools, see `docker/conf/build.yaml.example`.
 
 ## Kubernetes Deployment
 
